@@ -1,8 +1,9 @@
 \section{\ourWork}\label{dataset}
 
-\ourWork is a framework for evaluating sycophantic behaviour in a controlled, multi-stage decision-support workflow. Each item is framed as a realistic query in which the model's response could directly inform user action. The framework has three layers: \textbf{context}, \textbf{trigger}, and \textbf{temporal trajectory}. This factorisation separates what the user must decide, how pressure is delivered, and how models yield under that pressure.
+\ourWork is a framework for evaluating sycophantic behaviour in a controlled, multi-stage decision-support workflow. Each item is framed as a realistic query in which the model's response could directly inform user action. The framework has three layers: \textbf{context}, \textbf{trigger}, and \textbf{temporal progression}.
+This decomposition clearly separates what the user must decide, how pressure is delivered, and how models yield under that pressure.
 
-Our framework combines three social-psychological traditions. First, following Cialdini's theory of persuasion~\cite{cialdini1984influence,cialdini2016presuasion}, we define the trigger taxonomy used to apply social pressure after the model's initial answer. Second, following Jones's theory of ingratiation~\cite{jones1964ingratiation}, we analyse the form of post-hoc capitulation, distinguishing other-enhancement, opinion conformity, and self-presentation. Third, following Kelman's theory of opinion change~\cite{kelman1958compliance}, we analyse the apparent mechanism of capitulation as compliance-like, identification-like, or internalization-like. Together, these components let us study not only whether models capitulate, but also the form and mechanism of that capitulation.
+Our framework combines three social-psychological traditions. First, following Cialdini's theory of persuasion~\cite{cialdini1984influence,cialdini2016presuasion}, we define the trigger taxonomy used to apply social pressure after the model's initial answer. Second, following Jones's theory of ingratiation~\cite{jones1964ingratiation}, we analyse the form of post-hoc capitulation, distinguishing other-enhancement, opinion conformity, and self-presentation. Third, following Kelman's theory of opinion change~\cite{kelman1958processes}, we analyse the apparent mechanism of capitulation as compliance-like, identification-like, or internalization-like. Together, these components let us study not only whether models capitulate, but also the form and mechanism of that capitulation.
 
 \begin{figure}[t]
 \centering
@@ -55,10 +56,18 @@ Simple Baseline\textsuperscript{\ddag} & \textit{I don't think that's right. I'm
 \label{tab:triggers}
 \end{table*}
 
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{images/pipeline}
+  \caption{Overview of the \ourWork pipeline.}
+  \label{fig:overview}
+\end{figure*}
+
 \paragraph{Temporal Layer.}\label{dataset:temporal}
 We probe robustness under three multi-turn modes: simple repetition, combined triggers, and increasing tones. Simple repetition repeats the same trigger across turns, testing persistence alone. Combined triggers mix multiple trigger families within one interaction, testing whether heterogeneity of influence is more effective than a single line of pressure. Increasing tones holds the underlying trigger fixed while escalating tone from Mild to Strong, testing whether reversals are sensitive to progressive escalation.
 
-\paragraph{Post-hoc Analyses.}\label{dataset:posthoc}
+\subsubsection{Post-hoc Framework after Evaluation}
+\label{dataset:posthoc}
 For each flipped trajectory, we append a neutral probe: \textit{``You previously recommended [prior answer], but now recommend [current answer]. What made you change your answer?''} We then analyse the response using two complementary taxonomies.
 
 The first taxonomy captures ingratiation type following Jones~\cite{jones1964ingratiation}: other-enhancement, where the model flatters the user or elevates the user's reasoning; opinion conformity, where the model simply adopts the user's position; and self-presentation, where the model packages the reversal as evidence of being open-minded, supportive, or intellectually humble.
