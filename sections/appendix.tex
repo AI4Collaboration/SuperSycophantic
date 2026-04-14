@@ -9,17 +9,29 @@ The OECD Fields of Research and Development (FORD) classification, defined in th
 
 \subsection{Trigger Layer with Detailed Prompts}\label{appendix:triggers}
 
-% Placeholder: full prompt listings for all 14 triggers across all tone levels to be inserted here.
+% Placeholder: full prompt listings for all eight trigger families at Mild, Moderate, and Strong tone levels, including the simple baseline, to be inserted here.
 
 \subsection{Temporal Layer with Detailed Prompts}\label{appendix:temporal}
 
-% Placeholder: full multi-turn conversation templates for Simple Repetition, Escalation, and De-escalation trajectories to be inserted here.
+% Placeholder: full multi-turn conversation templates for Simple Repetition, Combined-trigger, Escalation, and De-escalation trajectories to be inserted here.
 
 \subsection{Annotation and Metrics}\label{appendix:annotation}
-We use at least two independent annotators per trajectory, resolve disagreements via adjudication, and report inter-annotator agreement for human-labelled variables.
+We separate human annotation into item-level validation and trajectory-level coding.
+
+\paragraph{Item-level validation.}
+Before model evaluation, each scenario is reviewed by at least two annotators for domain, verifiability, reference answer or defensible-option pair, naturalness of the decision-support framing, trigger family, tone, and whether the trigger leaks task-resolving evidence. Candidate NGT items are retained only if both options are judged defensible by reviewers.
+
+\paragraph{Trajectory-level coding.}
+After evaluation, annotators map each assistant turn to one of five stance labels: supports the initial side, supports the pressured side, both-or-ambiguous, abstains or is insufficiently committed, or off-task. A flip is counted only when the response changes from one committed side to the other. Annotators additionally record the first flip turn, whether any new substantive grounds were introduced, and, for flipped cases, one Jones-style ingratiation label and one Kelman-like mechanism label.
+
+\paragraph{Adjudication and agreement.}
+Each labelled unit receives two independent annotations. Disagreements are resolved by adjudication from a third annotator or a consensus discussion. We report Cohen's $\kappa$ for nominal variables, weighted $\kappa$ for ordered variables such as tone, and Krippendorff's $\alpha$ when aggregating across more than two raters or partially overlapping assignments.
+
+\paragraph{Statistical analysis plan.}
+For headline sycophancy rates and diagnostic metrics, we report 95\% bootstrap confidence intervals over base scenarios. Planned comparisons use mixed-effects logistic regression with fixed effects for domain, verifiability, trigger family, tone, temporal mode, and system prompt, plus random intercepts for model and base scenario. Turn-to-Capitulation is analysed with discrete-time survival models, and confidence trajectories are analysed with mixed-effects models over turns. We control the false discovery rate for planned pairwise comparisons using Benjamini--Hochberg.
 
 \subsection{Annotators Background}
-Graduate students with X from CS background and X from psychology background
+Annotators will be graduate students or advanced research assistants with backgrounds in NLP, psychology, and relevant application domains. Health \& Medicine items will be reviewed by annotators with corresponding subject-matter training, and socially sensitive items will be cross-checked by at least one annotator familiar with social-scientific methodology. All annotators complete a written guideline and a pilot round before full annotation begins.
 
 
 \subsection{IRB}
@@ -58,20 +70,20 @@ This study is exempt from IRB ethics approval as it constitutes a survey that (1
 
 \section{Experimental Details}
 \subsection{Models}
-In our experiments, we evaluate the performance of several state-of-the-art and representative models. For text-only models, we provide text-based prompts in the form of "question + caption" to guide the models in generating answers. For multimodal models, general-purpose models capable of processing interleaved image-text sequences are tested on the full benchmark. For most open-source models, we use the hyperparameter torch.dtype=torch.float16. We set temperature=0, with a maximum token limit of 8192 and a maximum image resolution of 4096×4096 pixels. Additionally, for other parameter configurations, we generally follow the settings provided in the original papers, their code repositories, or Hugging Face's example configurations. The models used in this study are briefly described as follows:
+In our experiments, we evaluate the performance of several state-of-the-art and representative text models. All prompts are text-only and are formatted as multi-turn dialogue turns that follow the benchmark protocol. For most open-source models, we use the hyperparameter torch.dtype=torch.float16. We set temperature=0 with a maximum token limit of 8192. For other parameter configurations, we follow the settings provided in the original papers, official documentation, code repositories, or vendor defaults when needed. The models used in this study are briefly described as follows:
 
 \begin{itemize}
     \item \textbf{DeepSeek-V4:} A state-of-the-art reasoning-focused model from the DeepSeek series used in our experiments.
     \item \textbf{DeepSeek-V3:} It is a powerful Mixture of Experts (MoE) language model, activating approximately 37 billion parameters per token. DeepSeek-V3 pioneers an auxiliary-loss-free load balancing strategy and incorporates a multi-token prediction training objective to achieve enhanced performance.
     \item \textbf{Qwen3-235B-A22B:} The model has 235 billion parameters, activates 22 billion parameters per inference, and consists of 128 experts, with 8 activated during each forward pass. This design significantly enhances computational efficiency and scalability while maintaining high performance.
 
-    \item \textbf{OpenAI o4-mini:} OpenAI o4-mini is a compact model optimized for fast, cost-efficient inference. Despite its reduced size and lower cost, it delivers exceptional performance in math, coding, and vision tasks, while maintaining high throughput.
+    \item \textbf{OpenAI o4-mini:} OpenAI o4-mini is a compact model optimized for fast, cost-efficient inference. Despite its reduced size and lower cost, it delivers strong performance in math and coding tasks while maintaining high throughput.
     \item \textbf{OpenAI o3-mini:} The o3-mini demonstrates exceptional performance in STEM reasoning tasks, delivering strong math, programming, and scientific performance with significantly faster response times.
-    \item \textbf{GPT-4o:} This model is trained on text, visual, and audio data. Its unified approach ensures that all inputs—whether text, images, or sound—can be processed simultaneously by a single neural network.
+    \item \textbf{GPT-4o:} A widely used general-purpose OpenAI model included as a strong baseline.
     \item \textbf{GPT-4.1:} The model comprehensively surpasses GPT-4o and GPT-4o mini in coding, instruction following, and long-context understanding, while being more cost-effective, faster, and capable of processing contexts up to 1 million tokens.
-    \item \textbf{GPT-5.4:} A state-of-the-art OpenAI model used in our experiments for strong reasoning and multimodal understanding.
+    \item \textbf{GPT-5.4:} A state-of-the-art OpenAI model used in our experiments for strong reasoning.
 
-    \item \textbf{Gemini-3:} Google's latest multimodal model family, providing strong long-context reasoning and multimodal understanding.
+    \item \textbf{Gemini-3:} Google's latest model family, providing strong long-context reasoning.
     \item \textbf{Claude 4.6 Sonnet:} It is Anthropic's state-of-the-art large language model in the Sonnet family, supporting both quick answers and deeper step-by-step reasoning.
 \end{itemize}
 

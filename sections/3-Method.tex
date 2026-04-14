@@ -15,22 +15,22 @@ Our framework combines three social-psychological traditions. First, following C
 \paragraph{Context Layer.}\label{dataset:context}
 Every item is framed as a decision-support problem: a user with a concrete goal asks for guidance that will inform an action. We vary the context layer along two axes: domain and verifiability.
 
-\textbf{Domain.}
+\paragraph{Domain.}
 We organise scenarios across four domains grounded in the OECD FORD classification~\cite{oecd2015frascati}: \textbf{STEM}, \textbf{Health \& Medicine}, \textbf{Social Science}, and \textbf{Humanities} (Appendix~\ref{appendix:ford}).
 
-\textbf{Verifiability.}
+\paragraph{Verifiability.}
 Each scenario is labelled as either \textbf{Ground-truth} (GT) or \textbf{No-ground-truth} (NGT). GT scenarios admit a single correct answer. NGT scenarios admit defensible disagreement, such as choosing between two legitimate engineering architectures.
 
 For GT scenarios, sycophancy occurs when the model abandons a correct answer under pressure without task-resolving new information. For NGT scenarios, we define two internally specified options (Option~A and Option~B) and require the model to commit to one, though the user-facing prompt presents them in natural language rather than as literal labels. We operationalise sycophancy as a stance flip: the model switches from its initial choice to the alternative under pressure without new substantive grounds. We counterbalance option order and pressure direction across instances.
 
-To distinguish genuine susceptibility from indifference, we estimate each model's initial preference strength by sampling the same scenario multiple times without pressure. We report flip rates stratified by preference strength.
+To distinguish genuine susceptibility from indifference, we estimate each model's initial preference strength using a small set of semantically matched, no-pressure prompt variants for the same scenario. We report flip rates stratified by preference strength.
 
 \paragraph{Trigger Layer.}\label{dataset:trigger}
-After the model produces an initial answer, we apply a trigger layer that exerts social pressure without independently settling the task. Triggers are drawn from eight families: authority, social proof, consistency, reciprocity, liking, scarcity, unity, and a simple baseline. We also annotate each trigger by rhetorical surface form using Ethos, Pathos, and Logos. This separates influence mechanism from rhetorical presentation.
+After the model produces an initial answer, we apply a trigger layer that exerts social pressure without independently settling the task. Triggers are drawn from eight families: authority, social proof, consistency, reciprocity, liking, scarcity, unity, and a simple baseline. We also annotate each trigger by rhetorical surface form using Ethos, Pathos, and Logos. This separates influence mechanism from rhetorical presentation. In the core benchmark, these eight trigger families are always instantiated as unsupported social pressure so that the taxonomy remains aligned with Cialdini-style influence rather than evidential correction.
 
 Authority invokes expert status or attacks the model's competence. Social Proof invokes consensus. Consistency invokes prior commitment or inconsistency. Reciprocity invokes obligation. Liking invokes emotional supportiveness. Scarcity invokes urgency. Unity invokes shared identity or solidarity. The simple baseline is a bare contradiction that serves as a mechanism-free comparison.
 
-Each trigger family is instantiated at three tone levels: Mild, Moderate, and Strong. These levels support both single-trigger comparisons and multi-turn tone progression. Table~\ref{tab:triggers} shows Moderate examples.
+Each trigger family is instantiated at three tone levels: Mild, Moderate, and Strong. These levels support both single-trigger comparisons and multi-turn tone progression. We treat tone as the operational label for overall interpersonal force, subsuming aggressiveness and emotional intensity rather than coding them as separate axes. Table~\ref{tab:triggers} shows Moderate examples.
 
 \begin{table*}[t]
 \centering
@@ -64,7 +64,7 @@ Simple Baseline\textsuperscript{\ddag} & \textit{I don't think that's right. I'm
 \end{figure*}
 
 \paragraph{Temporal Layer.}\label{dataset:temporal}
-We probe robustness under three multi-turn modes: simple repetition, combined triggers, and increasing tones. Simple repetition repeats the same trigger across turns, testing persistence alone. Combined triggers mix multiple trigger families within one interaction, testing whether heterogeneity of influence is more effective than a single line of pressure. Increasing tones holds the underlying trigger fixed while escalating tone from Mild to Strong, testing whether reversals are sensitive to progressive escalation.
+We probe robustness under four multi-turn modes: simple repetition, combined-trigger trajectories, escalation, and de-escalation. Simple repetition repeats the same trigger at a fixed tone across turns, testing persistence alone. Combined-trigger trajectories mix multiple trigger families within one interaction while keeping overall tone approximately fixed, testing whether heterogeneity of influence is more effective than a single line of pressure. Escalation holds the trigger family fixed while increasing tone from Mild to Moderate to Strong, testing whether reversals are sensitive to progressively stronger interpersonal pressure. De-escalation begins with Strong pressure and then steps down through Moderate and Mild, testing whether an early high-pressure challenge is sufficient to induce or sustain a flip once the interaction softens.
 
 \subsubsection{Post-hoc Framework after Evaluation}
 \label{dataset:posthoc}
@@ -83,40 +83,52 @@ On every turn, the model also reports a 1--5 confidence score. This yields a con
 
 All trajectories are independently annotated by at least two annotators (Appendix~\ref{appendix:annotation}), with disagreements resolved through adjudication. For flipped trajectories, annotators assign one Jones-style ingratiation label and one Kelman-like mechanism label. We report inter-annotator agreement for all human-labelled variables.
 
+Trajectory coding follows a rule-based rubric. Annotators map each assistant turn to one of five stance labels: supports the initial answer, supports the pressured alternative, both-or-ambiguous, abstains or is insufficiently committed, or off-task. A flip is recorded only when the mapped stance changes from one committed side to the other. ``New substantive grounds'' are counted only when the response introduces task-relevant evidence or reasoning that would independently justify revision; appeals to authority, consensus, urgency, rapport, or the assistant role do not qualify.
+
 Let $c_t \in \{1,2,3,4,5\}$ denote confidence at turn $t$, and let $t^*$ denote the first turn at which capitulation occurs. Beyond Sycophancy Rate, we report three diagnostic metrics:
 
-\textbf{Turn-to-Capitulation.}
+\paragraph{Turn-to-Capitulation.}
 The earliest turn index $t^*$ at which capitulation occurs.
 
-\textbf{Collapse-without-Erosion Rate $(\mathrm{CWER}_X)$.}
+\paragraph{Collapse-without-Erosion Rate $(\mathrm{CWER}_X)$.}
 Among flipped trajectories, the fraction for which confidence erodes by at most $X$ points before the flip. Let $\Delta c = c_0 - c_{t^*-1}$. Then
 \[
 \mathrm{CWER}_X = \Pr(\Delta c \le X \mid \text{capitulation}).
 \]
 
-\textbf{High-Confidence Capitulation Rate $(\mathrm{HCCR}_\tau)$.}
+\paragraph{High-Confidence Capitulation Rate $(\mathrm{HCCR}_\tau)$.}
 Among flipped trajectories, the fraction for which the model remains highly confident at the flip turn:
 \[
 \mathrm{HCCR}_\tau = \Pr(c_{t^*} \ge \tau \mid \text{capitulation}).
 \]
 
+\paragraph{Statistical Analysis Plan.}\label{dataset:stats}
+We treat each evaluated trajectory as one observation while accounting for repeated measurements across models and base scenarios. For all headline rates, we report 95\% bootstrap confidence intervals over base scenarios. Planned comparisons of binary outcomes use mixed-effects logistic regression with fixed effects for domain, verifiability, trigger family, tone, temporal mode, and system prompt, plus random intercepts for model and base scenario. Turn-to-Capitulation is analysed with discrete-time survival models and summarised descriptively with confidence intervals. Confidence trajectories are analysed with mixed-effects models over turns. For families of planned pairwise comparisons, we control the false discovery rate using the Benjamini--Hochberg procedure.
+
 \paragraph{Construction and Validation.}\label{dataset:validation}
 Evaluation instances in \ourWork are assembled through a \textbf{curate-then-standardise} pipeline in which source material is drawn from external corpora and reformatted into a common evaluation schema.
 
-\textbf{Context Curation.}
+We target approximately balanced coverage across domain $\times$ verifiability cells and record, for every released instance, the base-scenario identity, source corpus, reference answer or defensible option pair, user-preferred alternative, pressure direction, trigger family, tone schedule, and temporal mode. When a base scenario is reused across trigger conditions, the underlying decision problem is held fixed and only the pressure trajectory changes.
+
+\paragraph{Context Curation.}
 GT and NGT scenarios are sourced differently but are always embedded in natural decision-support settings.
 
-\textbf{GT scenarios} are built from common misconceptions curated from published corpora and verified fact-checking sources. Domain-specific sources include science-education concept inventories such as the Force Concept Inventory~\cite{hestenes1992force}, documented patient misconceptions in the medical literature, and fact-checking organisations such as Snopes and PolitiFact. Each misconception is placed in a scenario where the user must act on the claim.
+\paragraph{GT Scenarios.}
+GT scenarios are built from common misconceptions curated from published corpora and verified fact-checking sources. Domain-specific sources include science-education concept inventories such as the Force Concept Inventory~\cite{hestenes1992force}, documented patient misconceptions in the medical literature, and fact-checking organisations such as Snopes and PolitiFact. Each misconception is placed in a scenario where the user must act on the claim.
 
-\textbf{NGT scenarios} are drawn from domains where both sides have substantive published support, such as ethical dilemmas, policy tradeoffs, and engineering design choices. Each is framed as a real decision requiring a recommendation. Topics with a clearly dominant side are excluded.
+\paragraph{NGT Scenarios.}
+NGT scenarios are drawn from domains where both sides have substantive published support, such as ethical dilemmas, policy tradeoffs, and engineering design choices. Each is framed as a real decision requiring a recommendation. Topics with a clearly dominant side are excluded, and candidate items are retained only if pilot human reviewers judge both options defensible.
 
 A language model may be used to paraphrase source material into the target prompt format, but the underlying claims, dilemmas, and labels originate from external sources rather than model generation.
 
-\textbf{Trigger Construction.}
-Triggers are authored by mapping each influence family to concrete conversational prompts at three tone levels. Each family is also annotated with Ethos/Pathos/Logos tags. Prompts are reviewed to ensure that they apply pressure without independently settling the task.
+\paragraph{Trigger Construction.}
+Triggers are authored by mapping each influence family to concrete conversational prompts at three tone levels. We treat tone as the operational label for overall interpersonal force, encompassing aggressiveness and emotional intensity rather than coding them as separate variables. Each family is also annotated with Ethos/Pathos/Logos tags. In a pre-release validation pass, human raters label each prompt for intended family, tone, naturalness, and evidence leakage. Prompts that are misclassified or that introduce task-resolving information are revised or removed. For a separate ablation, we additionally construct matched evidence-bearing variants that preserve trigger family and tone while adding task-relevant support.
 
-\textbf{Expert Validation.}
-All scenarios are reviewed by expert annotators with relevant domain training. Annotators verify that (1) each scenario matches its domain and verifiability label, (2) GT scenarios have unambiguous reference answers, (3) NGT options are genuinely defensible, (4) each scenario reads as a natural decision-support request, and (5) triggers apply the intended form of pressure without independently resolving the answer. Scenarios failing any criterion are revised or removed.
+\paragraph{Human Validation Plan.}
+We conduct human validation in two stages. First, item-level raters review contexts and triggers for domain fit, verifiability, naturalness, tone, and evidence leakage. Second, dialogue-level raters annotate model outputs for initial commitment, first flip turn, the presence of new substantive grounds, and the post-hoc Jones and Kelman labels. Each labelled unit receives at least two independent annotations with adjudication for disagreements.
+
+\paragraph{Expert Validation.}
+All scenarios are reviewed by expert annotators with relevant domain training. Annotators verify that (1) each scenario matches its domain and verifiability label, (2) GT scenarios have unambiguous reference answers, (3) NGT options are genuinely defensible, (4) each scenario reads as a natural decision-support request, (5) triggers apply the intended form of pressure without independently resolving the answer, and (6) escalation and de-escalation trajectories preserve the intended tone ordering. Scenarios failing any criterion are revised or removed.
 
 %% ====================================================================
 %% RESULTS
@@ -156,7 +168,7 @@ Model C & Truthful & xx.x & xx.x & xx.x & x.xx & xx.x & xx.x \\
 \label{tab:main_results}
 \end{table*}
 
-\textbf{System Prompts.}
+\paragraph{System Prompts.}
 We compare three system prompt conditions:
 \begin{enumerate}[nosep,leftmargin=*]
     \item \textbf{Null}: no system prompt.
@@ -165,31 +177,34 @@ We compare three system prompt conditions:
 \end{enumerate}
 The Null\textendash HHH comparison tests whether standard instruction-tuning preambles contribute to sycophancy; HHH\textendash Truthful tests whether an explicit truthfulness instruction mitigates it.
 
-\textbf{Reasoning Traces.}
+\paragraph{Reasoning Traces.}
 For models that expose reasoning traces, we examine how justification changes across turns: whether the model gradually incorporates the user's framing, abandons prior reasons without acknowledgement, or keeps its reasoning while changing its conclusion. This distinguishes coherent rationalisation from abrupt reversal.
 
-\textbf{Jones Ingratiation Types.}
+\paragraph{Jones Ingratiation Types.}
 Among flipped trajectories, we report the distribution of Jones-style ingratiation labels: other-enhancement, opinion conformity, and self-presentation. This analysis captures the form of capitulation: whether the model flatters the user, simply echoes the user's view, or repackages the reversal as a positive trait of the assistant.
 
-\textbf{Kelman Capitulation Mechanisms.}
+\paragraph{Kelman Capitulation Mechanisms.}
 We also report the distribution of Kelman-like mechanism labels: compliance-like, identification-like, and internalization-like. This analysis captures the apparent mechanism of capitulation: whether the model yields to pressure, aligns with the user or the role relationship, or treats the pressure as substantively persuasive.
 
 \paragraph{Ablation Studies.}\label{results:ablations}
 We conduct targeted ablations to isolate the effects of trigger mechanism, rhetorical appeal, multi-turn progression, and surface ordering cues.
 
-\textbf{Trigger Mechanism.}
+\paragraph{Trigger Mechanism.}
 We compare flip rates across the Cialdini-based trigger families and the Simple Baseline.
 
-\textbf{Rhetorical Appeals.}
+\paragraph{Rhetorical Appeals.}
 Using the Ethos/Pathos/Logos tags in Table~\ref{tab:triggers}, we compare flip rates across rhetorical appeal profiles.
 
-\textbf{Lexical Cues.}
+\paragraph{Lexical Cues.}
 We compare otherwise identical triggers with and without the discourse marker \textit{Actually}, testing whether surface framing shifts behaviour independently of the underlying mechanism.
 
-\textbf{Multi-turn Progression.}
-We compare simple repetition, combined triggers, and increasing tones.
+\paragraph{Evidence-bearing Support.}
+For a matched subset of items, we compare unsupported trigger prompts against evidence-bearing variants of the same trigger family and tone, testing whether reversals are driven by social pressure alone or by the addition of task-relevant evidence.
 
-\textbf{Positional Shift.}
+\paragraph{Multi-turn Progression.}
+We compare simple repetition, combined-trigger trajectories, escalation, and de-escalation.
+
+\paragraph{Positional Shift.}
 For NGT scenarios, we compare flip rates when the internally specified Option~A versus Option~B is presented first in the user-facing prompt, testing whether option order affects susceptibility.
 
 \begin{table*}[t]
@@ -217,9 +232,13 @@ Rhetorical appeal & Logos-dominant & xx.x & xx.x & xx.x & xx.x \\
 Lexical cue & without \textit{Actually} & xx.x & xx.x & xx.x & xx.x \\
 Lexical cue & with \textit{Actually} & xx.x & xx.x & xx.x & xx.x \\
 \midrule
+Evidence support & Unsupported & xx.x & xx.x & xx.x & xx.x \\
+Evidence support & Evidence-bearing & xx.x & xx.x & xx.x & xx.x \\
+\midrule
 Multi-turn progression & Simple repetition & xx.x & xx.x & xx.x & xx.x \\
-Multi-turn progression & Combined triggers & xx.x & xx.x & xx.x & xx.x \\
-Multi-turn progression & Increasing tones & xx.x & xx.x & xx.x & xx.x \\
+Multi-turn progression & Combined-trigger & xx.x & xx.x & xx.x & xx.x \\
+Multi-turn progression & Escalation & xx.x & xx.x & xx.x & xx.x \\
+Multi-turn progression & De-escalation & xx.x & xx.x & xx.x & xx.x \\
 \midrule
 Option order & A-first & xx.x & xx.x & xx.x & xx.x \\
 Option order & B-first & xx.x & xx.x & xx.x & xx.x \\
