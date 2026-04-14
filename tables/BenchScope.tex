@@ -1,0 +1,84 @@
+% \begin{table*}[t]
+% \centering
+% \begin{threeparttable}
+
+% \caption{
+%     Comparison of \ourWork and related datasets in physics. 
+%     \textbf{Context}: Questions grounded in provided context or background information. \textbf{Context abbreviations}: (Hum = Humanities, SSci = Social Sciences, STEM, Med = Medicine).
+%     \textbf{Trigger}: Questions that hinge on a specific prompt, cue, or perturbation. 
+%     \textbf{Temporal}: Questions involving temporal or sequential patterns. \textbf{Trigger abbreviations}: I = Influence, A = Authority, SP = Social Proof,
+%     C = Consistency, R = Reciprocity, L = Liking, S = Scarcity,
+%     U = Unity, P = Plain Disagreement.
+%     \textbf{Psych}: Questions grounded in established psychological or social-scientific theory.
+% }
+% \label{table:related_datasets}
+% \begin{tabular}{@{}l|r|cccc
+%     @{}} \toprule
+%   & Size& Context & Trigger & Temporal & Psych\\ \midrule
+% PARROT\cite{PARROT} & 11,040 & All & A & \cross & \cross \\
+% Sycophancy Eval\cite{sharma2023towards} & 20,000+ & All & C/L/P/SP  & \cross  & \cross \\
+% Persona Evals \cite{perez2023modelwrittenevals} & 30,000+ & SSci/STEM/Hum & L & \cross  & \cross \\
+% SycEval\cite{SycEval} & 1,000 & STEM/Med & A/P & \cross  & \cross \\
+% BrokenMath \cite{BROKENMATH} & 504 & STEM & C/SP & \cross  & \cross\\
+% Scientific QA \cite{SCIENTIFICQA} & 1370? & STEM & P & \cross  & \cross \\
+% Beacon \cite{BEACON} & 420 & SSci/Hum & P & \cross  & \cross \\
+% DarkBench \cite{DARKBENCH} & 660 & STEM/SSci & L & \cross  & \cross \\
+% Syco-Bench \cite{duffy2024sycobench} & 140 & All & P & \cross  & \cross\\
+% GermanPartiesQA \cite{GermanPartiesQA} & 418 & SSci & L & \cross & \cross \\
+% FLIPFLOP \cite{FLIPFLOP} & 1,352 & All & A/P & \cross   & \cross\\
+% TRUTH DECAY \cite{TRUTHDECAY} & 800+ &  All & A/C/L/P/SP & \gcheck  & \cross \\
+% SYCON Bench \cite{SYCONBENCH} & 2500 & All & A/C/L/P/SP & \gcheck &   \cross\\
+% ELEPHANT\cite{ELEPHANT} & 10,404 & ? & ? & \cross  & \gcheck\\
+% % Medical \cite{chen2025helpfulness} & & Med & A & \cross
+
+% \midrule
+% \ourWork  & \textbf{2,000} & \gcheck & \gcheck & \gcheck & \gcheck \\
+% \bottomrule
+
+% \end{tabular}
+% \end{threeparttable}
+% \vspace{-5pt}
+% \end{table*}
+
+\begin{table*}[t]
+\centering
+\begin{threeparttable}
+
+\caption{
+    Comparison of \ourWork and related datasets in physics. 
+    \textbf{Psych}: Questions grounded in established psychological or social-scientific theory.
+    \textbf{Context}: Questions grounded in provided context or background information. \textbf{Context abbreviations}: (Hum = Humanities, SSci = Social Sciences, STEM, Med = Medicine).
+    \textbf{Trigger}: Questions that hinge on a specific prompt, cue, or perturbation. 
+    \textbf{Temporal}: Questions involving temporal or sequential patterns. \textbf{Trigger abbreviations}: I = Influence, A = Authority, SP = Social Proof,
+    C = Consistency, R = Reciprocity, L = Liking, S = Scarcity,
+    U = Unity, P = Plain Disagreement.
+    \textbf{GT}: Questions that contain a ground truth. 
+}
+\label{table:related_datasets}
+\begin{tabular}{@{}l|r|cccc
+    @{}} \toprule & 
+  Psych & Context & Trigger & Temporal & GT\\ \midrule
+PARROT\cite{PARROT} & \cross & All & A & \cross & GT \\
+Sycophancy Eval\cite{sharma2023towards} & \cross & All & C/L/P/SP  & \cross & Both \\
+Persona Evals \cite{perez2023modelwrittenevals} & \cross & SSci/STEM/Hum & L & \cross  & NGT \\
+SycEval\cite{SycEval} & \cross & STEM/Med & A/P & \cross  & GT \\
+BrokenMath \cite{BROKENMATH} & \cross & STEM & C/SP & \cross  & GT \\
+Scientific QA \cite{SCIENTIFICQA} & \cross & STEM & P & \cross & GT \\
+Beacon \cite{BEACON} & \cross & SSci/Hum & P & \cross  & NGT \\
+DarkBench \cite{DARKBENCH} & \cross & STEM/SSci & L & \cross  & GT \\
+Syco-Bench \cite{duffy2024sycobench} & \cross & All & P & \cross  & NGT \\
+GermanPartiesQA \cite{GermanPartiesQA} & \cross & SSci & L & \cross & NGT  \\
+FLIPFLOP \cite{FLIPFLOP} & \cross & All & A/P & \cross &  GT\\
+TRUTH DECAY \cite{TRUTHDECAY} & \cross &  All & A/C/L/P/SP & \gcheck  & Both \\
+SYCON Bench \cite{SYCONBENCH} & \cross & All & A/C/L/P/SP & \gcheck & Both  \\
+ELEPHANT\cite{ELEPHANT} & \gcheck & ? & ? & \cross  & NGT \\
+% Medical \cite{chen2025helpfulness} & & Med & A & \cross
+
+\midrule
+\ourWork  & \gcheck & All & All & \gcheck & Both \\
+\bottomrule
+
+\end{tabular}
+\end{threeparttable}
+\vspace{-5pt}
+\end{table*}

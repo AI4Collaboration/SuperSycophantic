@@ -1,0 +1,123 @@
+\documentclass{article}
+\PassOptionsToPackage{numbers, compress}{natbib}
+% \usepackage{neurips_2025}
+% \usepackage[preprint]{neurips_2025}
+% camera-ready [final]
+\usepackage[eandd]{neurips_2026}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{fontawesome5}   % icons (e.g., GitHub)
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+\usepackage{tikz}
+\usetikzlibrary{fadings}
+\usepackage{xspace}
+\usepackage{amssymb}% http://ctan.org/pkg/amssymb
+\usepackage{pifont}% http://ctan.org/pkg/pifont
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{threeparttable}
+\usepackage{gradient-text}
+\usepackage{floatflt}  
+\usepackage{lipsum}
+\usepackage{enumitem}
+\usepackage{wrapfig}
+\usepackage{etoolbox}
+
+
+\usepackage{titletoc}
+\newcommand\DoToC{%
+  \startcontents
+  \printcontents{}{1}{%
+    \section*{Appendix} % 标题样式与主目录一致
+    \vskip3pt\hrule\vskip5pt
+  }
+  \titlecontents{section}[0em]{\vspace{2pt}}{\bfseries \thecontentslabel \quad}{}{\titlerule*[0.5em]{.}\contentspage}
+  \titlecontents{subsection}[2em]{\vspace{2pt}}{\thecontentslabel\quad}{}{\titlerule*[0.5em]{.}\contentspage}
+}
+
+\newcommand{\gcheck}{\color{green}\ding{51}}%
+\newcommand{\cross}{\color{red}\ding{55}}%
+\newcommand{\bolddash}{\textbf{--}}
+
+\newcommand{\td}[1]{\textcolor{red}{[TODO: #1]}}
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\newcommand{\magenta}[1]{\textcolor{magenta}{#1}}
+\newcommand{\cyan}[1]{\textcolor{cyan}{#1}}
+
+
+\newcommand{\ourWork}{{\textsc{\textbf{SuperSycophantic}}}\xspace}
+
+\usepackage{soul}
+\definecolor{delectricred}{RGB}{255,0,0}
+% \definecolor{delectricred}{RGB}{212,103,27}
+\colorlet{lightdelectricred}{delectricred!30}
+\newcommand{\hldbRed}[1]{%
+    {%
+    \sethlcolor{lightdelectricred}%
+    \hl{#1}%
+    }%
+}
+\definecolor{delectricgreen}{RGB}{0,255,0}
+% \definecolor{delectricgreen}{RGB}{97,150,64}
+\colorlet{lightdelectricgreen}{delectricgreen!30}
+\newcommand{\hldbGreen}[1]{%
+    {%
+    \sethlcolor{lightdelectricgreen}%
+    \hl{#1}%
+    }%
+}
+
+\usepackage{hyperref}
+
+\hypersetup{
+    colorlinks=true,
+    % linkcolor=black,
+    % filecolor=black,      
+    urlcolor=magenta,
+    % citecolor=blue,
+}
+
+
+\newcommand{\logo}{%
+    \raisebox{-0.8ex}{% 微调垂直位置
+        \includegraphics[width=2em,keepaspectratio]{images/logo.png}%
+    }%
+}
+
+\title{
+\logo 
+\ourWork: Systematically Decomposing and Probing LLM Sycophancy
+}
+
+\author{
+Terry Jingchen Zhang$^{1,2}$ More authors to be added
+\\
+$^{1}$Jinesis AI Lab, University of Toronto and Vector Institute
+$^{2}$EuroSafeAI
+\\
+$^{3}$Max Planck Institute for Intelligent Systems, T\"ubingen, Germany
+$^{4}$ETH Zurich
+}
+
+\begin{document}
+
+\maketitle
+\input{sections/0-main}
+
+\bibliography{main}
+\bibliographystyle{unsrt}
+
+\input{neurips_checklist}
+
+\newpage
+\appendix
+\include{sections/appendix}
+
+\end{document}

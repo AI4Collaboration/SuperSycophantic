@@ -1,0 +1,365 @@
+\DoToC
+\newpage
+\section{Dataset Curation}
+\label{appendix:dataset}
+
+\subsection{Context Layer based on OECD Fields of Research and Development (FORD)}\label{appendix:ford}
+
+The OECD Fields of Research and Development (FORD) classification, defined in the Frascati Manual~\cite{oecd2015frascati}\footnote{\url{https://www.oecd.org/en/publications/frascati-manual-2015_9789264239012-en.html}}, organises all academic disciplines into six major fields on the basis of research content similarity. Our four evaluation domains map onto FORD as follows. \textbf{STEM} subsumes Natural Sciences (FORD 1), Engineering and Technology (FORD 2), and Agricultural Sciences (FORD 4); Agricultural Sciences is incorporated into STEM given its empirical and methodological affinity with the natural sciences rather than constituting a standalone evaluation domain. \textbf{Health \& Medicine} corresponds directly to Medical and Health Sciences (FORD 3). \textbf{Social Science} corresponds to Social Sciences (FORD 5), retaining Political Science (FORD 5.4) as a constituent subfield rather than elevating it to a separate domain, on the grounds that its questions are epistemically continuous with other social scientific inquiry. \textbf{Humanities} corresponds directly to Humanities (FORD 6), covering Philosophy, Ethics, History, and Arts. FORD field 4 is the sole major FORD category that does not receive a dedicated domain in \ourWork; its subsumption within STEM reflects the judgement that agricultural science questions are epistemically indistinct from other empirical STEM questions for the purposes of sycophancy evaluation. The present benchmark adopts these four domains as a tractable and representative starting point; additional domains could in principle be incorporated in future extensions.
+
+\subsection{Trigger Layer with Detailed Prompts}\label{appendix:triggers}
+
+% Placeholder: full prompt listings for all 14 triggers across all tone levels to be inserted here.
+
+\subsection{Temporal Layer with Detailed Prompts}\label{appendix:temporal}
+
+% Placeholder: full multi-turn conversation templates for Simple Repetition, Escalation, and De-escalation trajectories to be inserted here.
+
+\subsection{Annotation and Metrics}\label{appendix:annotation}
+We use at least two independent annotators per trajectory, resolve disagreements via adjudication, and report inter-annotator agreement for human-labelled variables.
+
+\subsection{Annotators Background}
+Graduate students with X from CS background and X from psychology background
+
+
+\subsection{IRB}
+We strictly follow the research ethics guidelines\footnote{\url{https://ethz.ch/en/research/ethics-and-animal-welfare/research-ethics.html}} at ETH.
+This study is exempt from IRB ethics approval as it constitutes a survey that (1) focuses exclusively on expert knowledge (the expert acts as an informant and is not the object of the research itself); (2) offers no wage compensation; and (3) has no experimental feature whatsoever (e.g., deception or incomplete information about the study, interventions, or stimuli). We ensure (a) that data protection is completed in accordance with GDPR, (b) that informed consent is obtained from each expert annotator\footnote{\url{https://docs.google.com/forms/d/e/1FAIpQLSd9R7c-gltvVZz9z7njYZVs9gHGDY01Nbh0k3Jm4QGyPm8Rqg/viewform?usp=header}}, (c) that participation is strictly voluntary and (d) that all collected data contain no personally identifying (PID) information .
+
+
+% A
+% \section{Statistics}
+% \subsection{Attributes}
+% \subsection{Data Source}
+% \subsection{Annotators Information }
+
+% B
+% \section{Limitations}
+
+% C
+% \section{Data Collection Pipeline}
+% \subsection{Pipeline}
+% \subsection{Prompts}
+
+% D
+% \section{Experimental Settings}
+% \subsection{Models}
+% \subsection{Environment}
+% \subsection{Prompts}
+
+% E
+% \section{Failure ModeAnalysis}
+% \subsection{Statistical Analysis of Error Samples}
+% \subsection{Case Study on Pattern 1}
+% \subsection{Case Study on Pattern 2}
+%...
+
+\section{Limitations}
+
+\section{Experimental Details}
+\subsection{Models}
+In our experiments, we evaluate the performance of several state-of-the-art and representative models. For text-only models, we provide text-based prompts in the form of "question + caption" to guide the models in generating answers. For multimodal models, general-purpose models capable of processing interleaved image-text sequences are tested on the full benchmark. For most open-source models, we use the hyperparameter torch.dtype=torch.float16. We set temperature=0, with a maximum token limit of 8192 and a maximum image resolution of 4096×4096 pixels. Additionally, for other parameter configurations, we generally follow the settings provided in the original papers, their code repositories, or Hugging Face's example configurations. The models used in this study are briefly described as follows:
+
+\begin{itemize}
+    \item \textbf{DeepSeek-V4:} A state-of-the-art reasoning-focused model from the DeepSeek series used in our experiments.
+    \item \textbf{DeepSeek-V3:} It is a powerful Mixture of Experts (MoE) language model, activating approximately 37 billion parameters per token. DeepSeek-V3 pioneers an auxiliary-loss-free load balancing strategy and incorporates a multi-token prediction training objective to achieve enhanced performance.
+    \item \textbf{Qwen3-235B-A22B:} The model has 235 billion parameters, activates 22 billion parameters per inference, and consists of 128 experts, with 8 activated during each forward pass. This design significantly enhances computational efficiency and scalability while maintaining high performance.
+
+    \item \textbf{OpenAI o4-mini:} OpenAI o4-mini is a compact model optimized for fast, cost-efficient inference. Despite its reduced size and lower cost, it delivers exceptional performance in math, coding, and vision tasks, while maintaining high throughput.
+    \item \textbf{OpenAI o3-mini:} The o3-mini demonstrates exceptional performance in STEM reasoning tasks, delivering strong math, programming, and scientific performance with significantly faster response times.
+    \item \textbf{GPT-4o:} This model is trained on text, visual, and audio data. Its unified approach ensures that all inputs—whether text, images, or sound—can be processed simultaneously by a single neural network.
+    \item \textbf{GPT-4.1:} The model comprehensively surpasses GPT-4o and GPT-4o mini in coding, instruction following, and long-context understanding, while being more cost-effective, faster, and capable of processing contexts up to 1 million tokens.
+    \item \textbf{GPT-5.4:} A state-of-the-art OpenAI model used in our experiments for strong reasoning and multimodal understanding.
+
+    \item \textbf{Gemini-3:} Google's latest multimodal model family, providing strong long-context reasoning and multimodal understanding.
+    \item \textbf{Claude 4.6 Sonnet:} It is Anthropic's state-of-the-art large language model in the Sonnet family, supporting both quick answers and deeper step-by-step reasoning.
+\end{itemize}
+
+
+\subsection{Environment}
+
+
+\section{Existing Definitions}
+
+\begin{table*}[t]
+\centering
+
+\caption{Papers in AI: definitions and operationalizations of sycophancy.}
+\label{tab:sycophancy_papers}
+
+\vspace{1ex}
+
+\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+
+\begin{tabular}{@{}p{0.18\textwidth} p{0.41\textwidth} p{0.41\textwidth}@{}}
+\toprule
+\textbf{Papers in AI} & \textbf{Definition} & \textbf{Operationalization of sycophancy} \\
+\midrule
+
+Sycophancy Eval \cite{sharma2023towards} &
+The extent to which ``revealing information about a user’s preferences affects AI assistant behavior.''
+"The phenomenon where a model seeks human approval in unwanted ways as sycophancy"\newline \newline
+\textbf{Feedback sycophancy}:
+whether AI assistants provide feedback aligned with arguments favored by the user in free form \newline
+\textbf{Answer sycophancy}: Answer sycophancy: whether AI assistants modify their answers when challenged \newline
+\textbf{Biased Answer}: whether AI assistants modify their answers to match a user’s beliefs in open-ended question-answering tasks\newline
+\textbf{Mimic mistakes}: whether AI assistants repeat a user’s mistakes 
+&
+\textbf{Feedback Sycophancy:} Mean difference in feedback positivity across datasets when a user implies preference or dispreference for a passage of text. \newline
+\textbf{Answer Sycophancy:} Accuracy of AI assistants when challenged on subsets of five question-answering datasets. \newline
+\textbf{Biased Answers:} Effect of user beliefs on assistant accuracy relative to baseline accuracy. \newline
+\textbf{Mimic Mistakes:} Frequency with which AI assistants include incorrect attributions without mentioning the correct attribution. \\
+\midrule
+
+\cite{Contradict} &
+A model’s inclination to produce responses that correspond to users’ beliefs or misleading prompts as opposed to true facts, in response to queries involving subjective opinions and statements that should elicit a contrary response based on facts (LLM’s beliefs; fall in the error of LLMs; LLM self-confidence).
+&
+\textbf{LLM Beliefs:} Percentage agreement with user beliefs measured via string matching between generated answers and feedback patterns on NLP-Q, PHIL-Q, and POLI-Q. \newline
+\textbf{Fall in the Error of LLMs:} Percentage of responses describing a poem under an incorrect author name after revealing the (deliberately incorrect) author. \newline
+\textbf{LLM Self-Confidence:} Accuracy and agreement with user-provided hints on commonsense reasoning, physical interaction, social interaction, and math word problems. \\
+\midrule
+
+Persona Evals \cite{Discovering} &
+A model’s tendency to ``repeat back a dialog user’s preferred answer.''
+&
+Extent to which LMs change answers when user background information is included in prompts across politics, philosophy, and NLP tasks, evaluated via RLHF model probabilities over answer choices. \\
+\midrule
+
+Synthetic Data reduces\cite{SycSynthData} &
+An undesirable behavior where models tailor responses to follow a user’s view even when that view is not objectively correct.
+&
+Frequency of disagreement with objectively incorrect arithmetic problems when a user’s incorrect opinion is included in the prompt. \\
+\midrule
+
+\cite{Mitigations} &
+The propensity of models to excessively agree with or flatter users, often at the expense of factual accuracy or ethical considerations.
+&
+N/A \\
+\midrule
+
+SycEval \cite{SycEval} &
+Prioritizing user agreement over independent reasoning.
+&
+Change in response classification between the initial answer and a rebuttal under two types of sycophancy: \emph{progressive} (incorrect $\rightarrow$ correct) and \emph{regressive} (correct $\rightarrow$ incorrect), evaluated on mathematical reasoning and medical datasets. \\
+\midrule
+
+Linear Probes \cite{Probe} (2024) &
+When LLMs prioritize agreement with users over accurate or objective statements.
+&
+Feedback sycophancy measures aligned with Sharma et al. (2024), comparing positivity of like/dislike-prefixed feedback against baseline feedback. \\
+\midrule
+
+\cite{Faithfulness} &
+A model’s propensity to answer questions in ways aligned with its human dialog partner’s preferences or beliefs.
+&
+Same as Perez et al. (2023), but requiring inference of user beliefs rather than receiving them explicitly. \\
+\bottomrule
+\end{tabular}
+
+\vspace{1ex}
+\end{table*}
+
+\begin{table*}[t]
+\centering
+
+\label{tab:sycophancy_papers_2}
+
+\vspace{1ex}
+
+\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+
+\begin{tabular}{@{}p{0.18\textwidth} p{0.41\textwidth} p{0.41\textwidth}@{}}
+\toprule
+\textbf{Papers in AI} & \textbf{Definition} & \textbf{Operationalization of sycophancy} \\
+\midrule
+ELEPHANT   \cite{ELEPHANT}&
+"the excessive preservation of the user’s face in LLM
+responses, by either affirming the user (positive face) or avoiding challenging them (negative face)"  \newline
+
+
+\textbf{Positive Face:} \newline  
+\textbf{Validation Sycophancy:} \newline Provides emotional validation to users’ perspective \newline
+\textbf{Moral Sycophancy}: \newline Affirms user’s side in a moral dilemma or conflict \newline 
+
+
+\textbf{Negative Face:} \newline
+\textbf{Indirectness Sycophancy}:\newline Hedges or provides vague suggestions instead of
+clear statements \newline
+\textbf{Framing Sycophancy}: \newline Accepts potentially flawed premises instead of probing or challenging them
+
+& 
+\textbf{Validation/Indirect/Framing Sycophancy}: \newline Difference in prevalence of validation/hedging/accepting flawed premise suggestion between the model and humans response, measured using a binary LLM as a judge and aggregated over prompts using \textbf{OEQ}, \textbf{AITA} reddit \newline
+
+\textbf{Moral Sycophancy}: \newline Given a conflict in AITA with a clear side , the frequency of prompts where the model supports both sides, \textbf{AITA} reddit
+\\
+\midrule
+
+Sycophancy is not One Thing \cite{SycAgree}& 
+A mechanistic interpretability analysis of sycophancy. Separates sycophancy into 2 distinct features. \newline \newline 
+\textbf{Sycophantic Agreement}: \newline Same definition as of mimicry found in Sycophancy Eval \cite{sharma2023towards} \newline
+\textbf{Sycophantic Praise}: \newline Flatters the user directly, explicitly \newline
+\textbf{Genuine Agreement}: \newline Echoes a user's claim when it aligns with answer
+
+& \textbf{Sycophantic Agreement}: \newline Same operationalization as Sycophancy Eval \cite{sharma2023towards} \newline
+\textbf{Sycophantic Praise}: \newline The prompts where the model explicitly elicit praise or exaggerated positive language toward the user when the user's credentials far exceeds the problem that is solved. Think Persona Evals. 
+\\
+\midrule
+Aligment \cite{SycHCI}&
+This work is primarily theoretical. Sycophancy can be broken down into 3 dimensions.
+
+\textbf{Informational Sycophancy}: Agreement with user empirically false claims, even when contradictory
+evidence is available.  \newline  
+\textbf{Cognitive Sycophancy}: uncritical alignment with a user’s interpretations, beliefs, or evaluative judgments  \newline  
+\textbf{Affirmative Sycophancy}:  uncritical mirroring or reinforcement of the user’s emotional state  \newline  \newline
+\textbf{Personalization}: the extent to which ingratiating
+messages are tailored to the individual user, the situational context,
+and any available relational history \newline 
+
+\textbf{Critical Prompting}: The first attempt to give theoretical foundations on model's role in eliciting sycophancy in conversational dynamics (i.e shaping conversation trajectory) 
+&
+N/A\\
+\midrule
+Truth is Overridden \cite{SycOverridden}
+& 
+Another mechanistic interpretability understanding triggers that cause sycophancy. \newline 
+Same definition of mimicry of wrong answer \cite{sharma2023towards}
+&
+
+Similar operationalization as \cite{sharma2023towards}. \newline
+
+\textbf{Triggers:}\newline
+Credentials of User (PhD level vs Elementary) \newline
+Perspective of User (I vs They) \\
+
+\bottomrule
+\end{tabular}
+
+
+\vspace{1ex}
+\end{table*}
+
+
+\begin{table*}[t]
+\centering
+
+
+\begin{tabular}{@{}p{0.18\textwidth} p{0.41\textwidth} p{0.41\textwidth}@{}}
+\toprule
+\textbf{Papers in AI} & \textbf{Definition} & \textbf{Operationalization of sycophancy} \\
+\midrule
+SYCONBENCH \cite{SYCONBENCH}&
+"conformation to user's explicit beliefs regardless of factual accuracy or ethical soundness" \newline
+
+\textbf{Subjective Content and Explicit Pressure}:\newline
+Given a debate scenario, the model is forced to argue for subjective content and the user will outright disagree with the argument.  \newline\newline
+
+\textbf{Subjective Content and Implicit Pressure}:\newline
+The user expresses an unethical position and the model must both identify and correct the stereotypes. \newline \newline
+\textbf{Objective Content and Implicit Pressure}:
+\newline 
+The user expresses a stance or asks a question with a ground truth and the model must both identify and correct the stance with ground truth. \newline
+
+They vary the pressure used to incite the sycophantic response. 
+
+& 
+Multi-Turn Benchmark \newline 
+Metrics:\newline
+\textbf{Turn-of-Flip (TOF)}: Expectation value of the minimum number of turns with which the model's answer deviates from a principled, ground answer over all prompts. \newline
+
+\textbf{Number-of-Flips (NoF)}: Expectation value of the number of stance changes across the entire dialogue over all prompts \newline 
+
+Triggers: \newline
+
+
+Dataset:\newline
+\textbf{IBM Project
+Debater Database}, \textbf{StereoSet}, \textbf{CREPE}\\
+
+\midrule
+BROKENMATH \cite{BROKENMATH} & "Fails to detect the flaw and hallucinates a proof for the false statement."\newline 
+They also provide two new definitions of sycophancy: \newline
+
+\textbf{Self Sycophancy}:
+"The model uncritically accepts and reasons about its own fabricated
+output" \newline
+
+\textbf{Agentic Sycophancy}:
+Utilizing agents to select the best response from n responses, an to self-verify the sycophantic response. \newline
+
+\textbf{Influences of Sycophancy}:
+Higher difficulty of question and Proof-Based Questions
+
+&  
+Given a math problem prompt "GPT-5-mini to provide a modified versions of the problem that is demonstrably false."\newline 
+
+
+\textbf{Perturbation}:\newline
+\textbf{False Answers}:
+Problems with numerical or algebraic answers, ask the model to prove a plausible but incorrect value. \newline
+
+\textbf{Non-existent Counterexample}:
+Problems with a proof property, the model is asked to provide a counterexample when there doesn't exist one. \newline 
+
+\textbf{Inverted Properties}:
+"In areas such as game theory, perturbations often require proving the
+inverse of the true statement, e.g., proving a winning strategy for a losing position" \\
+
+\midrule
+TRUTH DECAY \cite{TRUTHDECAY} & Model generation of "responses with purpose of satisfying users" & \textbf{Temporal:} \newline 1-7 Multi-Turns \newline \newline 
+\textbf{Triggers:}\newline Explicit Disagreement, Group Bias, Authority Bias, Confidence Bias, Evidence Bias \newline \newline
+\textbf{Dataset:} \newline 
+Sycophancy Eval \cite{sharma2023towards} \newline \newline 
+\textbf{Operationalization:} \newline Uses LLM system templates and static templates to generate user follow up\\
+
+\\
+
+\bottomrule
+\end{tabular}
+
+\vspace{1ex}
+\end{table*}
+
+\begin{table*}[t]
+\centering
+
+
+\begin{tabular}{@{}p{0.18\textwidth} p{0.41\textwidth} p{0.41\textwidth}@{}}
+\toprule
+\textbf{Papers in AI} & \textbf{Definition} & \textbf{Operationalization of sycophancy} \\
+\midrule
+FLIPFLOP \cite{FLIPFLOP}&
+"conformation to user's explicit beliefs regardless of factual accuracy or ethical soundness" \newline
+& 
+Metrics:\newline
+
+Dataset:\newline
+\textbf{IBM Project
+Debater Database}, \textbf{StereoSet}, \textbf{CREPE}\\
+
+\midrule
+BEACON \cite{BEACON} &  b
+
+&  a \\ 
+
+\midrule
+TRUTH DECAY \cite{TRUTHDECAY} & Model generation of "responses with purpose of satisfying users" & \\
+
+
+
+
+
+
+
+\bottomrule
+\end{tabular}
+
+\vspace{1ex}
+\end{table*}
+
+
+
+% F (
