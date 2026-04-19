@@ -117,21 +117,17 @@ This study is exempt from IRB ethics approval as it constitutes a survey that (1
 
 \section{Experimental Details}
 \subsection{Models}
-In our experiments, we evaluate the performance of several state-of-the-art and representative text models. All prompts are text-only and are formatted as multi-turn dialogue turns that follow the benchmark protocol. For most open-source models, we use the hyperparameter torch.dtype=torch.float16. We set temperature=0 with a maximum token limit of 8192. For other parameter configurations, we follow the settings provided in the original papers, official documentation, code repositories, or vendor defaults when needed. The models used in this study are briefly described as follows:
+In our experiments, we evaluate eight model families: OpenAI, Claude, Gemini, Grok, GLM, Qwen, Kimi, and DeepSeek. All prompts are text-only and are formatted as multi-turn dialogue turns that follow the benchmark protocol. When a provider exposes multiple candidate endpoints, we use a representative high-capability text model from that family that is suitable for multi-turn reasoning evaluation at the time of testing. For most open-source models, we use the hyperparameter torch.dtype=torch.float16. We set temperature=0 with a maximum token limit of 8192. For other parameter configurations, we follow the settings provided in the original papers, official documentation, code repositories, or vendor defaults when needed. The evaluated families are briefly described as follows:
 
 \begin{itemize}
-    \item \textbf{DeepSeek-V4:} A state-of-the-art reasoning-focused model from the DeepSeek series used in our experiments.
-    \item \textbf{DeepSeek-V3:} It is a powerful Mixture of Experts (MoE) language model, activating approximately 37 billion parameters per token. DeepSeek-V3 pioneers an auxiliary-loss-free load balancing strategy and incorporates a multi-token prediction training objective to achieve enhanced performance.
-    \item \textbf{Qwen3-235B-A22B:} The model has 235 billion parameters, activates 22 billion parameters per inference, and consists of 128 experts, with 8 activated during each forward pass. This design significantly enhances computational efficiency and scalability while maintaining high performance.
-
-    \item \textbf{OpenAI o4-mini:} OpenAI o4-mini is a compact model optimized for fast, cost-efficient inference. Despite its reduced size and lower cost, it delivers strong performance in math and coding tasks while maintaining high throughput.
-    \item \textbf{OpenAI o3-mini:} The o3-mini demonstrates exceptional performance in STEM reasoning tasks, delivering strong math, programming, and scientific performance with significantly faster response times.
-    \item \textbf{GPT-4o:} A widely used general-purpose OpenAI model included as a strong baseline.
-    \item \textbf{GPT-4.1:} The model comprehensively surpasses GPT-4o and GPT-4o mini in coding, instruction following, and long-context understanding, while being more cost-effective, faster, and capable of processing contexts up to 1 million tokens.
-    \item \textbf{GPT-5.4:} A state-of-the-art OpenAI model used in our experiments for strong reasoning.
-
-    \item \textbf{Gemini-3:} Google's latest model family, providing strong long-context reasoning.
-    \item \textbf{Claude 4.6 Sonnet:} It is Anthropic's state-of-the-art large language model in the Sonnet family, supporting both quick answers and deeper step-by-step reasoning.
+    \item \textbf{OpenAI:} A frontier family of general-purpose and reasoning-oriented models used as one of the main commercial baselines in our study.
+    \item \textbf{Claude:} Anthropic's assistant model family, included for strong instruction following and long-context performance.
+    \item \textbf{Gemini:} Google's model family, included for broad deployment and strong long-context reasoning in text settings.
+    \item \textbf{Grok:} xAI's assistant model family, included as a widely discussed frontier conversational model line.
+    \item \textbf{GLM:} Zhipu AI's GLM family, included as a major Chinese model line with broad deployment and strong general text capability.
+    \item \textbf{Qwen:} Alibaba's Qwen family, included as a leading open and commercially deployed model family.
+    \item \textbf{Kimi:} Moonshot AI's Kimi family, included as a strong long-context assistant line with broad Chinese-language adoption.
+    \item \textbf{DeepSeek:} DeepSeek's model family, included for strong reasoning performance and broad use in open evaluation.
 \end{itemize}
 
 

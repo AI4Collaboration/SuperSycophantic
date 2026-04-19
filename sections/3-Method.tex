@@ -140,27 +140,22 @@ We report overall answer change rates and confidence-based diagnostics, then ana
 \small
 \renewcommand{\arraystretch}{1.1}
 \resizebox{\textwidth}{!}{%
-\begin{tabular}{llcccccc}
+\begin{tabular}{lccccc}
 \toprule
-& & \multicolumn{3}{c}{\textbf{Answer change rate (\%)}} & \multicolumn{3}{c}{\textbf{Flip dynamics}} \\
-\cmidrule(lr){3-5}\cmidrule(lr){6-8}
-\textbf{Model} & \textbf{System prompt} & \textbf{Overall} & \textbf{GT only} & \textbf{NGT only} & \textbf{Average first-flip turn}$\downarrow$ & \textbf{No-erosion flips (\%)} & \textbf{High-confidence flips (\%)} \\
+\textbf{Model family} & \textbf{Answer Change Rate (\%)} & \textbf{Pressure-Aligned Switch Rate (\%)} & \textbf{Average first-flip turn}$\downarrow$ & \textbf{No-erosion flips (\%)} & \textbf{High-confidence flips (\%)} \\
 \midrule
-Model A & Null & xx.x & xx.x & xx.x & x.xx & xx.x & xx.x \\
-Model A & HHH & xx.x & xx.x & xx.x & x.xx & xx.x & xx.x \\
-Model A & Truthful & xx.x & xx.x & xx.x & x.xx & xx.x & xx.x \\
-\midrule
-Model B & Null & xx.x & xx.x & xx.x & x.xx & xx.x & xx.x \\
-Model B & HHH & xx.x & xx.x & xx.x & x.xx & xx.x & xx.x \\
-Model B & Truthful & xx.x & xx.x & xx.x & x.xx & xx.x & xx.x \\
-\midrule
-Model C & Null & xx.x & xx.x & xx.x & x.xx & xx.x & xx.x \\
-Model C & HHH & xx.x & xx.x & xx.x & x.xx & xx.x & xx.x \\
-Model C & Truthful & xx.x & xx.x & xx.x & x.xx & xx.x & xx.x \\
+OpenAI & xx.x & xx.x & x.xx & xx.x & xx.x \\
+Claude & xx.x & xx.x & x.xx & xx.x & xx.x \\
+Gemini & xx.x & xx.x & x.xx & xx.x & xx.x \\
+Grok & xx.x & xx.x & x.xx & xx.x & xx.x \\
+GLM & xx.x & xx.x & x.xx & xx.x & xx.x \\
+Qwen & xx.x & xx.x & x.xx & xx.x & xx.x \\
+Kimi & xx.x & xx.x & x.xx & xx.x & xx.x \\
+DeepSeek & xx.x & xx.x & x.xx & xx.x & xx.x \\
 \bottomrule
 \end{tabular}%
 }
-\caption{Main results under \ourWork. The first three rate columns report Answer Change Rate. ``No-erosion flips'' corresponds to $\mathrm{CWER}_1$ and ``High-confidence flips'' to $\mathrm{HCCR}_4$. All values are percentages except Average first-flip turn. Values shown are placeholders.}
+\caption{Compact main results under \ourWork. Results are reported at the model-family level to keep the main paper concise. ``No-erosion flips'' corresponds to $\mathrm{CWER}_1$ and ``High-confidence flips'' to $\mathrm{HCCR}_4$. All values are percentages except Average first-flip turn. Values shown are placeholders.}
 \label{tab:main_results}
 \end{table*}
 
@@ -203,44 +198,4 @@ We compare simple repetition, combined-trigger trajectories, escalation, and de-
 \paragraph{Positional Shift.}
 For NGT scenarios, we compare flip rates when the internally specified Option~A versus Option~B is presented first in the user-facing prompt, testing whether option order affects susceptibility.
 
-\begin{table*}[t]
-\centering
-\small
-\renewcommand{\arraystretch}{1.1}
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{llcccc}
-\toprule
-\textbf{Factor} & \textbf{Condition} & \textbf{Model A} & \textbf{Model B} & \textbf{Model C} & \textbf{Mean answer change rate (\%)} \\
-\midrule
-Trigger mechanism & Authority & xx.x & xx.x & xx.x & xx.x \\
-Trigger mechanism & Social Proof & xx.x & xx.x & xx.x & xx.x \\
-Trigger mechanism & Consistency & xx.x & xx.x & xx.x & xx.x \\
-Trigger mechanism & Reciprocity & xx.x & xx.x & xx.x & xx.x \\
-Trigger mechanism & Liking & xx.x & xx.x & xx.x & xx.x \\
-Trigger mechanism & Scarcity & xx.x & xx.x & xx.x & xx.x \\
-Trigger mechanism & Unity & xx.x & xx.x & xx.x & xx.x \\
-Trigger mechanism & Simple Baseline & xx.x & xx.x & xx.x & xx.x \\
-\midrule
-Rhetorical appeal & Ethos-dominant & xx.x & xx.x & xx.x & xx.x \\
-Rhetorical appeal & Pathos-dominant & xx.x & xx.x & xx.x & xx.x \\
-Rhetorical appeal & Logos-dominant & xx.x & xx.x & xx.x & xx.x \\
-\midrule
-Lexical cue & without \textit{Actually} & xx.x & xx.x & xx.x & xx.x \\
-Lexical cue & with \textit{Actually} & xx.x & xx.x & xx.x & xx.x \\
-\midrule
-Evidence support & Unsupported & xx.x & xx.x & xx.x & xx.x \\
-Evidence support & Evidence-bearing & xx.x & xx.x & xx.x & xx.x \\
-\midrule
-Multi-turn progression & Simple repetition & xx.x & xx.x & xx.x & xx.x \\
-Multi-turn progression & Combined-trigger & xx.x & xx.x & xx.x & xx.x \\
-Multi-turn progression & Escalation & xx.x & xx.x & xx.x & xx.x \\
-Multi-turn progression & De-escalation & xx.x & xx.x & xx.x & xx.x \\
-\midrule
-Option order & A-first & xx.x & xx.x & xx.x & xx.x \\
-Option order & B-first & xx.x & xx.x & xx.x & xx.x \\
-\bottomrule
-\end{tabular}%
-}
-\caption{Ablation results reported as Answer Change Rate (\%). Values are placeholders.}
-\label{tab:ablation_results}
-\end{table*}
+To keep the main paper compact, we report ablations in text rather than as a standalone table. In particular, we compare trigger families, rhetorical appeal profiles, the \textit{Actually} lexical cue, unsupported versus evidence-bearing support, the four multi-turn progression modes, and option-order effects for NGT scenarios. Where space permits in the final version, the most decision-relevant contrasts can be summarized inline; the full ablation grid can remain in the appendix or supplementary material.
