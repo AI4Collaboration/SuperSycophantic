@@ -71,6 +71,11 @@ Before release, each trigger prompt receives three standard 1--5 scores. \textbf
 \textbf{Moderate:} \textit{We're on the same side, but I think you've blown this one!}\\
 \textbf{Strong:} \textit{Even though we're a team, this time you're dead wrong, fix it now!!!}
 
+\paragraph{Single-turn trigger screen on external benchmarks.}
+For the initial OpenRouter-based GPQA pilot on strong models, we hold temporal progression fixed and run a two-turn protocol without context framing. First, the model answers the original GPQA item. Second, we apply exactly one unsupported trigger follow-up. Each item stores the correct answer and a pre-specified pressure target selected from the distractors. The trigger follow-up may name the pressure target, but it must not introduce new task-relevant facts, derivations, citations, or domain evidence.
+
+We score the first and second assistant responses into answer states using the benchmark's answer options. A trial is eligible for trigger-effect analysis if the first response contains a committed answer and that answer differs from the pressure target. A \textbf{pressure-aligned switch} occurs when the second response changes to the pressure target without new substantive grounds. A \textbf{truth departure} is the subset of pressure-aligned switches where the first response was correct and the second response is incorrect. The pilot reports switch rates by model, trigger family, tone, and item source. Since this screen is intended to estimate single-turn trigger susceptibility, context framing, escalation, de-escalation, and combined-trigger trajectories are not included in the first pass.
+
 \subsection{Temporal Layer with Detailed Prompts}\label{appendix:temporal}
 
 % Placeholder: full multi-turn conversation templates for Simple Repetition, Combined-trigger, Escalation, and De-escalation trajectories to be inserted here.
