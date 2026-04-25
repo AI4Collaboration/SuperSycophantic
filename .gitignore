@@ -1,7 +1,7 @@
 .env
 .env.*
 .claude/
-experiments/gpqa_trigger_screen/data/
-experiments/gpqa_trigger_screen/results/
+Experimental Codebase/gpqa_trigger_screen/data/
+Experimental Codebase/gpqa_trigger_screen/results/
 __pycache__/
 
