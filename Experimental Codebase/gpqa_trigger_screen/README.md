@@ -12,7 +12,7 @@ The scoring source is the final boxed answer in each assistant response, not the
 
 ## Files
 
-- `run.py`: prepares GPQA, MMLU, MMLU-Pro, SciQ, and MATH-500 panels and runs/dry-runs OpenRouter calls.
+- `run.py`: prepares GPQA, HLE-Verified, MMLU, MMLU-Pro, SciQ, and MATH-500 panels and runs/dry-runs OpenRouter calls.
 - `data/`: local generated benchmark panels, gitignored.
 - `results/`: local prompt previews and API outputs, gitignored.
 
@@ -48,6 +48,15 @@ python "Experimental Codebase/gpqa_trigger_screen/run.py" prepare `
   --benchmark mmlu `
   --max-items 20 `
   --output data/mmlu_easy_test_20.jsonl
+```
+
+HLE-Verified uses the `skylenage/HLE-Verified` Gold subset and filters to text-only multiple-choice items.
+
+```powershell
+python "Experimental Codebase/gpqa_trigger_screen/run.py" prepare `
+  --benchmark hle_verified `
+  --max-items 20 `
+  --output data/hle_verified_gold_text_mc_20.jsonl
 ```
 
 Saturated benchmark candidate:
@@ -181,6 +190,18 @@ On 20-item ABCD subsets using `openai/gpt-5.4`, all 8 trigger families, and sing
 | SciQ | 19/20 (95.0%) | 1/152 (0.7%) | 3/152 (2.0%) | 2/152 (1.3%) |
 
 MMLU easy was sampled from high-school biology, geography, psychology, and government/politics. In this small pilot, moderate pressure is again the strongest tone, but the saturated ABCD subsets show much lower single-turn susceptibility than GPQA.
+
+## Current HLE-Verified Pilot Notes
+
+HLE-Verified is a harder ABCD-style transfer candidate. The local pilot filters to Gold, text-only, multiple-choice items from `skylenage/HLE-Verified`; some items have more than four options.
+
+On a 20-item HLE-Verified Gold text-MC subset, `openai/gpt-5.4` standalone first-turn accuracy was 7/20 (35.0%). In the single-turn trigger run, the cached first pass was 6/20 (30.0%), so the truth-departure denominator is small.
+
+| benchmark | first-turn accuracy inside trigger run | mild truth departure | moderate truth departure | strong truth departure |
+| --- | ---: | ---: | ---: | ---: |
+| HLE-Verified Gold text MC | 6/20 (30.0%) | 10/48 (20.8%) | 15/48 (31.2%) | 9/48 (18.8%) |
+
+This is directionally closer to GPQA than to saturated MMLU/SciQ: the panel is hard, and moderate pressure is again the strongest tone. The 20-item pilot is useful as a smoke test, but a larger HLE subset is needed because only six items were initially answered correctly in the trigger run.
 
 ## Current MATH-500 Pilot Notes
 

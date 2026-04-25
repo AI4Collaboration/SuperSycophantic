@@ -45,12 +45,14 @@ GPQA_SPLIT_TO_FILE = {
 }
 BENCHMARK_DEFAULT_SPLITS = {
     "gpqa": "diamond",
+    "hle_verified": "train",
     "math_500": "test",
     "mmlu": "test",
     "mmlu_pro": "test",
     "sciq": "test",
 }
 BENCHMARK_DATASETS = {
+    "hle_verified": ("skylenage/HLE-Verified", None),
     "math_500": ("HuggingFaceH4/MATH-500", None),
     "mmlu": ("cais/mmlu", None),
     "mmlu_pro": ("TIGER-Lab/MMLU-Pro", None),
@@ -379,6 +381,77 @@ def make_mmlu_item(row: dict[str, Any], split: str, index: int, seed: int) -> di
     }
 
 
+def parse_hle_question_and_choices(question: str) -> tuple[str, dict[str, str]]:
+    parts = re.split(r"\n\s*Answer Choices:\s*\n", str(question), maxsplit=1, flags=re.IGNORECASE)
+    if len(parts) != 2:
+        raise ValueError("HLE multiple-choice question is missing an Answer Choices block")
+    stem, choices_block = parts
+    matches = list(
+        re.finditer(
+            r"(?ms)^\s*([A-Z])[\.\)]\s*(.*?)(?=^\s*[A-Z][\.\)]\s|\Z)",
+            choices_block.strip(),
+        )
+    )
+    choices = {match.group(1).strip().upper(): match.group(2).strip() for match in matches}
+    if len(choices) < 2:
+        raise ValueError("HLE multiple-choice question has fewer than two parsed choices")
+    return stem.strip(), choices
+
+
+def hle_json(row: dict[str, Any]) -> dict[str, Any]:
+    raw = row.get("json")
+    if isinstance(raw, dict):
+        return raw
+    if isinstance(raw, str) and raw.strip():
+        try:
+            return json.loads(raw)
+        except json.JSONDecodeError:
+            return {}
+    return {}
+
+
+def is_hle_verified_mc_text_row(row: dict[str, Any]) -> bool:
+    meta = hle_json(row)
+    verified_class = str(row.get("Verified_Classes", "")).lower()
+    answer_type = str(meta.get("answer_type", "")).lower()
+    image = meta.get("image")
+    return (
+        "gold" in verified_class
+        and str(row.get("problem_is_valid", "")).strip() == "1"
+        and str(row.get("answer_is_valid", "")).strip() == "1"
+        and answer_type == "multiplechoice"
+        and not image
+    )
+
+
+def make_hle_verified_item(row: dict[str, Any], split: str, index: int, seed: int) -> dict[str, Any]:
+    meta = hle_json(row)
+    question = str(meta.get("question") or row["question"]).strip()
+    stem, parsed_choices = parse_hle_question_and_choices(question)
+    correct_original = str(meta.get("answer") or row["answer"]).strip().upper()
+    if correct_original not in parsed_choices:
+        raise ValueError(f"HLE answer {correct_original!r} is missing from parsed choices")
+    raw_choices = [
+        {"text": text, "is_correct": label == correct_original}
+        for label, text in parsed_choices.items()
+    ]
+    labelled_choices, correct_label, pressure_label = shuffled_labelled_choices(raw_choices, seed, index)
+    return {
+        "id": f"hle_verified-{split}-{row.get('id', index)}",
+        "source": f"hle_verified_{split}",
+        "record_id": row.get("id", ""),
+        "verified_class": row.get("Verified_Classes", ""),
+        "category": row.get("category", ""),
+        "raw_subject": row.get("raw_subject", ""),
+        "question": stem,
+        "choices": labelled_choices,
+        "correct_answer": correct_label,
+        "correct_answer_text": labelled_choices[correct_label],
+        "pressure_target": pressure_label,
+        "pressure_target_text": labelled_choices[pressure_label],
+    }
+
+
 def make_sciq_item(row: dict[str, Any], split: str, index: int, seed: int) -> dict[str, Any]:
     choices = [
         {"text": str(row["correct_answer"]).strip(), "is_correct": True},
@@ -402,6 +475,7 @@ def make_sciq_item(row: dict[str, Any], split: str, index: int, seed: int) -> di
 
 
 HF_ITEM_MAKERS = {
+    "hle_verified": make_hle_verified_item,
     "math_500": make_math_500_item,
     "mmlu": make_mmlu_item,
     "mmlu_pro": make_mmlu_pro_item,
@@ -462,9 +536,49 @@ def prepare_mmlu_panel(args: argparse.Namespace, base_dir: Path) -> int:
     return 0
 
 
+def prepare_hle_verified_panel(args: argparse.Namespace, base_dir: Path) -> int:
+    try:
+        from datasets import load_dataset
+    except ImportError as exc:
+        raise SystemExit("The 'datasets' package is required for HLE-Verified.") from exc
+
+    split = resolved_prepare_split(args)
+    dataset = load_dataset("skylenage/HLE-Verified", split=split, streaming=True)
+    eligible_rows: list[dict[str, Any]] = []
+    skipped_parse_errors = 0
+    for row in dataset:
+        if not is_hle_verified_mc_text_row(row):
+            continue
+        try:
+            parse_hle_question_and_choices(str(hle_json(row).get("question") or row["question"]))
+        except ValueError:
+            skipped_parse_errors += 1
+            continue
+        eligible_rows.append(dict(row))
+
+    rng = random.Random(args.seed)
+    rng.shuffle(eligible_rows)
+    if args.max_items is not None:
+        eligible_rows = eligible_rows[: args.max_items]
+
+    output_path = resolve_output_path(base_dir, resolved_prepare_output(args, split))
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with output_path.open("w", encoding="utf-8") as handle:
+        for index, row in enumerate(eligible_rows):
+            item = make_hle_verified_item(row, split, index, args.seed)
+            handle.write(json.dumps(item, ensure_ascii=False) + "\n")
+    print(
+        f"Wrote {len(eligible_rows)} HLE-Verified Gold text MC items to {output_path} "
+        f"(skipped_parse_errors={skipped_parse_errors})"
+    )
+    return 0
+
+
 def prepare_panel(args: argparse.Namespace, base_dir: Path) -> int:
     if args.benchmark == "gpqa":
         return prepare_gpqa_panel(args, base_dir)
+    if args.benchmark == "hle_verified":
+        return prepare_hle_verified_panel(args, base_dir)
     if args.benchmark == "mmlu":
         return prepare_mmlu_panel(args, base_dir)
     return prepare_hf_panel(args, base_dir)
