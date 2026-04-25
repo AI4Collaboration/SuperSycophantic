@@ -186,7 +186,7 @@ whether AI assistants provide feedback aligned with arguments favored by the use
 \textbf{Mimic Mistakes:} Frequency with which AI assistants include incorrect attributions without mentioning the correct attribution. \\
 \midrule
 
-\cite{Contradict} &
+\cite{ranaldi2023sycophancy} &
 A model’s inclination to produce responses that correspond to users’ beliefs or misleading prompts as opposed to true facts, in response to queries involving subjective opinions and statements that should elicit a contrary response based on facts (LLM’s beliefs; fall in the error of LLMs; LLM self-confidence).
 &
 \textbf{LLM Beliefs:} Percentage agreement with user beliefs measured via string matching between generated answers and feedback patterns on NLP-Q, PHIL-Q, and POLI-Q. \newline
@@ -194,19 +194,19 @@ A model’s inclination to produce responses that correspond to users’ beliefs
 \textbf{LLM Self-Confidence:} Accuracy and agreement with user-provided hints on commonsense reasoning, physical interaction, social interaction, and math word problems. \\
 \midrule
 
-Persona Evals \cite{Discovering} &
+Persona Evals \cite{perez2023modelwrittenevals} &
 A model’s tendency to ``repeat back a dialog user’s preferred answer.''
 &
 Extent to which LMs change answers when user background information is included in prompts across politics, philosophy, and NLP tasks, evaluated via RLHF model probabilities over answer choices. \\
 \midrule
 
-Synthetic Data reduces\cite{SycSynthData} &
+Synthetic Data reduces\cite{wei2023syntheticsycophancy} &
 An undesirable behavior where models tailor responses to follow a user’s view even when that view is not objectively correct.
 &
 Frequency of disagreement with objectively incorrect arithmetic problems when a user’s incorrect opinion is included in the prompt. \\
 \midrule
 
-\cite{Mitigations} &
+\cite{malmqvist2024sycophancymitigations} &
 The propensity of models to excessively agree with or flatter users, often at the expense of factual accuracy or ethical considerations.
 &
 N/A \\
@@ -218,13 +218,13 @@ Prioritizing user agreement over independent reasoning.
 Change in response classification between the initial answer and a rebuttal under two types of sycophancy: \emph{progressive} (incorrect $\rightarrow$ correct) and \emph{regressive} (correct $\rightarrow$ incorrect), evaluated on mathematical reasoning and medical datasets. \\
 \midrule
 
-Linear Probes \cite{Probe} (2024) &
+Linear Probes \cite{papadatos2024probepenalty} (2024) &
 When LLMs prioritize agreement with users over accurate or objective statements.
 &
 Feedback sycophancy measures aligned with Sharma et al. (2024), comparing positivity of like/dislike-prefixed feedback against baseline feedback. \\
 \midrule
 
-\cite{Faithfulness} &
+\cite{Radhakrishnan2023Faithfulness} &
 A model’s propensity to answer questions in ways aligned with its human dialog partner’s preferences or beliefs.
 &
 Same as Perez et al. (2023), but requiring inference of user beliefs rather than receiving them explicitly. \\
@@ -271,7 +271,7 @@ clear statements \newline
 \\
 \midrule
 
-Sycophancy is not One Thing \cite{SycAgree}& 
+Sycophancy is not One Thing \cite{vennemeyer2025causalsycophancy}&
 A mechanistic interpretability analysis of sycophancy. Separates sycophancy into 2 distinct features. \newline \newline 
 \textbf{Sycophantic Agreement}: \newline Same definition as of mimicry found in Sycophancy Eval \cite{sharma2023towards} \newline
 \textbf{Sycophantic Praise}: \newline Flatters the user directly, explicitly \newline
@@ -281,7 +281,7 @@ A mechanistic interpretability analysis of sycophancy. Separates sycophancy into
 \textbf{Sycophantic Praise}: \newline The prompts where the model explicitly elicit praise or exaggerated positive language toward the user when the user's credentials far exceeds the problem that is solved. Think Persona Evals. 
 \\
 \midrule
-Aligment \cite{SycHCI}&
+Alignment \cite{du2025alignmentwithoutunderstanding}&
 This work is primarily theoretical. Sycophancy can be broken down into 3 dimensions.
 
 \textbf{Informational Sycophancy}: Agreement with user empirically false claims, even when contradictory
@@ -296,7 +296,7 @@ and any available relational history \newline
 &
 N/A\\
 \midrule
-Truth is Overridden \cite{SycOverridden}
+Truth is Overridden \cite{wang2025truthoverridden}
 & 
 Another mechanistic interpretability understanding triggers that cause sycophancy. \newline 
 Same definition of mimicry of wrong answer \cite{sharma2023towards}
