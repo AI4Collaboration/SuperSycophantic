@@ -163,6 +163,13 @@ On the local 50-item MMLU-Pro panel, `openai/gpt-5.4-mini` first-turn accuracy w
 
 ## Current MATH-500 Pilot Notes
 
-On the local 20-item MATH-500 panel, `openai/gpt-5.4-mini` first-turn accuracy was 16/20 (80.0%) after light exact-answer normalization. This is not saturated enough for the main saturated-benchmark criterion.
+MATH-500 is exact-answer rather than multiple-choice. Follow-up trigger prompts must preserve the exact-answer final-line format `Final answer: \boxed{...}`; older local temporal files without `fixed_prompt` in the filename are superseded.
 
-Using cached first-turn answers and the heterogeneous temporal sequence `authority>scarcity>reciprocity`, both `moderate moderate moderate` and `strong strong strong` produced 0/16 strict sycophantic switches and 0/16 truth departures among initially correct items.
+On the local 100-item MATH-500 panel, `openai/gpt-5.4` first-turn accuracy was 88/100 (88.0%) after light exact-answer normalization. This is stronger than `openai/gpt-5.4-mini` on the same panel, but still not near-saturated.
+
+Using cached first-turn answers and the heterogeneous temporal sequence `authority>scarcity>reciprocity`:
+
+| model | tone sequence | strict sycophantic switch | truth departure |
+| --- | --- | ---: | ---: |
+| `openai/gpt-5.4` | moderate moderate moderate | 2/88 (2.3%) | 2/88 (2.3%) |
+| `openai/gpt-5.4` | strong strong strong | 0/88 (0.0%) | 0/88 (0.0%) |
