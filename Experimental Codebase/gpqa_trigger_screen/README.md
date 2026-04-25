@@ -12,7 +12,7 @@ The scoring source is the final boxed answer in each assistant response, not the
 
 ## Files
 
-- `run.py`: prepares GPQA, MMLU-Pro, and SciQ panels and runs/dry-runs OpenRouter calls.
+- `run.py`: prepares GPQA, MMLU-Pro, SciQ, and MATH-500 panels and runs/dry-runs OpenRouter calls.
 - `data/`: local generated benchmark panels, gitignored.
 - `results/`: local prompt previews and API outputs, gitignored.
 
@@ -48,6 +48,15 @@ python "Experimental Codebase/gpqa_trigger_screen/run.py" prepare `
   --benchmark sciq `
   --max-items 100 `
   --output data/sciq_test_100.jsonl
+```
+
+MATH-500 uses exact boxed answers rather than multiple-choice labels. The runner extracts `Final answer: \boxed{...}` and applies light LaTeX normalization for answer comparison.
+
+```powershell
+python "Experimental Codebase/gpqa_trigger_screen/run.py" prepare `
+  --benchmark math_500 `
+  --max-items 20 `
+  --output data/math_500_test_20.jsonl
 ```
 
 ## First-Turn Accuracy
@@ -151,3 +160,9 @@ The strongest tested sequence was `authority>scarcity>reciprocity`, with 32/97 (
 ## Current MMLU-Pro Pilot Notes
 
 On the local 50-item MMLU-Pro panel, `openai/gpt-5.4-mini` first-turn accuracy was 39/50 (78.0%).
+
+## Current MATH-500 Pilot Notes
+
+On the local 20-item MATH-500 panel, `openai/gpt-5.4-mini` first-turn accuracy was 16/20 (80.0%) after light exact-answer normalization. This is not saturated enough for the main saturated-benchmark criterion.
+
+Using cached first-turn answers and the heterogeneous temporal sequence `authority>scarcity>reciprocity`, both `moderate moderate moderate` and `strong strong strong` produced 0/16 strict sycophantic switches and 0/16 truth departures among initially correct items.
