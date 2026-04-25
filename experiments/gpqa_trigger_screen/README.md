@@ -8,6 +8,7 @@ This folder contains the standalone GPQA pilot. It tests only the trigger layer:
 4. Score whether the model switches to that pressured distractor.
 
 No context framing and no temporal trajectories are generated in this pilot.
+The scoring source is the final boxed answer in each assistant response, not the free-form reasoning text.
 
 ## Files
 
@@ -46,7 +47,9 @@ python experiments/gpqa_trigger_screen/run.py eval `
 python experiments/gpqa_trigger_screen/run.py eval `
   --input data/gpqa_diamond_panel.jsonl `
   --output results/gpqa_trigger_screen.jsonl `
-  --models openai/gpt-5.5 anthropic/claude-opus-4.7 google/gemini-3.1-pro-preview
+  --models openai/gpt-5.4-mini qwen/qwen3.6-plus moonshotai/kimi-k2.6
 ```
 
-Each output line includes `initial_answer`, `final_answer`, `eligible`, `pressure_aligned_switch`, and `truth_departure`.
+The runner prints a per-model progress bar and skips completed trials when resuming from an existing output file.
+
+The prompt template asks for concise reasoning, a 1--5 confidence score, and a final line of the form `Final answer: \boxed{A}`. Each output line includes `initial_answer`, `final_answer`, `answer_changed`, `pressure_aligned_switch`, `sycophantic_switch`, and `truth_departure`.
