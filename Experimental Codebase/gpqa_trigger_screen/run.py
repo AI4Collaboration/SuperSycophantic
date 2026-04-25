@@ -46,14 +46,22 @@ GPQA_SPLIT_TO_FILE = {
 BENCHMARK_DEFAULT_SPLITS = {
     "gpqa": "diamond",
     "math_500": "test",
+    "mmlu": "test",
     "mmlu_pro": "test",
     "sciq": "test",
 }
 BENCHMARK_DATASETS = {
     "math_500": ("HuggingFaceH4/MATH-500", None),
+    "mmlu": ("cais/mmlu", None),
     "mmlu_pro": ("TIGER-Lab/MMLU-Pro", None),
     "sciq": ("sciq", None),
 }
+DEFAULT_MMLU_SUBJECTS = [
+    "high_school_biology",
+    "high_school_geography",
+    "high_school_psychology",
+    "high_school_government_and_politics",
+]
 LABELS = [chr(ord("A") + i) for i in range(26)]
 
 SYSTEM_PROMPT = (
@@ -121,6 +129,7 @@ def parse_args() -> argparse.Namespace:
     prepare.add_argument("--output", default=None, help="Output JSONL path.")
     prepare.add_argument("--split", default=None, help="Benchmark split. Defaults to diamond for GPQA and test otherwise.")
     prepare.add_argument("--max-items", type=int, default=None)
+    prepare.add_argument("--subjects", nargs="+", default=None, help="Optional MMLU subjects/configs.")
     prepare.add_argument("--seed", type=int, default=20260425)
     prepare.add_argument("--zip", type=Path, default=None, help="Optional local official GPQA dataset.zip.")
     prepare.add_argument("--url", default=DEFAULT_GPQA_URL, help="Official GPQA dataset.zip URL.")
@@ -347,6 +356,29 @@ def make_math_500_item(row: dict[str, Any], split: str, index: int, seed: int) -
     }
 
 
+def make_mmlu_item(row: dict[str, Any], split: str, index: int, seed: int) -> dict[str, Any]:
+    options = [str(option).strip() for option in row["choices"]]
+    answer_index = int(row["answer"])
+    choices = [
+        {"text": option, "is_correct": option_index == answer_index}
+        for option_index, option in enumerate(options)
+    ]
+    labelled_choices, correct_label, pressure_label = shuffled_labelled_choices(choices, seed, index)
+    subject = str(row.get("subject", "")).strip()
+    return {
+        "id": f"mmlu-{split}-{subject or 'unknown'}-{index + 1:04d}",
+        "source": f"mmlu_{split}",
+        "record_id": index,
+        "subject": subject,
+        "question": str(row["question"]).strip(),
+        "choices": labelled_choices,
+        "correct_answer": correct_label,
+        "correct_answer_text": labelled_choices[correct_label],
+        "pressure_target": pressure_label,
+        "pressure_target_text": labelled_choices[pressure_label],
+    }
+
+
 def make_sciq_item(row: dict[str, Any], split: str, index: int, seed: int) -> dict[str, Any]:
     choices = [
         {"text": str(row["correct_answer"]).strip(), "is_correct": True},
@@ -371,6 +403,7 @@ def make_sciq_item(row: dict[str, Any], split: str, index: int, seed: int) -> di
 
 HF_ITEM_MAKERS = {
     "math_500": make_math_500_item,
+    "mmlu": make_mmlu_item,
     "mmlu_pro": make_mmlu_pro_item,
     "sciq": make_sciq_item,
 }
@@ -380,7 +413,7 @@ def prepare_hf_panel(args: argparse.Namespace, base_dir: Path) -> int:
     try:
         from datasets import load_dataset
     except ImportError as exc:
-        raise SystemExit("The 'datasets' package is required for MMLU-Pro and SciQ.") from exc
+        raise SystemExit("The 'datasets' package is required for Hugging Face benchmark panels.") from exc
 
     split = resolved_prepare_split(args)
     dataset_name, config = BENCHMARK_DATASETS[args.benchmark]
@@ -400,9 +433,40 @@ def prepare_hf_panel(args: argparse.Namespace, base_dir: Path) -> int:
     return 0
 
 
+def prepare_mmlu_panel(args: argparse.Namespace, base_dir: Path) -> int:
+    try:
+        from datasets import load_dataset
+    except ImportError as exc:
+        raise SystemExit("The 'datasets' package is required for MMLU.") from exc
+
+    split = resolved_prepare_split(args)
+    subjects = args.subjects or DEFAULT_MMLU_SUBJECTS
+    rows: list[dict[str, Any]] = []
+    for subject in subjects:
+        dataset = load_dataset("cais/mmlu", subject, split=split)
+        for row in dataset:
+            rows.append(dict(row))
+
+    rng = random.Random(args.seed)
+    rng.shuffle(rows)
+    if args.max_items is not None:
+        rows = rows[: args.max_items]
+
+    output_path = resolve_output_path(base_dir, resolved_prepare_output(args, split))
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with output_path.open("w", encoding="utf-8") as handle:
+        for index, row in enumerate(rows):
+            item = make_mmlu_item(row, split, index, args.seed)
+            handle.write(json.dumps(item, ensure_ascii=False) + "\n")
+    print(f"Wrote {len(rows)} MMLU items from {len(subjects)} subjects to {output_path}")
+    return 0
+
+
 def prepare_panel(args: argparse.Namespace, base_dir: Path) -> int:
     if args.benchmark == "gpqa":
         return prepare_gpqa_panel(args, base_dir)
+    if args.benchmark == "mmlu":
+        return prepare_mmlu_panel(args, base_dir)
     return prepare_hf_panel(args, base_dir)
 
 

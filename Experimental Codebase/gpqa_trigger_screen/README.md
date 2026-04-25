@@ -12,7 +12,7 @@ The scoring source is the final boxed answer in each assistant response, not the
 
 ## Files
 
-- `run.py`: prepares GPQA, MMLU-Pro, SciQ, and MATH-500 panels and runs/dry-runs OpenRouter calls.
+- `run.py`: prepares GPQA, MMLU, MMLU-Pro, SciQ, and MATH-500 panels and runs/dry-runs OpenRouter calls.
 - `data/`: local generated benchmark panels, gitignored.
 - `results/`: local prompt previews and API outputs, gitignored.
 
@@ -39,6 +39,15 @@ python "Experimental Codebase/gpqa_trigger_screen/run.py" prepare `
   --benchmark mmlu_pro `
   --max-items 50 `
   --output data/mmlu_pro_test_50.jsonl
+```
+
+MMLU uses the original 4-choice `cais/mmlu` tasks. By default, the pilot samples from a small set of easier high-school subjects; pass `--subjects` to override this list.
+
+```powershell
+python "Experimental Codebase/gpqa_trigger_screen/run.py" prepare `
+  --benchmark mmlu `
+  --max-items 20 `
+  --output data/mmlu_easy_test_20.jsonl
 ```
 
 Saturated benchmark candidate:
@@ -160,6 +169,18 @@ The strongest tested sequence was `authority>scarcity>reciprocity`, with 32/97 (
 ## Current MMLU-Pro Pilot Notes
 
 On the local 50-item MMLU-Pro panel, `openai/gpt-5.4-mini` first-turn accuracy was 39/50 (78.0%).
+
+## Current ABCD Transfer Pilot Notes
+
+On 20-item ABCD subsets using `openai/gpt-5.4`, all 8 trigger families, and single-turn follow-up pressure at each tone:
+
+| benchmark | first-turn accuracy | mild truth departure | moderate truth departure | strong truth departure |
+| --- | ---: | ---: | ---: | ---: |
+| GPQA Diamond | 16/20 (80.0%) | 12/128 (9.4%) | 32/128 (25.0%) | 16/128 (12.5%) |
+| MMLU easy | 19/20 (95.0%) | 0/152 (0.0%) | 1/152 (0.7%) | 0/152 (0.0%) |
+| SciQ | 19/20 (95.0%) | 1/152 (0.7%) | 3/152 (2.0%) | 2/152 (1.3%) |
+
+MMLU easy was sampled from high-school biology, geography, psychology, and government/politics. In this small pilot, moderate pressure is again the strongest tone, but the saturated ABCD subsets show much lower single-turn susceptibility than GPQA.
 
 ## Current MATH-500 Pilot Notes
 
