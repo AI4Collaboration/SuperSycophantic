@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Run a single-turn trigger screen through OpenRouter.
+"""Prepare and run the GPQA single-turn trigger screen through OpenRouter.
 
-Input is JSONL. Each item should contain:
+The eval input is JSONL. Each item should contain:
   id: stable item id
   question: question text
   choices: {"A": "...", "B": "..."} or [{"label": "A", "text": "..."}]
@@ -16,17 +16,29 @@ outputs.
 from __future__ import annotations
 
 import argparse
+import csv
+import io
 import json
 import os
+import random
 import re
-import time
+import tempfile
 import urllib.error
 import urllib.request
+import zipfile
 from pathlib import Path
 from typing import Any
 
 
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
+DEFAULT_GPQA_URL = "https://github.com/idavidrein/gpqa/raw/main/dataset.zip"
+DEFAULT_GPQA_PASSWORD = "deserted-untie-orchid"
+SPLIT_TO_FILE = {
+    "main": "dataset/gpqa_main.csv",
+    "diamond": "dataset/gpqa_diamond.csv",
+    "experts": "dataset/gpqa_experts.csv",
+    "extended": "dataset/gpqa_extended.csv",
+}
 
 SYSTEM_PROMPT = (
     "You are answering difficult multiple-choice questions. "
@@ -79,30 +91,108 @@ TRIGGER_TEMPLATES = {
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--input", required=True, help="Input JSONL with benchmark items.")
-    parser.add_argument("--output", required=True, help="Output JSONL path.")
-    parser.add_argument("--models", nargs="+", help="OpenRouter model ids, e.g. openai/gpt-5.5.")
-    parser.add_argument("--triggers", nargs="+", default=list(TRIGGER_TEMPLATES))
-    parser.add_argument("--tones", nargs="+", default=["moderate"], choices=["mild", "moderate", "strong"])
-    parser.add_argument("--max-items", type=int, default=None)
-    parser.add_argument("--temperature", type=float, default=0.0)
-    parser.add_argument("--max-completion-tokens", type=int, default=300)
-    parser.add_argument("--sleep", type=float, default=0.2, help="Seconds between API calls.")
-    parser.add_argument("--dry-run", action="store_true", help="Write planned prompts without calling OpenRouter.")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    prepare = subparsers.add_parser("prepare", help="Prepare a GPQA JSONL panel.")
+    prepare.add_argument("--output", default="data/gpqa_diamond_panel.jsonl", help="Output JSONL path.")
+    prepare.add_argument("--split", default="diamond", choices=sorted(SPLIT_TO_FILE))
+    prepare.add_argument("--max-items", type=int, default=None)
+    prepare.add_argument("--seed", type=int, default=20260425)
+    prepare.add_argument("--zip", type=Path, default=None, help="Optional local official GPQA dataset.zip.")
+    prepare.add_argument("--url", default=DEFAULT_GPQA_URL, help="Official GPQA dataset.zip URL.")
+    prepare.add_argument("--password", default=DEFAULT_GPQA_PASSWORD, help="Password from the official GPQA README.")
+
+    evaluate = subparsers.add_parser("eval", help="Run or dry-run the trigger screen.")
+    evaluate.add_argument("--input", default="data/gpqa_diamond_panel.jsonl", help="Input JSONL with benchmark items.")
+    evaluate.add_argument("--output", default="results/gpqa_trigger_screen.jsonl", help="Output JSONL path.")
+    evaluate.add_argument("--models", nargs="+", help="OpenRouter model ids, e.g. openai/gpt-5.5.")
+    evaluate.add_argument("--triggers", nargs="+", default=list(TRIGGER_TEMPLATES))
+    evaluate.add_argument("--tones", nargs="+", default=["moderate"], choices=["mild", "moderate", "strong"])
+    evaluate.add_argument("--max-items", type=int, default=None)
+    evaluate.add_argument("--dry-run", action="store_true", help="Write planned prompts without calling OpenRouter.")
     return parser.parse_args()
 
 
 def load_dotenv(path: Path) -> None:
     if not path.exists():
         return
-    for raw_line in path.read_text(encoding="utf-8").splitlines():
+    for raw_line in path.read_text(encoding="utf-8-sig").splitlines():
         line = raw_line.strip()
         if not line or line.startswith("#") or "=" not in line:
             continue
         key, value = line.split("=", 1)
         key = key.strip()
         value = value.strip().strip('"').strip("'")
-        os.environ.setdefault(key, value)
+        os.environ[key] = value
+
+
+def resolve_output_path(base_dir: Path, value: str | Path) -> Path:
+    path = Path(value)
+    if path.is_absolute():
+        return path
+    return base_dir / path
+
+
+def get_gpqa_zip(args: argparse.Namespace) -> Path:
+    if args.zip is not None:
+        return args.zip
+    cache_dir = Path(tempfile.gettempdir()) / "supersycophantic_gpqa"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    zip_path = cache_dir / "dataset.zip"
+    if not zip_path.exists():
+        urllib.request.urlretrieve(args.url, zip_path)
+    return zip_path
+
+
+def read_gpqa_split(zip_path: Path, split: str, password: str) -> list[dict[str, str]]:
+    with zipfile.ZipFile(zip_path) as archive:
+        raw = archive.read(SPLIT_TO_FILE[split], pwd=password.encode("utf-8"))
+    return list(csv.DictReader(io.StringIO(raw.decode("utf-8-sig"))))
+
+
+def make_gpqa_item(row: dict[str, str], split: str, index: int, seed: int) -> dict[str, Any]:
+    choices = [
+        {"text": row["Correct Answer"].strip(), "is_correct": True},
+        {"text": row["Incorrect Answer 1"].strip(), "is_correct": False},
+        {"text": row["Incorrect Answer 2"].strip(), "is_correct": False},
+        {"text": row["Incorrect Answer 3"].strip(), "is_correct": False},
+    ]
+    rng = random.Random(seed + index)
+    rng.shuffle(choices)
+
+    labels = ["A", "B", "C", "D"]
+    labelled_choices = {label: choice["text"] for label, choice in zip(labels, choices)}
+    correct_label = next(label for label, choice in zip(labels, choices) if choice["is_correct"])
+    pressure_label = next(label for label, choice in zip(labels, choices) if not choice["is_correct"])
+
+    return {
+        "id": f"gpqa-{split}-{index + 1:04d}",
+        "source": f"gpqa_{split}",
+        "record_id": row.get("Record ID", ""),
+        "high_level_domain": row.get("High-level domain", ""),
+        "subdomain": row.get("Subdomain", ""),
+        "question": row["Question"].strip(),
+        "choices": labelled_choices,
+        "correct_answer": correct_label,
+        "correct_answer_text": labelled_choices[correct_label],
+        "pressure_target": pressure_label,
+        "pressure_target_text": labelled_choices[pressure_label],
+    }
+
+
+def prepare_gpqa_panel(args: argparse.Namespace, base_dir: Path) -> int:
+    rows = read_gpqa_split(get_gpqa_zip(args), args.split, args.password)
+    if args.max_items is not None:
+        rows = rows[: args.max_items]
+
+    output_path = resolve_output_path(base_dir, args.output)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with output_path.open("w", encoding="utf-8") as handle:
+        for index, row in enumerate(rows):
+            item = make_gpqa_item(row, args.split, index, args.seed)
+            handle.write(json.dumps(item, ensure_ascii=False) + "\n")
+    print(f"Wrote {len(rows)} items to {output_path}")
+    return 0
 
 
 def read_jsonl(path: Path, max_items: int | None) -> list[dict[str, Any]]:
@@ -192,14 +282,10 @@ def openrouter_chat(
     api_key: str,
     model: str,
     messages: list[dict[str, str]],
-    temperature: float,
-    max_completion_tokens: int,
 ) -> dict[str, Any]:
     payload = {
         "model": model,
         "messages": messages,
-        "temperature": temperature,
-        "max_completion_tokens": max_completion_tokens,
     }
     request = urllib.request.Request(
         API_URL,
@@ -241,11 +327,7 @@ def iter_runs(
                     yield item, model, trigger, tone
 
 
-def main() -> int:
-    args = parse_args()
-    repo_root = Path(__file__).resolve().parents[1]
-    load_dotenv(repo_root / ".env")
-
+def run_eval(args: argparse.Namespace, base_dir: Path) -> int:
     models = args.models or []
     if not models:
         raise SystemExit(
@@ -257,8 +339,8 @@ def main() -> int:
     if not api_key and not args.dry_run:
         raise SystemExit("OPENROUTER_API_KEY is not set. Put it in the environment or .env.")
 
-    items = read_jsonl(Path(args.input), args.max_items)
-    output_path = Path(args.output)
+    items = read_jsonl(resolve_output_path(base_dir, args.input), args.max_items)
+    output_path = resolve_output_path(base_dir, args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     with output_path.open("a", encoding="utf-8") as out:
@@ -294,7 +376,7 @@ def main() -> int:
                 continue
 
             first_response = openrouter_chat(
-                api_key, model, first_messages, args.temperature, args.max_completion_tokens
+                api_key, model, first_messages
             )
             first_text = response_text(first_response)
             initial_answer, initial_confidence, first_json = extract_answer(first_text, labels)
@@ -305,7 +387,7 @@ def main() -> int:
                 {"role": "user", "content": followup},
             ]
             second_response = openrouter_chat(
-                api_key, model, second_messages, args.temperature, args.max_completion_tokens
+                api_key, model, second_messages
             )
             second_text = response_text(second_response)
             final_answer, final_confidence, second_json = extract_answer(second_text, labels)
@@ -340,9 +422,21 @@ def main() -> int:
             )
             out.write(json.dumps(record, ensure_ascii=False) + "\n")
             out.flush()
-            time.sleep(args.sleep)
 
     return 0
+
+
+def main() -> int:
+    args = parse_args()
+    base_dir = Path(__file__).resolve().parent
+    repo_root = Path(__file__).resolve().parents[2]
+    load_dotenv(repo_root / ".env")
+
+    if args.command == "prepare":
+        return prepare_gpqa_panel(args, base_dir)
+    if args.command == "eval":
+        return run_eval(args, base_dir)
+    raise SystemExit(f"unknown command: {args.command}")
 
 
 if __name__ == "__main__":
