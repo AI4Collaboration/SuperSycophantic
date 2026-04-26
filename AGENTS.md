@@ -20,7 +20,14 @@ Paper-first LaTeX repo. Most work is manuscript editing.
 - `sections/4-MechInterp.tex`: mechanistic interpretability
 - `sections/appendix.tex`: annotation details, experimental details, extended text
 - `tables/BenchScope.tex`: benchmark comparison table
+- `Experimental/gpqa_trigger_screen/`: standalone external benchmark runners, tracked panels, and local gitignored results
 - `main.bib`: bibliography
+
+## Windows workflow notes
+
+- Keep repo paths free of spaces when possible. The experimental code lives under `Experimental/` rather than a directory with spaces so PowerShell, `Start-Process`, and Python subprocess calls do not need extra quoting.
+- Prefer `rg` first for search. If `rg.exe` fails on Windows with `Access is denied`, falls silent unexpectedly, or otherwise does not return usable output, fall back to PowerShell: `Get-ChildItem -Recurse -File | Select-String -Pattern "..."`.
+- For background Python runs on Windows, quote script paths carefully or avoid spaces entirely; `Start-Process -ArgumentList` can split an unquoted script path at spaces.
 
 ## Figure 1
 

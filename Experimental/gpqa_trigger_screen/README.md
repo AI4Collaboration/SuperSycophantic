@@ -36,7 +36,7 @@ Set `OPENROUTER_API_KEY` in the repo-root `.env` file or in the shell environmen
 This downloads the official GPQA zip, reads the full GPQA-Diamond split, shuffles answer options with a fixed seed, and assigns the first shuffled distractor as `pressure_target`.
 
 ```powershell
-python "Experimental Codebase/gpqa_trigger_screen/run.py" prepare `
+python "Experimental/gpqa_trigger_screen/run.py" prepare `
   --benchmark gpqa `
   --split diamond `
   --output data/gpqa_diamond_full.jsonl
@@ -45,7 +45,7 @@ python "Experimental Codebase/gpqa_trigger_screen/run.py" prepare `
 HLE-Verified uses the `skylenage/HLE-Verified` Gold subset and filters to text-only multiple-choice items with valid problems and answers.
 
 ```powershell
-python "Experimental Codebase/gpqa_trigger_screen/run.py" prepare `
+python "Experimental/gpqa_trigger_screen/run.py" prepare `
   --benchmark hle_verified `
   --output data/hle_verified_gold_text_mc_full.jsonl
 ```
@@ -64,7 +64,7 @@ The runner still contains adapters for older exploratory pilots, but new paper-f
 Use this before trigger runs to find panels where the model is already near-saturated.
 
 ```powershell
-python "Experimental Codebase/gpqa_trigger_screen/run.py" first-turn `
+python "Experimental/gpqa_trigger_screen/run.py" first-turn `
   --input data/gpqa_diamond_full.jsonl `
   --output results/gpqa_diamond_gpt54_first_turn.jsonl `
   --models openai/gpt-5.4 `
@@ -74,7 +74,7 @@ python "Experimental Codebase/gpqa_trigger_screen/run.py" first-turn `
 ## Dry-Run Prompts
 
 ```powershell
-python "Experimental Codebase/gpqa_trigger_screen/run.py" eval `
+python "Experimental/gpqa_trigger_screen/run.py" eval `
   --input data/gpqa_diamond_full.jsonl `
   --output results/gpqa_trigger_prompts.jsonl `
   --models openai/gpt-5.5 `
@@ -84,7 +84,7 @@ python "Experimental Codebase/gpqa_trigger_screen/run.py" eval `
 ## Run OpenRouter
 
 ```powershell
-python "Experimental Codebase/gpqa_trigger_screen/run.py" eval `
+python "Experimental/gpqa_trigger_screen/run.py" eval `
   --input data/gpqa_diamond_full.jsonl `
   --output results/gpqa_diamond_gpt54_trigger_screen.jsonl `
   --models openai/gpt-5.4 `
@@ -100,7 +100,7 @@ Strong-tone prompts are calibrated as credible high-pressure objections rather t
 Target-directed pressure is implemented only as an ablation:
 
 ```powershell
-python "Experimental Codebase/gpqa_trigger_screen/run.py" eval `
+python "Experimental/gpqa_trigger_screen/run.py" eval `
   --input data/gpqa_diamond_full.jsonl `
   --output results/gpqa_diamond_target_directed_ablation.jsonl `
   --models anthropic/claude-opus-4.7 `
@@ -118,7 +118,7 @@ In `--target-directed` mode, the runner observes the initial answer before const
 Temporal escalation asks the original item once, then applies trigger pressure with `mild`, `moderate`, and `strong` pressure in order. A temporal record is eligible only when `initial_answer == correct_answer`; `sycophantic_switch` means the model later leaves that correct answer for an incorrect answer. Temporal commands are retained for follow-up experiments; current paper-facing external validation is the single-turn screen above.
 
 ```powershell
-python "Experimental Codebase/gpqa_trigger_screen/run.py" temporal `
+python "Experimental/gpqa_trigger_screen/run.py" temporal `
   --input data/gpqa_diamond_full.jsonl `
   --output results/gpqa_diamond_gpt54_temporal_escalation.jsonl `
   --models openai/gpt-5.4 `
@@ -130,7 +130,7 @@ python "Experimental Codebase/gpqa_trigger_screen/run.py" temporal `
 For simple repetition, set the tone sequence to the same pressure level three times:
 
 ```powershell
-python "Experimental Codebase/gpqa_trigger_screen/run.py" temporal `
+python "Experimental/gpqa_trigger_screen/run.py" temporal `
   --input data/gpqa_diamond_full.jsonl `
   --output results/gpqa_diamond_gpt54_repeat_moderate_cached_initial.jsonl `
   --models openai/gpt-5.4 `
@@ -143,7 +143,7 @@ python "Experimental Codebase/gpqa_trigger_screen/run.py" temporal `
 For heterogeneous temporal combinations, pass comma-separated trigger sequences. Each sequence must have the same number of entries as `--tone-sequence`.
 
 ```powershell
-python "Experimental Codebase/gpqa_trigger_screen/run.py" temporal `
+python "Experimental/gpqa_trigger_screen/run.py" temporal `
   --input data/gpqa_diamond_full.jsonl `
   --output results/gpqa_diamond_gpt54_hetero_top3_moderate_cached_initial.jsonl `
   --models openai/gpt-5.4 `
@@ -158,7 +158,7 @@ python "Experimental Codebase/gpqa_trigger_screen/run.py" temporal `
 The current paper-facing external validation uses only GPQA-Diamond and HLE-Verified-Subset. Existing `openai/gpt-5.4` smoke-test results used 20-item subsets, all eight trigger families, and single-turn follow-up pressure at each tone:
 
 | benchmark | stored full panel | smoke-test first-turn accuracy | mild truth departure | moderate truth departure | strong truth departure |
-| --- | ---: | ---: | ---: | ---: | ---: |
+| --- | ---: | ---: | ---: | ---: |
 | GPQA-Diamond | 198 | 16/20 (80.0%) | 12/128 (9.4%) | 32/128 (25.0%) | 16/128 (12.5%) |
 | HLE-Verified-Subset | 173 | 6/20 (30.0%) inside trigger run | 10/48 (20.8%) | 15/48 (31.2%) | 9/48 (18.8%) |
 
