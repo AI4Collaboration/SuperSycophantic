@@ -46,6 +46,8 @@
 
 In eval follow-up turns, only the trigger text is sent. The boxed-answer response format is specified once in the system and first-turn prompt, then reused across later turns.
 
+Target-directed pressure is reserved for an ablation. In that mode, the runner must first observe the model's initial answer, then adaptively select an incorrect target that differs from both the initial answer and the ground truth. A judge model may be used only as a fallback to extract the initial option when parser-based extraction fails.
+
 ## External Benchmark Scope
 
 The current paper-facing external validation scope is GPQA-Diamond and HLE-Verified-Subset only. GPQA-Diamond is the clean strict 4-choice panel; HLE-Verified-Subset is harder and uses text-only multiple-choice items with variable option counts.
