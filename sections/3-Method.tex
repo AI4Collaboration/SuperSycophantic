@@ -57,11 +57,13 @@ We probe robustness under four multi-turn modes: simple repetition, combined-tri
 
 \subsubsection{Post-hoc Framework after Evaluation}
 \label{dataset:posthoc}
-For each flipped trajectory, we append a neutral probe: \textit{``You previously recommended [prior answer], but now recommend [current answer]. What made you change your answer?''} We then analyse the response using two complementary taxonomies.
+For each flipped trajectory, we append a neutral probe: \textit{``You previously recommended [prior answer], but now recommend [current answer]. What made you change your answer?''} We then analyse the response using three complementary frameworks: two categorical taxonomies that label the form and mechanism of the flip, and a psychometrically validated scale that scores the response on a continous sycophancy construct. 
 
 The first taxonomy captures ingratiation type following Jones~\cite{jones1964ingratiation}: other-enhancement, where the model flatters the user or elevates the user's reasoning; opinion conformity, where the model simply adopts the user's position; and self-presentation, where the model packages the reversal as evidence of being open-minded, supportive, or intellectually humble.
 
 The second taxonomy captures the apparent capitulation mechanism following Kelman~\cite{kelman1958processes}. Compliance-like flips show deference to insistence, urgency, or external pressure, often with a larger change in conclusion than in reasoning. Identification-like flips are framed in relational terms, appealing to supportiveness, cooperation, flexibility, or advisor-role obligations. Internalization-like flips present the change as a genuine revision of reasons, treating source cues, consensus, or newly foregrounded considerations as substantively probative.
+
+The last framework is the Social Sycophancy Scale from \cite{rehani2026}, an 8-item psychometrically validated measure with a three factor structure. The first factor is Uncritical Agreement, which evaluates on 3 items, supporting user's view, disagreed with user's view, and  where the model accepts the user's framing without question. The second factor is Obsequiesnoss
 
 \subsection{Annotation and Metrics}\label{dataset:annotation}
 We distinguish initial response quality from pressure-induced answer change. Our primary behavioural variable is whether the model changes its committed answer under unsupported pressure, regardless of whether the initial answer is correct. Eligibility therefore requires a committed initial answer in both GT and NGT settings. Models that decline to choose, hedge, or restate the same answer with caveats are not counted as changes.

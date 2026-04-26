@@ -40,6 +40,84 @@
 % \vspace{-5pt}
 % \end{table*}
 
+% \begin{table*}[t]
+% \centering
+% \begin{threeparttable}
+
+% \caption{
+%     Comparison of \ourWork and representative related sycophancy benchmarks. 
+%     \textbf{Psych}: Questions grounded in established psychological or social-scientific theory.
+%     \textbf{Context}: Questions grounded in provided context or background information. \textbf{Context abbreviations}: (Hum = Humanities, SSci = Social Sciences, STEM, Med = Medicine).
+%     \textbf{Trigger}: Questions that hinge on a specific prompt, cue, or perturbation. 
+%     \textbf{Temporal}: Questions involving temporal or sequential patterns. \textbf{Trigger abbreviations}: I = Influence, A = Authority, SP = Social Proof,
+%     C = Consistency, R = Reciprocity, L = Liking, S = Scarcity,
+%     U = Unity, P = Plain Disagreement.
+%     \textbf{GT}: Questions that contain a ground truth. 
+% }
+% \label{table:related_datasets}
+% \begin{tabular}{@{}l|r|cccc
+%     @{}} \toprule & 
+%   Psych & Context & Trigger & Temporal & GT\\ \midrule
+% PARROT\cite{PARROT} & \cross & All & A & \cross & GT \\
+% Sycophancy Eval\cite{sharma2023towards} & \cross & All & C/L/P/SP  & \cross & Both \\
+% Persona Evals \cite{perez2023modelwrittenevals} & \cross & SSci/STEM/Hum & L & \cross  & NGT \\
+% SycEval\cite{SycEval} & \cross & STEM/Med & A/P & \cross  & GT \\
+% BrokenMath \cite{BROKENMATH} & \cross & STEM & C/SP & \cross  & GT \\
+% Syco-Bench \cite{duffy2024sycobench} & \cross & All & P & \cross  & NGT \\
+% TRUTH DECAY \cite{TRUTHDECAY} & \cross &  All & A/C/L/P/SP & \gcheck  & Both \\
+% SYCON Bench \cite{SYCONBENCH} & \cross & All & A/C/L/P/SP & \gcheck & Both  \\
+% ELEPHANT\cite{ELEPHANT} & \gcheck & ? & In context & \cross  & NGT \\
+% % Medical \cite{chen2025helpfulness} & & Med & A & \cross
+
+% \midrule
+% \ourWork  & \gcheck & All & All & \gcheck & Both \\
+% \bottomrule
+
+% \end{tabular}
+% \end{threeparttable}
+% \vspace{-5pt}
+% \end{table*}
+
+
+% \begin{table*}[t]
+% \centering
+% \begin{threeparttable}
+
+% \caption{
+%     Comparison of \ourWork and representative related sycophancy benchmarks. 
+%     \textbf{Psych}: Questions grounded in established psychological or social-scientific theory.
+%     \textbf{Context}: Questions grounded in provided context or background information. \textbf{Context abbreviations}: (Hum = Humanities, SSci = Social Sciences, STEM, Med = Medicine).
+%     \textbf{Trigger}: Questions that hinge on a specific prompt, cue, or perturbation. 
+%     \textbf{Temporal}: Questions involving temporal or sequential patterns. \textbf{Trigger abbreviations}: I = Influence, A = Authority, SP = Social Proof,
+%     C = Consistency, R = Reciprocity, L = Liking, S = Scarcity,
+%     U = Unity, P = Plain Disagreement.
+%     \textbf{GT}: Questions that contain a ground truth. 
+% }
+% \label{table:related_datasets}
+% \begin{tabular}{@{}l|r|cccc
+%     @{}} \toprule & 
+%   Psych & Context & Trigger & Temporal & GT\\ \midrule
+% PARROT\cite{PARROT} & \cross & All & A & \cross & GT \\
+% Sycophancy Eval\cite{sharma2023towards} & \cross & All & C/L/P/SP  & \cross & Both \\
+% Persona Evals \cite{perez2023modelwrittenevals} & \cross & SSci/STEM/Hum & L & \cross  & NGT \\
+% SycEval\cite{SycEval} & \cross & STEM/Med & A/P & \cross  & GT \\
+% BrokenMath \cite{BROKENMATH} & \cross & STEM & C/SP & \cross  & GT \\
+% Syco-Bench \cite{duffy2024sycobench} & \cross & All & P & \cross  & NGT \\
+% TRUTH DECAY \cite{TRUTHDECAY} & \cross &  All & A/C/L/P/SP & \gcheck  & Both \\
+% SYCON Bench \cite{SYCONBENCH} & \cross & All & A/C/L/P/SP & \gcheck & Both  \\
+% ELEPHANT\cite{ELEPHANT} & \gcheck & ? & In context & \cross  & NGT \\
+% % Medical \cite{chen2025helpfulness} & & Med & A & \cross
+
+% \midrule
+% \ourWork  & \gcheck & All & All & \gcheck & Both \\
+% \bottomrule
+
+% \end{tabular}
+% \end{threeparttable}
+% \vspace{-5pt}
+% \end{table*}
+
+
 \begin{table*}[t]
 \centering
 \begin{threeparttable}
@@ -47,30 +125,27 @@
 \caption{
     Comparison of \ourWork and representative related sycophancy benchmarks. 
     \textbf{Psych}: Questions grounded in established psychological or social-scientific theory.
-    \textbf{Context}: Questions grounded in provided context or background information. \textbf{Context abbreviations}: (Hum = Humanities, SSci = Social Sciences, STEM, Med = Medicine).
-    \textbf{Trigger}: Questions that hinge on a specific prompt, cue, or perturbation. 
-    \textbf{Temporal}: Questions involving temporal or sequential patterns. \textbf{Trigger abbreviations}: I = Influence, A = Authority, SP = Social Proof,
-    C = Consistency, R = Reciprocity, L = Liking, S = Scarcity,
-    U = Unity, P = Plain Disagreement.
+    \textbf{Context}: User framing in the initial query invites accommodation in the model's first response.
+    \textbf{Trigger}: Interpersonal pressure  applied to move the model toward a user-preferred answer. 
+    \textbf{Temporal}: Questions involving temporal or sequential patterns. 
     \textbf{GT}: Questions that contain a ground truth. 
 }
 \label{table:related_datasets}
 \begin{tabular}{@{}l|r|cccc
     @{}} \toprule & 
   Psych & Context & Trigger & Temporal & GT\\ \midrule
-PARROT\cite{PARROT} & \cross & All & A & \cross & GT \\
-Sycophancy Eval\cite{sharma2023towards} & \cross & All & C/L/P/SP  & \cross & Both \\
-Persona Evals \cite{perez2023modelwrittenevals} & \cross & SSci/STEM/Hum & L & \cross  & NGT \\
-SycEval\cite{SycEval} & \cross & STEM/Med & A/P & \cross  & GT \\
-BrokenMath \cite{BROKENMATH} & \cross & STEM & C/SP & \cross  & GT \\
-Syco-Bench \cite{duffy2024sycobench} & \cross & All & P & \cross  & NGT \\
-TRUTH DECAY \cite{TRUTHDECAY} & \cross &  All & A/C/L/P/SP & \gcheck  & Both \\
-SYCON Bench \cite{SYCONBENCH} & \cross & All & A/C/L/P/SP & \gcheck & Both  \\
-ELEPHANT\cite{ELEPHANT} & \gcheck & ? & In context & \cross  & NGT \\
-% Medical \cite{chen2025helpfulness} & & Med & A & \cross
+PARROT\cite{PARROT} & \cross & \gcheck & \gcheck & \cross & GT \\
+Sycophancy Eval\cite{sharma2023towards} & \cross & \gcheck & \gcheck & \cross & Both \\
+Persona Evals \cite{perez2023modelwrittenevals} & \cross & \gcheck & \cross & \cross  & NGT \\
+SycEval\cite{SycEval} & \cross & \gcheck & \gcheck & \cross  & GT \\
+BrokenMath \cite{BROKENMATH} & \cross & \gcheck & \cross & \cross  & GT \\
+Syco-Bench \cite{duffy2024sycobench} & \cross & \gcheck & \cross & \cross  & NGT \\
+TRUTH DECAY \cite{TRUTHDECAY} & \cross &  \gcheck & \gcheck & \gcheck  & Both \\
+SYCON Bench \cite{SYCONBENCH} & \cross & \gcheck & \gcheck & \gcheck & Both  \\
+ELEPHANT\cite{ELEPHANT} & \gcheck & \gcheck & \cross & \cross  & NGT \\
 
 \midrule
-\ourWork  & \gcheck & All & All & \gcheck & Both \\
+\ourWork  & \gcheck & \gcheck & \gcheck & \gcheck & Both \\
 \bottomrule
 
 \end{tabular}
