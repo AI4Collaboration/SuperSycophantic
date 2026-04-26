@@ -10,6 +10,7 @@ Paper-first LaTeX repo. Most work is manuscript editing.
 - Default branch: `main`
 - Unless the user asks otherwise, commit and push directly to `origin/main`
 - Before pushing, make sure the worktree only contains intended changes
+- At the start of each day, and whenever the gap since the last conversation is long, pull from GitHub first so local work is synced with `origin/main` before making new edits.
 
 ## File map
 
