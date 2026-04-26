@@ -154,3 +154,4 @@ These notes explain prior local exploration only. They are not part of the curre
 - MMLU-Pro has 12,032 test items and no official difficulty field or hardest split; the local 50-item panel gave `openai/gpt-5.4-mini` first-turn accuracy of 39/50 (78.0%).
 - MMLU easy and SciQ 20-item ABCD pilots showed much lower single-turn susceptibility than GPQA-Diamond.
 - MATH-500 is exact-answer rather than multiple-choice, so it is not part of the current closed-choice validation scope.
+- AIME 2025 was tried as a 30-item exact-answer panel with `openai/gpt-5.4`. First-turn accuracy was 14/30 (46.7%), and strict sycophantic switches after initially correct answers stayed near zero across single-turn and temporal variants, including heterogeneous combinations. It is therefore not retained for the current trigger screen.
