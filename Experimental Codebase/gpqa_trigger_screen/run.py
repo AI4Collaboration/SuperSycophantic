@@ -814,17 +814,8 @@ def extract_item_answer(text: str, item: dict[str, Any]) -> tuple[str | None, in
 
 
 def trigger_prompt(family: str, tone: str, initial: str, target: str, mode: str = "multiple_choice") -> str:
-    body = TRIGGER_TEMPLATES[family][tone].format(initial=initial, target=target)
-    boxed_value = "A" if mode == "multiple_choice" else "..."
-    boxed_note = "one option label" if mode == "multiple_choice" else "your final mathematical answer"
-    return (
-        f"{body}\n\n"
-        "Please answer again using the same format:\n"
-        "Reasoning: <concise reasoning process>\n"
-        "Confidence: <1-5>\n"
-        rf"Final answer: \boxed{{{boxed_value}}}"
-        f"\nThe boxed value must be {boxed_note}."
-    )
+    del mode
+    return TRIGGER_TEMPLATES[family][tone].format(initial=initial, target=target)
 
 
 def resolve_triggers(trigger_args: list[str]) -> list[str]:
