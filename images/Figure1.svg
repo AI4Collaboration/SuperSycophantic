@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="2000" height="1040" viewBox="0 0 2000 1040" role="img" aria-labelledby="title desc">
   <title id="title">SuperSycophantic framework diagram</title>
-  <desc id="desc">Two-row framework diagram with pre-hoc and post-hoc stages, showing a context layer, verifiability, Cialdini-based triggers, Jones ingratiation types, evaluation modes, and Kelman mechanisms.</desc>
+  <desc id="desc">Framework diagram with pre-hoc and post-hoc stages, showing context, verifiability, Cialdini-based triggers, post-hoc analyses, and two sycophancy elicitation regimes.</desc>
 
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
@@ -163,7 +163,7 @@
   </g>
 
   <g fill="none" stroke="#5a7a97" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)">
-    <path d="M 888 290 C 954 290, 1028 290, 1108 290"/>
+    <path d="M 854 290 C 930 290, 1044 290, 1142 290"/>
   </g>
 
   <g font-family="'Aptos','Segoe UI','Helvetica Neue',Arial,sans-serif" font-weight="800">
@@ -297,48 +297,48 @@
     </g>
   </g>
 
-  <!-- Ingratiation Types -->
+  <!-- Social Sycophancy Scale -->
   <g transform="translate(1380 208) scale(0.66)" filter="url(#shadow)">
     <rect width="380" height="236" rx="32" fill="url(#cardFill)" stroke="#5f7a8f" stroke-width="2.3"/>
     <g font-family="'Aptos','Segoe UI','Helvetica Neue',Arial,sans-serif" font-weight="700" fill="#111111">
       <rect x="24" y="24" width="332" height="58" rx="18" fill="#cceee4" stroke="#43a18f" stroke-width="1.9"/>
-      <text x="190" y="53" text-anchor="middle" font-size="28.5" dominant-baseline="middle">Flatter others</text>
+      <text x="190" y="53" text-anchor="middle" font-size="27.5" dominant-baseline="middle">Uncritical Agreement</text>
 
       <rect x="24" y="90" width="332" height="58" rx="18" fill="#ddd6ff" stroke="#765fda" stroke-width="1.9"/>
-      <text x="190" y="119" text-anchor="middle" font-size="27" dominant-baseline="middle">Opinion Conformity</text>
+      <text x="190" y="119" text-anchor="middle" font-size="28" dominant-baseline="middle">Obsequiousness</text>
 
       <rect x="24" y="156" width="332" height="58" rx="18" fill="#d0e4ff" stroke="#5d8fd0" stroke-width="1.9"/>
-      <text x="190" y="185" text-anchor="middle" font-size="27.8" dominant-baseline="middle">Self-presentation</text>
+      <text x="190" y="185" text-anchor="middle" font-size="30" dominant-baseline="middle">Excitement</text>
     </g>
   </g>
 
   <!-- Evaluation -->
   <g transform="translate(1125 208) scale(0.66)" filter="url(#shadow)">
-    <rect width="380" height="236" rx="32" fill="url(#cardFill)" stroke="#5f7a8f" stroke-width="2.3"/>
+    <rect width="404" height="236" rx="32" fill="url(#cardFill)" stroke="#5f7a8f" stroke-width="2.3"/>
     <g font-family="'Aptos','Segoe UI','Helvetica Neue',Arial,sans-serif" font-weight="700" fill="#111111">
-      <rect x="24" y="22" width="332" height="56" rx="18" fill="#e2ecff" stroke="#6c8bd0" stroke-width="1.8"/>
+      <rect x="24" y="22" width="356" height="56" rx="18" fill="#e2ecff" stroke="#6c8bd0" stroke-width="1.8"/>
       <rect x="50" y="36" width="26" height="18" rx="9" fill="#a8bef9"/>
       <rect x="88" y="36" width="26" height="18" rx="9" fill="#779bf3"/>
       <rect x="126" y="36" width="26" height="18" rx="9" fill="#4a7cf0"/>
       <path d="M 76 45 L 88 45" fill="none" stroke="#5a7a97" stroke-width="2" marker-end="url(#arrow)"/>
       <path d="M 114 45 L 126 45" fill="none" stroke="#5a7a97" stroke-width="2" marker-end="url(#arrow)"/>
-      <text x="262" y="50" text-anchor="middle" font-size="24" dominant-baseline="middle">Simple repetition</text>
+      <text x="274" y="50" text-anchor="middle" font-size="24" dominant-baseline="middle">Simple repetition</text>
 
-      <rect x="24" y="90" width="332" height="56" rx="18" fill="#ebe4ff" stroke="#8a75dd" stroke-width="1.8"/>
+      <rect x="24" y="90" width="356" height="56" rx="18" fill="#ebe4ff" stroke="#8a75dd" stroke-width="1.8"/>
       <rect x="46" y="104" width="30" height="18" rx="9" fill="#4a7cf0"/>
       <rect x="88" y="104" width="30" height="18" rx="9" fill="#9d58f4"/>
       <rect x="130" y="104" width="30" height="18" rx="9" fill="#4bbd3e"/>
       <path d="M 76 113 L 88 113" fill="none" stroke="#5a7a97" stroke-width="2" marker-end="url(#arrow)"/>
       <path d="M 118 113 L 130 113" fill="none" stroke="#5a7a97" stroke-width="2" marker-end="url(#arrow)"/>
-      <text x="262" y="118" text-anchor="middle" font-size="24" dominant-baseline="middle">Combined triggers</text>
+      <text x="274" y="118" text-anchor="middle" font-size="24" dominant-baseline="middle">Combined triggers</text>
 
-      <rect x="24" y="158" width="332" height="56" rx="18" fill="#dff4ed" stroke="#58a795" stroke-width="1.8"/>
+      <rect x="24" y="158" width="356" height="56" rx="18" fill="#dff4ed" stroke="#58a795" stroke-width="1.8"/>
       <rect x="46" y="174" width="22" height="14" rx="7" fill="#91e9de"/>
       <rect x="84" y="171" width="28" height="20" rx="10" fill="#4fe0cf"/>
       <rect x="128" y="167" width="36" height="28" rx="14" fill="#0fc4b5"/>
       <path d="M 68 181 L 84 181" fill="none" stroke="#5a7a97" stroke-width="2" marker-end="url(#arrow)"/>
       <path d="M 112 181 L 128 181" fill="none" stroke="#5a7a97" stroke-width="2" marker-end="url(#arrow)"/>
-      <text x="262" y="186" text-anchor="middle" font-size="24" dominant-baseline="middle">Increasing tones</text>
+      <text x="274" y="186" text-anchor="middle" font-size="24" dominant-baseline="middle">Increasing tones</text>
     </g>
   </g>
 
@@ -353,14 +353,28 @@
     <rect x="655" y="390" width="198" height="52" rx="16" fill="#f4f7fc" stroke="#5f7a8f" stroke-width="1.9"/>
     <text x="754" y="422" text-anchor="middle" font-size="23" dominant-baseline="middle">Trigger Layer</text>
 
-    <rect x="1157" y="390" width="206" height="52" rx="16" fill="#f4f7fc" stroke="#5f7a8f" stroke-width="1.9"/>
+    <rect x="1145" y="390" width="230" height="52" rx="16" fill="#f4f7fc" stroke="#5f7a8f" stroke-width="1.9"/>
     <text x="1260" y="422" text-anchor="middle" font-size="23" dominant-baseline="middle">Temporal Layer</text>
 
     <rect x="1386" y="390" width="238" height="52" rx="16" fill="#f4f7fc" stroke="#5f7a8f" stroke-width="1.9"/>
-    <text x="1505" y="422" text-anchor="middle" font-size="23" dominant-baseline="middle">Ingratiation Type</text>
+    <text x="1505" y="422" text-anchor="middle" font-size="18.8" dominant-baseline="middle">Social Sycophancy Scale</text>
 
     <rect x="1628" y="390" width="264" height="52" rx="16" fill="#f4f7fc" stroke="#5f7a8f" stroke-width="1.9"/>
     <text x="1760" y="422" text-anchor="middle" font-size="23" dominant-baseline="middle">Capitulation Mech</text>
+  </g>
+
+  <!-- Elicitation regimes -->
+  <g filter="url(#softShadow)" font-family="'Aptos','Segoe UI','Helvetica Neue',Arial,sans-serif" fill="#111111">
+    <path d="M 370 533 H 1628" fill="none" stroke="#6f879c" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="370" cy="533" r="6.5" fill="#7c93a8"/>
+    <circle cx="1628" cy="533" r="6.5" fill="#7c93a8"/>
+    <path d="M 888 533 C 930 533, 1044 533, 1108 533" fill="none" stroke="#5a7a97" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+
+    <rect x="345" y="505" width="543" height="56" rx="20" fill="#e4e8fa" stroke="#6e88cf" stroke-width="1.9"/>
+    <text x="616.5" y="540" text-anchor="middle" font-size="25" font-weight="800" dominant-baseline="middle">Context-induced Sycophancy</text>
+
+    <rect x="1108" y="505" width="545" height="56" rx="20" fill="#dff1ec" stroke="#5aa08f" stroke-width="1.9"/>
+    <text x="1380.5" y="540" text-anchor="middle" font-size="25" font-weight="800" dominant-baseline="middle">Trigger-induced Sycophancy</text>
   </g>
 
   <!-- Theory tags -->
@@ -372,13 +386,5 @@
     <rect x="680" y="176" width="140" height="32" rx="16" fill="#c7d8dd" stroke="#99adb9" stroke-width="1.6"/>
     <use href="#icon-tag-book" transform="translate(697 192) scale(0.76)"/>
     <text x="711" y="197" font-size="15" letter-spacing="1.2" text-anchor="start">CIALDINI</text>
-
-    <rect x="1456" y="176" width="108" height="32" rx="16" fill="#d3cee6" stroke="#98a6ba" stroke-width="1.6"/>
-    <use href="#icon-tag-book" transform="translate(1472 192) scale(0.76)"/>
-    <text x="1486" y="197" font-size="15" letter-spacing="1.2" text-anchor="start">JONES</text>
-
-    <rect x="1707" y="176" width="116" height="32" rx="16" fill="#c9ddcd" stroke="#88a291" stroke-width="1.6"/>
-    <use href="#icon-tag-book" transform="translate(1723 192) scale(0.76)"/>
-    <text x="1737" y="197" font-size="15" letter-spacing="1.2" text-anchor="start">KELMAN</text>
   </g>
 </svg>
