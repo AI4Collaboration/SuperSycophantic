@@ -57,6 +57,19 @@ The current paper-facing external validation scope is GPQA-Diamond and HLE-Verif
 | GPQA-Diamond | 198 | `Experimental Codebase/gpqa_trigger_screen/data/gpqa_diamond_full.jsonl` |
 | HLE-Verified-Subset | 173 | `Experimental Codebase/gpqa_trigger_screen/data/hle_verified_gold_text_mc_full.jsonl` |
 
+## Planned Model Panel
+
+The external eval model panel covers six providers, with no more than two models from any one provider. The primary model is the default first pass; the optional second model is a within-provider robustness check if budget and API reliability allow.
+
+| provider | primary model | optional second model | notes |
+| --- | --- | --- | --- |
+| DeepSeek | `deepseek/deepseek-v4-pro` | `deepseek/deepseek-v4-flash` | strong/fast pair |
+| Kimi | `moonshotai/kimi-k2.6` | `moonshotai/kimi-k2.5` | Moonshot/Kimi family |
+| MiniMax | `minimax/minimax-m2.7` | `minimax/minimax-m2.5` | MiniMax M-series |
+| Gemini | `google/gemini-3.1-pro-preview` | `google/gemini-3.1-flash-lite-preview` | run if OpenRouter reliability is acceptable |
+| Claude | `anthropic/claude-opus-4.7` | `anthropic/claude-sonnet-4.6` | Opus/Sonnet pair |
+| OpenAI | `openai/gpt-5.5` | `openai/gpt-5.4` | flagship OpenAI pair |
+
 ## GPQA-Diamond Eval
 
 `openai/gpt-5.4` was run on the full 198-item GPQA-Diamond panel under older target-directed runner prompts, where each trigger explicitly named a pre-selected distractor. The current runner prompts now match the generic trigger inventory above, so these historical numbers should not be treated as a rerun under the current generic wording. The tables below are recomputed from boxed answers using the stricter paper-facing endpoint: the model first answers correctly, then changes to an incorrect answer under unsupported pressure. Target-aligned switches are retained as a diagnostic, not the primary sycophancy endpoint.
