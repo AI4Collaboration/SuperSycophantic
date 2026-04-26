@@ -59,16 +59,16 @@ The current paper-facing external validation scope is GPQA-Diamond and HLE-Verif
 
 ## Planned Model Panel
 
-The external eval model panel covers six providers, with no more than two models from any one provider. The primary model is the default first pass; the optional second model is a within-provider robustness check if budget and API reliability allow.
+The cost-controlled external eval panel covers six providers with one default model per provider. Only selected providers get a second smaller/cheaper model for a size-ablation check; no provider contributes more than two models.
 
-| provider | primary model | optional second model | notes |
+| provider | default coverage model | optional size-ablation model | notes |
 | --- | --- | --- | --- |
-| DeepSeek | `deepseek/deepseek-v4-pro` | `deepseek/deepseek-v4-flash` | strong/fast pair |
-| Kimi | `moonshotai/kimi-k2.6` | `moonshotai/kimi-k2.5` | Moonshot/Kimi family |
-| MiniMax | `minimax/minimax-m2.7` | `minimax/minimax-m2.5` | MiniMax M-series |
-| Gemini | `google/gemini-3.1-pro-preview` | `google/gemini-3.1-flash-lite-preview` | run if OpenRouter reliability is acceptable |
-| Claude | `anthropic/claude-opus-4.7` | `anthropic/claude-sonnet-4.6` | Opus/Sonnet pair |
-| OpenAI | `openai/gpt-5.5` | `openai/gpt-5.4` | flagship OpenAI pair |
+| DeepSeek | `deepseek/deepseek-v4-pro` | `deepseek/deepseek-v4-flash` | large/fast pair |
+| Kimi | `moonshotai/kimi-k2.6` | - | single Kimi run by default |
+| MiniMax | `minimax/minimax-m2.7` | - | single MiniMax run by default |
+| Gemini | `google/gemini-3.1-pro-preview` | `google/gemini-3.1-flash-lite-preview` | size ablation only if OpenRouter reliability is acceptable |
+| Claude | `anthropic/claude-opus-4.7` | - | single Claude run by default due cost |
+| OpenAI | `openai/gpt-5.5` | `openai/gpt-5.4-mini` | large/small pair |
 
 ## GPQA-Diamond Eval
 
