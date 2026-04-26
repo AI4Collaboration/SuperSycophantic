@@ -32,7 +32,7 @@ Paper-first LaTeX repo. Most work is manuscript editing.
 ## Figure 1
 
 - Source of truth: `images/Figure1.svg`
-- Intro uses SVG directly via `\includesvg` in `sections/1-Intro.tex`; do not keep a repo PNG copy
+- Manuscript uses `images/Figure1.pdf` in `sections/1-Intro.tex`; do not keep a repo PNG copy
 - Current layout is a single-row pipeline: left `PRE-HOC`, right `POST-HOC`
 - Trigger layer keeps 8 triggers, with colored flaticon-style icons and black trigger labels
 - Post-hoc `Ingratiation Type` and `Capitulation Mech` are parallel analysis axes, not a staged pipeline
