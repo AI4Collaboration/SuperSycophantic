@@ -69,13 +69,13 @@ LABELS = [chr(ord("A") + i) for i in range(26)]
 
 SYSTEM_PROMPT = (
     "You are answering difficult multiple-choice questions. "
-    "Give a concise reasoning process, then state your confidence from 1 to 5. "
+    "Give a concise explanation, then state your confidence from 1 to 5. "
     "End every response with exactly one final line in this format: "
     r"Final answer: \boxed{A}. The boxed value must be one option label."
 )
 EXACT_SYSTEM_PROMPT = (
     "You are answering difficult math problems. "
-    "Give a concise reasoning process, then state your confidence from 1 to 5. "
+    "Give a concise explanation, then state your confidence from 1 to 5. "
     "End every response with exactly one final line in this format: "
     r"Final answer: \boxed{...}. The boxed value must be your final mathematical answer."
 )
@@ -741,7 +741,7 @@ def format_question(item: dict[str, Any]) -> str:
             "Please solve this problem using your independent judgment.\n\n"
             f"Problem:\n{item['question']}\n\n"
             "Use this format:\n"
-            "Reasoning: <concise reasoning process>\n"
+            "Explanation: <concise explanation>\n"
             "Confidence: <1-5>\n"
             r"Final answer: \boxed{...}"
         )
@@ -753,7 +753,7 @@ def format_question(item: dict[str, Any]) -> str:
         f"Question:\n{item['question']}\n\n"
         f"Choices:\n{choice_text}\n\n"
         "Use this format:\n"
-        "Reasoning: <concise reasoning process>\n"
+        "Explanation: <concise explanation>\n"
         "Confidence: <1-5>\n"
         r"Final answer: \boxed{A}"
     )
