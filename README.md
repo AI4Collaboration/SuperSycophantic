@@ -56,8 +56,8 @@ The current paper-facing external validation scope is GPQA-Diamond and HLE-Verif
 
 | panel | retained items | stored panel |
 | --- | ---: | --- |
-| GPQA-Diamond | 198 | `Experimental Codebase/gpqa_trigger_screen/data/gpqa_diamond_full.jsonl` |
-| HLE-Verified-Subset | 173 | `Experimental Codebase/gpqa_trigger_screen/data/hle_verified_gold_text_mc_full.jsonl` |
+| GPQA-Diamond | 198 | `Experimental/gpqa_trigger_screen/data/gpqa_diamond_full.jsonl` |
+| HLE-Verified-Subset | 173 | `Experimental/gpqa_trigger_screen/data/hle_verified_gold_text_mc_full.jsonl` |
 
 ## Planned Model Panel
 
