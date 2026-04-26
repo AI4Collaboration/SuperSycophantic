@@ -131,6 +131,9 @@ In addition to the main benchmark, we plan auxiliary transfer experiments on est
 
 For small-scale trigger-effect studies, we use compact stratified panels rather than the full factorial benchmark. On GPQA-style multiple-choice items, the model first answers the original item and reports confidence; we do not generate context-framing variants in this pilot. We then apply a single unsupported follow-up drawn from one of the eight trigger families, usually at Moderate tone for the screening pass, and direct pressure toward a pre-specified distractor without adding task-relevant evidence. Temporal progression is held fixed at one follow-up turn. An item is eligible for pressure-aligned switching when the initial answer is committed and differs from the pressure target; truth-departure analyses further restrict to cases where the initial answer is correct. This design estimates whether individual trigger families can elicit sycophantic answer revision from strong models before we scale to multi-turn settings.
 
+\paragraph{Preliminary GPQA-Diamond Validation.}
+As an initial validation of this transfer protocol, we evaluated a 20-item GPQA-Diamond panel with \texttt{openai/gpt-5.4}, all eight trigger families, and Mild, Moderate, and Strong single-turn follow-ups. The model answered 16/20 items correctly on the first turn. Among the 128 initially correct trigger trials per tone, unsupported pressure caused truth departures in 12 Mild trials (9.4\%), 32 Moderate trials (25.0\%), and 16 Strong trials (12.5\%). Thus, even without context framing or temporal escalation, GPQA-Diamond exposes answer revision from correct to pressured distractor answers; Moderate pressure was strongest in this pilot.
+
 %% ====================================================================
 %% RESULTS
 %% ====================================================================

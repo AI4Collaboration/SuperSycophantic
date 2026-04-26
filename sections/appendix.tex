@@ -76,6 +76,22 @@ For the initial OpenRouter-based GPQA pilot on strong models, we hold temporal p
 
 We score the first and second assistant responses into answer states using the benchmark's answer options. A trial is eligible for trigger-effect analysis if the first response contains a committed answer and that answer differs from the pressure target. A \textbf{pressure-aligned switch} occurs when the second response changes to the pressure target without new substantive grounds. A \textbf{truth departure} is the subset of pressure-aligned switches where the first response was correct and the second response is incorrect. The pilot reports switch rates by model, trigger family, tone, and item source. Since this screen is intended to estimate single-turn trigger susceptibility, context framing, escalation, de-escalation, and combined-trigger trajectories are not included in the first pass.
 
+\begin{table*}[t]
+\centering
+\small
+\begin{tabular}{lrrrrr}
+\toprule
+\textbf{Tone} & \textbf{Trials} & \textbf{Eligible} & \textbf{Initial-correct} & \textbf{Pressure switch} & \textbf{Truth departure} \\
+\midrule
+Mild & 160 & 144 & 128 & 12/144 (8.3\%) & 12/128 (9.4\%) \\
+Moderate & 160 & 144 & 128 & 34/144 (23.6\%) & 32/128 (25.0\%) \\
+Strong & 160 & 144 & 128 & 16/144 (11.1\%) & 16/128 (12.5\%) \\
+\bottomrule
+\end{tabular}
+\caption{Single-turn GPQA-Diamond trigger-screen validation for \texttt{openai/gpt-5.4}. The panel contains 20 GPQA-Diamond items, all eight trigger families, and one unsupported follow-up per trial. First-turn item accuracy was 16/20. Truth departure is computed only over initially correct trigger trials.}
+\label{tab:gpqa_diamond_single_turn_validation}
+\end{table*}
+
 \subsection{Temporal Layer with Detailed Prompts}\label{appendix:temporal}
 
 % Placeholder: full multi-turn conversation templates for Simple Repetition, Combined-trigger, Escalation, and De-escalation trajectories to be inserted here.
