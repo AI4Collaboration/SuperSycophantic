@@ -9,7 +9,9 @@ Every item is framed as a decision-support problem: a user with a concrete goal 
 
 For trigger-induced trials, initial queries are standardized so that first-turn accommodation effects are minimized and later behavioural changes can be attributed more cleanly to the trigger and temporal layers. For context-induced trials, we manipulate the user's initial framing while holding the underlying decision problem fixed.
 
-We organize context framing around five broad classes of self-relevant cues: \textbf{identity}, \textbf{stated belief}, \textbf{affect}, \textbf{personal stake}, and \textbf{self-presentation}. These dimensions cover the main ways a user can make a query self-relevant before any explicit trigger is applied. They are paired with a role-swapped \textbf{self-versus-other} probe: for otherwise symmetric disputes, we swap which side is framed as the user versus a friend or counterpart and test whether model judgments track the user's side rather than the underlying facts of the dispute.
+We organize context framing around four directional user-side cues: \textbf{identity}, \textbf{belief}, \textbf{affect}, and \textbf{stake}. Each injected cue subtly makes one option more aligned with the user without explicitly asking the model to choose that option. \textbf{Identity} is defined broadly: it includes social identity, role identity, positional identity, and self-presentation cues, because all of these frame one option as more consistent with who the user is, what side the user occupies, or how the user wants to be seen. \textbf{Belief} captures the user's prior interpretation of the issue. \textbf{Affect} captures the user's emotional reaction. \textbf{Stake} captures the user's practical exposure to the consequences of the decision.
+
+For the context-induced module, every item is an A/B decision-support problem. The model is asked through a shared response template to briefly explain its reasoning and then commit to a final discrete choice between A and B. We sample four base contexts in each domain $\times$ verifiability cell, yielding 32 base contexts. Each base context has one neutral version and two injected variants for each of the four cue dimensions, yielding 9 variants per base context and 288 context-conditioned prompts in total.
 
 \paragraph{Domain.}
 We organise scenarios across four domains grounded in the OECD FORD classification~\cite{oecd2015frascati}: \textbf{STEM}, \textbf{Health \& Medicine}, \textbf{Social Science}, and \textbf{Humanities}.
@@ -178,10 +180,10 @@ Among flipped trajectories, we report the distribution of Jones-style ingratiati
 We also report the distribution of Kelman-like mechanism labels: compliance-like, identification-like, and internalization-like. This analysis captures the apparent mechanism of capitulation: whether the model yields to pressure, aligns with the user or the role relationship, or treats the pressure as substantively persuasive.
 
 \paragraph{Ablation Studies.}\label{results:ablations}
-We conduct targeted ablations to isolate speaker-favoring bias, trigger mechanism, multi-turn progression, and surface ordering cues.
+We conduct targeted ablations to isolate context-framing dimension, trigger mechanism, multi-turn progression, and surface ordering cues.
 
-\paragraph{Self-versus-Other Role Swap.}
-Our first and most important ablation targets context-induced speaker favoritism. For otherwise symmetric interpersonal disputes, we construct paired prompts that differ only in whether the user is framed as Agent~A or Agent~B, with the other party framed as a friend or counterpart. If a model's judgment flips with this role swap, that is direct evidence of user-side favoritism rather than content-sensitive reasoning.
+\paragraph{Context Framing Dimension.}
+In the context-induced setting, we compare first-response choices under neutral framing against the four injected framing dimensions. Positional user-versus-other swaps are analysed as one subtype of the Identity dimension when the underlying item naturally involves an NGT dispute between two sides.
 
 \paragraph{Trigger Mechanism.}
 We compare flip rates across the Cialdini-based trigger families and the Simple Baseline.
@@ -198,4 +200,4 @@ We compare simple repetition, combined-trigger trajectories, escalation, and de-
 \paragraph{Positional Shift.}
 For NGT scenarios, we compare flip rates when the internally specified Option~A versus Option~B is presented first in the user-facing prompt, testing whether option order affects susceptibility.
 
-To keep the main paper compact, we report ablations in text rather than as a standalone table. In particular, we compare self-versus-other role swaps, trigger families, the \textit{Actually} lexical cue, unsupported versus evidence-bearing support, the four multi-turn progression modes, and option-order effects for NGT scenarios. Where space permits in the final version, the most decision-relevant contrasts can be summarized inline; the full ablation grid can remain in the appendix or supplementary material.
+To keep the main paper compact, we report ablations in text rather than as a standalone table. In particular, we compare context-framing dimensions, trigger families, the \textit{Actually} lexical cue, unsupported versus evidence-bearing support, the four multi-turn progression modes, and option-order effects for NGT scenarios. Where space permits in the final version, the most decision-relevant contrasts can be summarized inline; the full ablation grid can remain in the appendix or supplementary material.

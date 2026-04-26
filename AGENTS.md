@@ -34,9 +34,15 @@ Paper-first LaTeX repo. Most work is manuscript editing.
 
 - Source of truth: `images/Figure1.svg`
 - Manuscript uses `images/Figure1.pdf` in `sections/1-Intro.tex`; do not keep a repo PNG copy
-- Current layout is a single-row pipeline: left `PRE-HOC`, right `POST-HOC`
+- Current layout is a single-row spectrum: left `Context-induced`, right `Trigger-induced`
+- Current card order is `Context -> Verifiability -> Framing -> Trigger -> Temporal -> Sycophancy Scale`
 - Trigger layer keeps 8 triggers, with colored flaticon-style icons and black trigger labels
-- Post-hoc `Ingratiation Type` and `Capitulation Mech` are parallel analysis axes, not a staged pipeline
+- Keep the middle logo stack centered in the gap between framing and trigger
+- Export `Figure1.pdf` from a self-contained/no-scrollbar render and crop tightly; remove extra bottom/right whitespace
+- Correct export flow:
+  1. Build a temporary self-contained SVG by embedding every external `<image href="...">` asset as a data URI
+  2. Render that embedded SVG with headless Edge using `--hide-scrollbars`, overscan the viewport slightly, then crop back to the exact target canvas
+  3. Generate `images/Figure1.pdf` from the final cropped PNG with `reportlab`; do not use browser `print-to-pdf` directly for this figure
 
 ## Editing rules
 
