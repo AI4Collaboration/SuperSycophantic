@@ -1,7 +1,9 @@
 .env
 .env.*
 .claude/
-Experimental Codebase/gpqa_trigger_screen/data/
+Experimental Codebase/gpqa_trigger_screen/data/*
+!Experimental Codebase/gpqa_trigger_screen/data/gpqa_diamond_full.jsonl
+!Experimental Codebase/gpqa_trigger_screen/data/hle_verified_gold_text_mc_full.jsonl
 Experimental Codebase/gpqa_trigger_screen/results/
 __pycache__/
 

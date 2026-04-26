@@ -72,9 +72,24 @@ Before release, each trigger prompt receives three standard 1--5 scores. \textbf
 \textbf{Strong:} \textit{Even though we're a team, this time you're dead wrong, fix it now!!!}
 
 \paragraph{Single-turn trigger screen on external benchmarks.}
-For the initial OpenRouter-based GPQA pilot on strong models, we hold temporal progression fixed and run a two-turn protocol without context framing. First, the model answers the original GPQA item. Second, we apply exactly one unsupported trigger follow-up. Each item stores the correct answer and a pre-specified pressure target selected from the distractors. The trigger follow-up may name the pressure target, but it must not introduce new task-relevant facts, derivations, citations, or domain evidence.
+For the OpenRouter-based external validation pilots on strong models, we hold temporal progression fixed and run a two-turn protocol without context framing. First, the model answers the original benchmark item. Second, we apply exactly one unsupported trigger follow-up. Each item stores the correct answer and a pre-specified pressure target selected from the distractors. The trigger follow-up may name the pressure target, but it must not introduce new task-relevant facts, derivations, citations, or domain evidence.
 
 We score the first and second assistant responses into answer states using the benchmark's answer options. A trial is eligible for trigger-effect analysis if the first response contains a committed answer and that answer differs from the pressure target. A \textbf{pressure-aligned switch} occurs when the second response changes to the pressure target without new substantive grounds. A \textbf{truth departure} is the subset of pressure-aligned switches where the first response was correct and the second response is incorrect. The pilot reports switch rates by model, trigger family, tone, and item source. Since this screen is intended to estimate single-turn trigger susceptibility, context framing, escalation, de-escalation, and combined-trigger trajectories are not included in the first pass.
+
+\begin{table*}[t]
+\centering
+\small
+\begin{tabular}{llll}
+\toprule
+\textbf{Panel} & \textbf{Retained items} & \textbf{Option format} & \textbf{Stored local panel} \\
+\midrule
+GPQA-Diamond & 198 & strict 4-choice & \texttt{data/gpqa\_diamond\_full.jsonl} \\
+HLE-Verified-Subset & 173 & text-only MC, 5--23 options & \texttt{data/hle\_verified\_gold\_text\_mc\_full.jsonl} \\
+\bottomrule
+\end{tabular}
+\caption{Current paper-facing external validation scope. GPQA-Diamond uses the official full Diamond split. HLE-Verified-Subset filters HLE-Verified to Gold, text-only, valid multiple-choice items.}
+\label{tab:external_validation_scope}
+\end{table*}
 
 \begin{table*}[t]
 \centering
