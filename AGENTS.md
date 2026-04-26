@@ -8,9 +8,10 @@ Paper-first LaTeX repo. Most work is manuscript editing.
 
 - Remote: `origin` -> `https://github.com/AI4Collaboration/SuperSycophantic.git`
 - Default branch: `main`
-- Unless the user asks otherwise, commit and push directly to `origin/main`
-- Before pushing, make sure the worktree only contains intended changes
 - At the start of each day, and whenever the gap since the last conversation is long, pull from GitHub first so local work is synced with `origin/main` before making new edits.
+- Before pushing, make sure the worktree only contains intended changes.
+- If the user says to push, push the full current intended worktree, including `.tex` edits, unless they explicitly ask for a partial push.
+- Unless the user asks otherwise, commit and push directly to `origin/main`.
 
 ## File map
 
@@ -28,7 +29,7 @@ Paper-first LaTeX repo. Most work is manuscript editing.
 
 - Keep repo paths free of spaces when possible. The experimental code lives under `Experimental/` rather than a directory with spaces so PowerShell, `Start-Process`, and Python subprocess calls do not need extra quoting.
 - Prefer `rg` first for search. If `rg.exe` fails on Windows with `Access is denied`, falls silent unexpectedly, or otherwise does not return usable output, fall back to PowerShell: `Get-ChildItem -Recurse -File | Select-String -Pattern "..."`.
-- For background Python runs on Windows, quote script paths carefully or avoid spaces entirely; `Start-Process -ArgumentList` can split an unquoted script path at spaces.
+- For background Python runs on Windows, quote script paths carefully or avoid spaces entirely.
 
 ## Figure 1
 
@@ -52,8 +53,8 @@ Paper-first LaTeX repo. Most work is manuscript editing.
 - Do not introduce multimodal or image-resolution framing unless asked
 - If a methodological decision changes, sync abstract, intro, method, appendix, and affected tables
 - Most benchmark-construction edits belong in `sections/3-Method.tex` and `sections/appendix.tex`
-- Check `sections/1-Intro.tex` for summary wording and `tables/BenchScope.tex` for prior-work comparisons
-- Watch for legacy or placeholder text, especially in the appendix and tables
+- Check `sections/1-Intro.tex` for summary wording and `tables/BenchScope.tex` for prior-work comparisons.
+- Watch for legacy or placeholder text, especially in the appendix and tables.
 
 ## Current benchmark conventions
 
