@@ -22,7 +22,7 @@ Paper-first LaTeX repo. Most work is manuscript editing.
 - `sections/4-MechInterp.tex`: mechanistic interpretability
 - `sections/appendix.tex`: annotation details, experimental details, extended text
 - `tables/BenchScope.tex`: benchmark comparison table
-- `Experimental/gpqa_trigger_screen/`: standalone external benchmark runners, tracked panels, and local gitignored results
+- `Experimental/`: standalone external benchmark runner, tracked panels, and retained result files
 - `main.bib`: bibliography
 
 ## Windows workflow notes
