@@ -39,11 +39,14 @@ Paper-first LaTeX repo. Most work is manuscript editing.
 - Current card order is `Context -> Verifiability -> Framing -> Trigger -> Temporal -> Sycophancy Scale`
 - Trigger layer keeps 8 triggers, with colored flaticon-style icons and black trigger labels
 - Keep the middle logo stack centered in the gap between framing and trigger
-- Export `Figure1.pdf` from a self-contained/no-scrollbar render and crop tightly; remove extra bottom/right whitespace
+- Export `Figure1.pdf` from a self-contained/no-scrollbar render and crop tightly; remove extra top/bottom/right whitespace
+- Always overwrite old Figure 1 outputs in place: update `images/Figure1.svg`, delete and rewrite `images/Figure1.pdf`, and never keep stale Figure 1 temp previews around
 - Correct export flow:
-  1. Build a temporary self-contained SVG by embedding every external `<image href="...">` asset as a data URI
-  2. Render that embedded SVG with headless Edge using `--hide-scrollbars`, overscan the viewport slightly, then crop back to the exact target canvas
-  3. Generate `images/Figure1.pdf` from the final cropped PNG with `reportlab`; do not use browser `print-to-pdf` directly for this figure
+  1. Delete all old temp files matching `Figure1*` under the local temp directory, then delete the existing `images/Figure1.pdf`
+  2. Build one temporary self-contained SVG by embedding every external `<image href="...">` asset as a data URI
+  3. Render that embedded SVG with headless Edge using `--hide-scrollbars`, overscan the viewport slightly, then crop back to the exact target canvas
+  4. Save exactly one current preview file as `Figure1_preview_latest.png`; do not keep timestamped or parallel Figure 1 preview variants
+  5. Generate `images/Figure1.pdf` from that final cropped PNG; do not use browser `print-to-pdf` directly for this figure
 
 ## Editing rules
 
