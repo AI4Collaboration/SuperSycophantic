@@ -8,8 +8,10 @@ Paper-first LaTeX repo. Most work is manuscript editing.
 
 - Remote: `origin` -> `https://github.com/AI4Collaboration/SuperSycophantic.git`
 - Default branch: `main`
-- Unless the user asks otherwise, commit and push directly to `origin/main`
-- Before pushing, make sure the worktree only contains intended changes
+- At the start of each day, and whenever the gap since the last conversation is long, pull from GitHub first so local work is synced with `origin/main` before making new edits.
+- Before pushing, make sure the worktree only contains intended changes.
+- If the user says to push, push the full current intended worktree, including `.tex` edits, unless they explicitly ask for a partial push.
+- Unless the user asks otherwise, commit and push directly to `origin/main`.
 
 ## File map
 
@@ -27,15 +29,21 @@ Paper-first LaTeX repo. Most work is manuscript editing.
 
 - Keep repo paths free of spaces when possible. The experimental code lives under `Experimental/` rather than a directory with spaces so PowerShell, `Start-Process`, and Python subprocess calls do not need extra quoting.
 - Prefer `rg` first for search. If `rg.exe` fails on Windows with `Access is denied`, falls silent unexpectedly, or otherwise does not return usable output, fall back to PowerShell: `Get-ChildItem -Recurse -File | Select-String -Pattern "..."`.
-- For background Python runs on Windows, quote script paths carefully or avoid spaces entirely; `Start-Process -ArgumentList` can split an unquoted script path at spaces.
+- For background Python runs on Windows, quote script paths carefully or avoid spaces entirely.
 
 ## Figure 1
 
 - Source of truth: `images/Figure1.svg`
 - Manuscript uses `images/Figure1.pdf` in `sections/1-Intro.tex`; do not keep a repo PNG copy
-- Current layout is a single-row pipeline: left `PRE-HOC`, right `POST-HOC`
+- Current layout is a single-row spectrum: left `Context-induced`, right `Trigger-induced`
+- Current card order is `Context -> Verifiability -> Framing -> Trigger -> Temporal -> Sycophancy Scale`
 - Trigger layer keeps 8 triggers, with colored flaticon-style icons and black trigger labels
-- Post-hoc `Ingratiation Type` and `Capitulation Mech` are parallel analysis axes, not a staged pipeline
+- Keep the middle logo stack centered in the gap between framing and trigger
+- Export `Figure1.pdf` from a self-contained/no-scrollbar render and crop tightly; remove extra bottom/right whitespace
+- Correct export flow:
+  1. Build a temporary self-contained SVG by embedding every external `<image href="...">` asset as a data URI
+  2. Render that embedded SVG with headless Edge using `--hide-scrollbars`, overscan the viewport slightly, then crop back to the exact target canvas
+  3. Generate `images/Figure1.pdf` from the final cropped PNG with `reportlab`; do not use browser `print-to-pdf` directly for this figure
 
 ## Editing rules
 
@@ -45,8 +53,8 @@ Paper-first LaTeX repo. Most work is manuscript editing.
 - Do not introduce multimodal or image-resolution framing unless asked
 - If a methodological decision changes, sync abstract, intro, method, appendix, and affected tables
 - Most benchmark-construction edits belong in `sections/3-Method.tex` and `sections/appendix.tex`
-- Check `sections/1-Intro.tex` for summary wording and `tables/BenchScope.tex` for prior-work comparisons
-- Watch for legacy or placeholder text, especially in the appendix and tables
+- Check `sections/1-Intro.tex` for summary wording and `tables/BenchScope.tex` for prior-work comparisons.
+- Watch for legacy or placeholder text, especially in the appendix and tables.
 
 ## Current benchmark conventions
 
