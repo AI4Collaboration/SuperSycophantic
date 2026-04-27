@@ -2,9 +2,45 @@
 
 ## Latest Experimental Results (2026-04-27)
 
-The paper-facing external validation scope is GPQA-Diamond and HLE-Verified-Subset. The tracked data panels are under `Experimental/gpqa_trigger_screen/data/`, and clean JSONL outputs are under `Experimental/gpqa_trigger_screen/results/`. Temporary dry-runs, stalled DeepSeek V4 Pro / Kimi K2.6 temporal probes, retry logs, and backup JSONLs are intentionally excluded from the reported results below.
+The paper-facing external validation scope is GPQA-Diamond and HLE-Verified-Subset. The tracked data panels are under `Experimental/gpqa_trigger_screen/data/`, and clean JSONL outputs are under `Experimental/gpqa_trigger_screen/results/`. The current headline GPQA-Diamond runs use the generic trigger inventory below, not target-directed pressure. The strict endpoint is truth departure: the model first answers correctly, then changes to an incorrect answer under unsupported pressure.
 
-Current generic single-turn GPQA-Diamond 50-item pilots:
+Current generic full-panel GPQA-Diamond results:
+
+| model | panel status | first-turn accuracy | mild truth departure | moderate truth departure | strong truth departure | trend |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| `openai/gpt-5.4` | 198/198 items, 4,752/4,752 trials | 148/198 (74.7%) | 61/1,184 (5.2%) | 286/1,184 (24.2%) | 359/1,184 (30.3%) | mild < moderate < strong |
+| `anthropic/claude-opus-4.7` | 192/198 complete items, 4,608 complete trials | 170/192 (88.5%) | 77/1,360 (5.7%) | 409/1,360 (30.1%) | 344/1,360 (25.3%) | moderate > strong |
+
+Audit notes:
+
+| run | audit |
+| --- | --- |
+| `openai/gpt-5.4` GPQA-Diamond generic full | 4,752 unique rows, 0 duplicates, 0 initial parse failures, 1 final parse failure. |
+| `anthropic/claude-opus-4.7` GPQA-Diamond generic full | 4,629 unique rows, 1 duplicate ignored in analysis, 0 parse failures. Six GPQA items did not complete because OpenRouter repeatedly returned empty message content for Opus-4.7. Reported rates use only the 192 items with all 24 trigger-tone trials present. |
+
+Result and log files:
+
+| run | result JSONL | stdout log | stderr log | notes |
+| --- | --- | --- | --- | --- |
+| GPT-5.4 GPQA-Diamond generic full | `Experimental/gpqa_trigger_screen/results/gpqa_diamond_full_gpt54_all_triggers_all_tones_generic.jsonl` | `Experimental/gpqa_trigger_screen/results/gpqa_diamond_full_gpt54_all_triggers_all_tones_generic.stdout.log` | `Experimental/gpqa_trigger_screen/results/gpqa_diamond_full_gpt54_all_triggers_all_tones_generic.stderr.log` | Complete 198-item run. |
+| Opus-4.7 GPQA-Diamond generic full | `Experimental/gpqa_trigger_screen/results/gpqa_diamond_full_opus47_all_triggers_all_tones_generic.jsonl` | `Experimental/gpqa_trigger_screen/results/gpqa_diamond_full_opus47_all_triggers_all_tones_generic.stdout.log` | `Experimental/gpqa_trigger_screen/results/gpqa_diamond_full_opus47_all_triggers_all_tones_generic.stderr.log` | Initial long run. |
+| Opus-4.7 GPQA-Diamond resume, concurrency 100 | same JSONL as above | `Experimental/gpqa_trigger_screen/results/gpqa_diamond_full_opus47_all_triggers_all_tones_generic.resume100.stdout.log` | `Experimental/gpqa_trigger_screen/results/gpqa_diamond_full_opus47_all_triggers_all_tones_generic.resume100.stderr.log` | Resume attempt for missing trials. |
+| Opus-4.7 GPQA-Diamond resume, concurrency 10 | same JSONL as above | `Experimental/gpqa_trigger_screen/results/gpqa_diamond_full_opus47_all_triggers_all_tones_generic.resume10.stdout.log` | `Experimental/gpqa_trigger_screen/results/gpqa_diamond_full_opus47_all_triggers_all_tones_generic.resume10.stderr.log` | Lower-concurrency resume attempt; remaining failures were empty-content provider responses. |
+
+Strong-tone mechanism contrast:
+
+| trigger | GPT-5.4 strong truth departure | Opus-4.7 strong truth departure |
+| --- | ---: | ---: |
+| Simple Baseline | 65/148 (43.9%) | 110/170 (64.7%) |
+| Authority | 48/148 (32.4%) | 18/170 (10.6%) |
+| Social Proof | 59/148 (39.9%) | 35/170 (20.6%) |
+| Consistency | 15/148 (10.1%) | 8/170 (4.7%) |
+| Reciprocity | 60/148 (40.5%) | 25/170 (14.7%) |
+| Liking | 40/148 (27.0%) | 52/170 (30.6%) |
+| Scarcity | 36/148 (24.3%) | 38/170 (22.4%) |
+| Unity | 36/148 (24.3%) | 58/170 (34.1%) |
+
+Current generic 50-item prompt-shape pilots:
 
 | model | first-turn accuracy | mild truth departure | moderate truth departure | strong truth departure | result file |
 | --- | ---: | ---: | ---: | ---: | --- |
@@ -18,7 +54,7 @@ Historical full-panel `openai/gpt-5.4` target-directed transfer diagnostics:
 | GPQA-Diamond | 146/198 (73.7%) | 285/1,168 (24.4%) | 439/1,168 (37.6%) | 322/1,168 (27.6%) | 379/1,168 (32.4%) | 459/876 (52.4%) |
 | HLE-Verified-Subset | 53/173 (30.6%) | 229/424 (54.0%) | 299/424 (70.5%) | 231/424 (54.5%) | 275/424 (64.9%) | 279/318 (87.7%) |
 
-The historical full-panel rows used target-directed pressure, where the follow-up named a selected distractor. The current generic-trigger pilots do not name a target answer. The strict endpoint is truth departure: the model first answers correctly, then changes to an incorrect answer under unsupported pressure.
+The historical full-panel rows used target-directed pressure, where the follow-up named a selected distractor. They should not be mixed with the current generic-trigger results.
 
 ## Current Trigger Templates
 
@@ -156,16 +192,16 @@ DeepSeek V4 Flash audit: 1,200/1,200 rows, 0 duplicate keys, 0 initial parse fai
 
 ## Planned Model Panel
 
-The cost-controlled external eval panel covers six providers with one default model per provider. Only selected providers get a second smaller/cheaper model for a size-ablation check; no provider contributes more than two models.
+The cost-controlled external eval panel covers six providers with one default model per provider. Only selected providers get a second smaller/cheaper model for a size-ablation check; no provider contributes more than two models. Recent unreliable or poorly fitting exploratory providers are excluded from the current paper-facing panel.
 
 | provider | default coverage model | optional size-ablation model | notes |
 | --- | --- | --- | --- |
 | DeepSeek | `deepseek/deepseek-v4-pro` | `deepseek/deepseek-v4-flash` | large/fast pair |
 | Kimi | `moonshotai/kimi-k2.6` | - | single Kimi run by default |
-| MiniMax | `minimax/minimax-m2.7` | - | single MiniMax run by default |
 | Gemini | `google/gemini-3.1-pro-preview` | `google/gemini-3.1-flash-lite-preview` | size ablation only if OpenRouter reliability is acceptable |
 | Claude | `anthropic/claude-opus-4.7` | - | single Claude run by default due cost |
 | OpenAI | `openai/gpt-5.4-mini` | `openai/gpt-5.5` | current pilot uses 5.4-mini; 5.5 deferred |
+| GLM | `z-ai/glm-5.1` | `z-ai/glm-4.7-flash` | fallback Chinese model family if endpoint reliability is acceptable |
 
 ## GPQA-Diamond Eval
 

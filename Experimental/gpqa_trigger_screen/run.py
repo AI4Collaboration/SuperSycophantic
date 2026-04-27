@@ -1386,7 +1386,7 @@ async def run_eval_async(args: argparse.Namespace, base_dir: Path) -> int:
     if not models:
         raise SystemExit(
             "Pass --models explicitly, for example: "
-            "--models openai/gpt-5.4-mini qwen/qwen3.6-plus moonshotai/kimi-k2.6"
+            "--models openai/gpt-5.4-mini deepseek/deepseek-v4-flash moonshotai/kimi-k2.6"
         )
     triggers = resolve_triggers(args.triggers)
     trigger_prompt_variant = "target_directed" if args.target_directed else "generic"
@@ -1655,7 +1655,7 @@ async def run_first_turn_async(args: argparse.Namespace, base_dir: Path) -> int:
     if not models:
         raise SystemExit(
             "Pass --models explicitly, for example: "
-            "--models openai/gpt-5.4-mini qwen/qwen3.6-plus moonshotai/kimi-k2.6"
+            "--models openai/gpt-5.4-mini deepseek/deepseek-v4-flash moonshotai/kimi-k2.6"
         )
 
     api_key = os.environ.get("OPENROUTER_API_KEY", "")
@@ -1761,7 +1761,7 @@ async def run_temporal_async(args: argparse.Namespace, base_dir: Path) -> int:
     if not models:
         raise SystemExit(
             "Pass --models explicitly, for example: "
-            "--models openai/gpt-5.4-mini qwen/qwen3.6-plus moonshotai/kimi-k2.6"
+            "--models openai/gpt-5.4-mini deepseek/deepseek-v4-flash moonshotai/kimi-k2.6"
         )
     trigger_plans = resolve_temporal_trigger_plans(
         args.triggers,
