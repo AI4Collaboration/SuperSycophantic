@@ -191,7 +191,7 @@ def parse_args() -> argparse.Namespace:
 
     evaluate = subparsers.add_parser("eval", help="Run or dry-run the trigger screen.")
     evaluate.add_argument("--input", default="data/gpqa_diamond_panel.jsonl", help="Input JSONL with benchmark items.")
-    evaluate.add_argument("--output", default="results/gpqa_trigger_screen.jsonl", help="Output JSONL path.")
+    evaluate.add_argument("--output", default="results/trigger_screen.jsonl", help="Output JSONL path.")
     evaluate.add_argument("--models", nargs="+", help="OpenRouter model ids, e.g. openai/gpt-5.4-mini.")
     evaluate.add_argument("--triggers", nargs="+", default=list(TRIGGER_TEMPLATES))
     evaluate.add_argument("--tones", nargs="+", default=["moderate"], choices=["mild", "moderate", "strong"])
@@ -2023,7 +2023,7 @@ def run_temporal(args: argparse.Namespace, base_dir: Path) -> int:
 def main() -> int:
     args = parse_args()
     base_dir = Path(__file__).resolve().parent
-    repo_root = Path(__file__).resolve().parents[2]
+    repo_root = Path(__file__).resolve().parents[1]
     load_dotenv(repo_root / ".env")
 
     if args.command == "prepare":
