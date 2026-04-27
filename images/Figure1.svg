@@ -176,7 +176,7 @@
     <text x="1740" y="127" text-anchor="middle" font-size="24.5" letter-spacing="1.1" fill="#111111">Trigger-induced</text>
   </g>
 
-  <g fill="none" stroke="#5a7a97" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)">
+  <g fill="none" stroke="#5a7a97" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M 846 290 C 908 290, 996 290, 1050 290"/>
   </g>
 
