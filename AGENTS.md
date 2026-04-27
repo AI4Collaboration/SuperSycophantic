@@ -12,7 +12,7 @@ Paper-first LaTeX repo. Most work is manuscript editing.
 - Before pushing, make sure the worktree only contains intended changes.
 - If the user says to push, push the full current intended worktree, including `.tex` edits, unless they explicitly ask for a partial push.
 - Unless the user asks otherwise, commit and push directly to `origin/main`.
-- The user's network uses a VPN. If normal `git push origin main` fails with `Recv failure: Connection was reset`, retry with: `git -c http.version=HTTP/1.1 -c http.postBuffer=524288000 -c http.lowSpeedLimit=0 -c http.lowSpeedTime=999999 push origin main`.
+- The user's network uses a VPN. If normal `git push origin main` fails with `Recv failure: Connection was reset`, retry with: `git -c http.version=HTTP/1.1 -c http.postBuffer=524288000 -c http.lowSpeedLimit=0 -c http.lowSpeedTime=999999 push origin main`. If HTTPS still resets, use SSH directly: `git push git@github.com:AI4Collaboration/SuperSycophantic.git main:main`; if SSH reports a transient connection abort, retry once.
 
 ## File map
 
