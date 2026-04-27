@@ -63,7 +63,7 @@ The first taxonomy captures ingratiation type following Jones~\cite{jones1964ing
 
 The second taxonomy captures the apparent capitulation mechanism following Kelman~\cite{kelman1958processes}. Compliance-like flips show deference to insistence, urgency, or external pressure, often with a larger change in conclusion than in reasoning. Identification-like flips are framed in relational terms, appealing to supportiveness, cooperation, flexibility, or advisor-role obligations. Internalization-like flips present the change as a genuine revision of reasons, treating source cues, consensus, or newly foregrounded considerations as substantively probative.
 
-The last framework is the Social Sycophancy Scale from \cite{rehani2026}, an 8-item psychometrically validated measure with a three factor structure. The first factor is Uncritical Agreement, which evaluates on 3 items, supporting user's view, disagreed with user's view, and  where the model accepts the user's framing without question. The second factor is Obsequiesnoss
+The last framework is the Social Sycophancy Scale \cite{rehani2026}, an 8-item psychometrically validated measure that we administer to each post-hoc response on a 1--5 Likert scale. The scale resolves into three factors. Uncritical Agreement (3 items) captures the model's posture toward the user's position: whether the response supported the user's view, disagreed with the user's points, and questioned the user's assumptions, with the latter two items reverse-scored so that higher composite scores indicate less critical engagement. Obsequiousness (3 items) captures sycophantic affect directed at the user: excessive flattery, eagerness to please, and prioritizing the user's good graces. Excitement (2 items) captures performative enthusiasm in the response, with items on conversational enthusiasm and eagerness to engage with the user. Unlike the two categorical taxonomies above, the SSS yields graded factor scores, allowing us to detect sycophancy that surfaces in tone or framing even when the form of the flip does not cleanly fit a single ingratiation type or capitulation mechanism. Inter-annotator reliability for all three frameworks is reported in Section~\ref{dataset:annotation}.
 
 \subsection{Annotation and Metrics}\label{dataset:annotation}
 We distinguish initial response quality from pressure-induced answer change. Our primary behavioural variable is whether the model changes its committed answer under unsupported pressure, regardless of whether the initial answer is correct. Eligibility therefore requires a committed initial answer in both GT and NGT settings. Models that decline to choose, hedge, or restate the same answer with caveats are not counted as changes.
@@ -79,7 +79,7 @@ Before model evaluation, each scenario is reviewed by at least two annotators. A
 After evaluation, annotators map each assistant turn to one of five stance labels: supports the initial answer, supports the pressured alternative, both-or-ambiguous, abstains or is insufficiently committed, or off-task. A flip is recorded only when the mapped stance changes from one committed side to the other. ``New substantive grounds'' are counted only when the response introduces task-relevant evidence or reasoning that would independently justify revision; appeals to authority, consensus, urgency, rapport, or the assistant role do not qualify. For flipped trajectories, annotators assign one Jones-style ingratiation label and one Kelman-like mechanism label.
 
 \paragraph{Adjudication and agreement.}
-Each labelled unit receives at least two independent annotations. Disagreements are resolved through adjudication by a third annotator or consensus discussion. We report inter-annotator agreement for all human-labelled variables.
+Each labelled unit receives at least two independent annotations. Disagreements are resolved through adjudication by a third annotator or consensus discussion. We report inter-annotator agreement for all human-labelled variables. 
 
 Let $c_t \in \{1,2,3,4,5\}$ denote confidence at turn $t$, and let $t^*$ denote the first turn at which a pressure-aligned switch occurs. Beyond Answer Change Rate, we report three diagnostic metrics on pressure-aligned switches:
 
@@ -132,6 +132,13 @@ As an initial validation of this transfer protocol, we evaluated a 20-item GPQA-
 %% RESULTS
 %% ====================================================================
 
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{images/Figure2.pdf}
+\caption{Overview of the \ourWork framework.}
+\label{fig:framework}
+\end{figure*}
+
 \section{Results and Discussion}\label{results}
 
 \paragraph{Main Results.}\label{results:main}
@@ -178,6 +185,9 @@ Among flipped trajectories, we report the distribution of Jones-style ingratiati
 
 \paragraph{Kelman Capitulation Mechanisms.}
 We also report the distribution of Kelman-like mechanism labels: compliance-like, identification-like, and internalization-like. This analysis captures the apparent mechanism of capitulation: whether the model yields to pressure, aligns with the user or the role relationship, or treats the pressure as substantively persuasive.
+
+\paragraph{Social Sycophancy Scale.}
+We report the distribution of scores on the three factors of the Social Sycophancy Scale: Uncritical Agreement, Obsequiousness, and Excitement. This analysis captures the overall level of sycophantic behaviour in a continuous rather than categorical way, complementing the taxonomic analyses.
 
 \paragraph{Ablation Studies.}\label{results:ablations}
 We conduct targeted ablations to isolate speaker-favoring bias, trigger mechanism, multi-turn progression, and surface ordering cues.
