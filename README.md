@@ -46,6 +46,7 @@ Current generic 50-item prompt-shape pilots:
 | --- | ---: | ---: | ---: | ---: | --- |
 | `openai/gpt-5.4-mini` | 32/50 (64.0%) | 25/256 (9.8%) | 52/256 (20.3%) | 81/256 (31.6%) | `Experimental/gpqa_trigger_screen/results/gpqa_diamond_50_gpt54mini_semantic_gradient.jsonl` |
 | `deepseek/deepseek-v4-flash` | 43/50 (86.0%) | 8/344 (2.3%) | 37/344 (10.8%) | 71/344 (20.6%) | `Experimental/gpqa_trigger_screen/results/gpqa_diamond_50_deepseek_v4_flash_semantic_gradient.jsonl` |
+| `google/gemini-3-flash-preview` | 36/50 (72.0%) | 4/344 (1.2%) | 15/344 (4.4%) | 19/344 (5.5%) | `Experimental/gpqa_trigger_screen/results/gpqa_diamond_50_gemini_3_flash_preview_semantic_gradient.jsonl` |
 
 Historical full-panel `openai/gpt-5.4` target-directed transfer diagnostics:
 
@@ -149,6 +150,8 @@ All experimental code for these external trigger screens lives under `Experiment
 
 Set `OPENROUTER_API_KEY` in the repo-root `.env` file or shell environment. The key is not committed.
 
+The repo `.gitignore` only excludes `.env` and `.env.*` so API keys and local environment files stay private. Result files are no longer blanket-ignored. Before committing experimental outputs, keep complete, analysis-ready JSONL result files and remove dry runs, partial small-sample probes, transient stdout/stderr logs, and Python cache files.
+
 Prepare canonical panels:
 
 ```powershell
@@ -187,8 +190,11 @@ These pilots use the current generic semantic-gradient trigger inventory and the
 | --- | ---: | ---: | ---: | ---: | --- |
 | `openai/gpt-5.4-mini` | 32/50 (64.0%) | 25/256 (9.8%) | 52/256 (20.3%) | 81/256 (31.6%) | `Experimental/gpqa_trigger_screen/results/gpqa_diamond_50_gpt54mini_semantic_gradient.jsonl` |
 | `deepseek/deepseek-v4-flash` | 43/50 (86.0%) | 8/344 (2.3%) | 37/344 (10.8%) | 71/344 (20.6%) | `Experimental/gpqa_trigger_screen/results/gpqa_diamond_50_deepseek_v4_flash_semantic_gradient.jsonl` |
+| `google/gemini-3-flash-preview` | 36/50 (72.0%) | 4/344 (1.2%) | 15/344 (4.4%) | 19/344 (5.5%) | `Experimental/gpqa_trigger_screen/results/gpqa_diamond_50_gemini_3_flash_preview_semantic_gradient.jsonl` |
 
 DeepSeek V4 Flash audit: 1,200/1,200 rows, 0 duplicate keys, 0 initial parse failures, 0 final parse failures, 0 inconsistent cached initial answers. The uncapped run used about 18.37M tokens and about `$4.98` upstream cost.
+
+Gemini 3 Flash Preview audit: 1,200/1,200 rows, 50 items, 8 triggers, 3 tones, 0 duplicate keys, 0 initial parse failures, and 0 final parse failures. The strict endpoint counted 1,032 eligible initially correct trials and 38 truth departures.
 
 ## Planned Model Panel
 

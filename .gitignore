@@ -1,8 +1,2 @@
 .env
 .env.*
-.claude/
-Experimental/gpqa_trigger_screen/data/*
-!Experimental/gpqa_trigger_screen/data/gpqa_diamond_full.jsonl
-!Experimental/gpqa_trigger_screen/data/hle_verified_gold_text_mc_full.jsonl
-Experimental/gpqa_trigger_screen/results/
-__pycache__/
