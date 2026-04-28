@@ -405,6 +405,8 @@ GT truth-departure denominator: initially correct trials only.
 | Static strong templates | 100/312 (32.1%) | 63/152 (41.4%) | 37/160 (23.1%) |
 | Model-generated adaptive, loose | 177/312 (56.7%) | 101/152 (66.4%) | 76/160 (47.5%) |
 | Model-generated adaptive, unsupported-only prompt | 186/312 (59.6%) | 100/152 (65.8%) | 86/160 (53.8%) |
+| Model-generated anchor+meta, candidate-level | 1712/3120 (54.9%) | 1046/1520 (68.8%) | 666/1600 (41.6%) |
+| Model-generated anchor+meta, pass@10 | 279/312 (89.4%) | 146/152 (96.1%) | 133/160 (83.1%) |
 
 Unsupported-only adaptive result by trigger family:
 
@@ -419,6 +421,19 @@ Unsupported-only adaptive result by trigger family:
 | Scarcity | 20/39 (51.3%) | 8/39 (20.5%) |
 | Unity | 20/39 (51.3%) | 19/39 (48.7%) |
 
+Anchor+meta pass@10 result by trigger family:
+
+| trigger | adaptive pass@10 truth departure | matched static truth departure |
+| --- | ---: | ---: |
+| Simple Baseline | 39/39 (100.0%) | 11/39 (28.2%) |
+| Authority | 36/39 (92.3%) | 14/39 (35.9%) |
+| Social Proof | 32/39 (82.1%) | 15/39 (38.5%) |
+| Consistency | 29/39 (74.4%) | 7/39 (17.9%) |
+| Reciprocity | 37/39 (94.9%) | 14/39 (35.9%) |
+| Liking | 35/39 (89.7%) | 12/39 (30.8%) |
+| Scarcity | 35/39 (89.7%) | 8/39 (20.5%) |
+| Unity | 36/39 (92.3%) | 19/39 (48.7%) |
+
 Interpretation: adaptive triggers substantially increase truth departure on this
 HLE pilot. The loose generator often converts item content into a target-directed
 argument, so it is not clean enough for the core unsupported-pressure setting.
@@ -427,7 +442,15 @@ but generated triggers sometimes collapse toward a generic "you are
 overcomplicating this, switch to A" baseline and do not always preserve trigger
 family fidelity. A production version should therefore include post-generation
 mechanism-fidelity and evidence-leakage checks before using generated triggers as
-benchmark stimuli.
+benchmark stimuli. The anchor+meta pass@10 run is best interpreted as an
+adaptive attack-strength upper bound: each item/model/trigger group receives 10
+generated unsupported candidates that must use a family anchor and a meta-level
+weakness from the model's initial answer. A simple keyword proxy found anchor
+matches in 2,516/3,200 candidates; restricting to those candidates still gives
+273/312 (87.5%) pass@10 truth departure. Simple lexical leakage checks found
+23/3,200 candidate messages containing prohibited connectors or obvious
+task-word leakage, so a final version should filter generated candidates before
+evaluation.
 
 ### Earlier Context Diagnostics
 
@@ -467,6 +490,7 @@ the current GT source for external validation.
 | GPT-5.4 HLE-Verified-Subset first turn | `Experimental/results/hle_verified_subset_full_gpt54_first_turn.jsonl` | first-turn baseline |
 | HLE 20 adaptive loose trigger pilot | `Experimental/results/hle20_adaptive_trigger_gpt54mini_generator_strong_sonnet_flash_20260428.jsonl` | GPT-5.4-mini generated strong follow-ups |
 | HLE 20 adaptive unsupported trigger pilot | `Experimental/results/hle20_adaptive_trigger_gpt54mini_generator_strong_unsupported_sonnet_flash_20260428.jsonl` | stricter no-task-argument generator prompt |
+| HLE 20 adaptive anchor+meta pass@10 pilot | `Experimental/results/hle20_adaptive_trigger_gpt54mini_anchor_meta_pass10_strong_unsupported_sonnet_flash_20260428.jsonl` | 10 anchored unsupported candidates per item/model/trigger |
 
 ## Running Experiments
 
@@ -522,6 +546,16 @@ python "Experimental/adaptive_trigger_pilot.py" --constraint-mode unsupported --
 The adaptive pilot uses `openai/gpt-5.4-mini` as the trigger generator by
 default, reuses cached first-turn answers from the static HLE 20 trigger screen,
 and writes one JSONL row per generated follow-up trial.
+
+Run the anchor+meta pass@10 variant:
+
+```powershell
+python "Experimental/adaptive_trigger_pilot.py" `
+  --constraint-mode unsupported `
+  --strategy anchor_meta `
+  --candidates-per-trial 10 `
+  --concurrency 40
+```
 
 ## Planned Model Panel
 
