@@ -32,6 +32,7 @@ live in `Experimental/`.
 | `Experimental/adaptive_trigger_pilot.py` | model-generated adaptive trigger pilot |
 | `Experimental/data/` | retained JSONL benchmark panels |
 | `Experimental/results/` | retained paper-facing external benchmark outputs |
+| `Experimental/context_pilot/` | context-framing construction pilots and HLE item selection |
 
 The repo `.gitignore` only excludes `.env` and `.env.*` so API keys and local
 environment files stay private. Result files are not blanket-ignored.
@@ -333,6 +334,10 @@ The HLE context pilot uses a two-stage construction:
 | Domain balance | require four domains | STEM 19, Health 22, Social Science 12, Humanities 10 |
 | Qualitative selection | ask `google/gemini-3-flash-preview` to select natural, clean A/B items | 20 items, 5 per domain |
 
+Selected panel:
+
+`Experimental/context_pilot/hle_sonnet_flash_answerable_selected_20_context_items.json`
+
 Neutral answerability and context framing on the selected 20 items:
 
 | variant | truth departure to wrong A |
@@ -387,9 +392,8 @@ Domain split:
 
 Interpretation: selected HLE GT is useful for trigger-induced sycophancy. The
 moderate to strong gradient is present overall but not monotonic for Sonnet,
-so strong template wording still needs calibration.
-Raw scratch artifacts from these context-construction pilots are not retained
-as tracked repository files.
+so strong template wording still needs calibration. The retained context-pilot
+panel and supporting outputs live in `Experimental/context_pilot/`.
 
 ### Adaptive Trigger Generation Pilot
 
@@ -516,6 +520,21 @@ the current GT source for external validation.
 | HLE 20 adaptive anchor+meta pass@10 pilot | `Experimental/results/hle20_adaptive_trigger_gpt54mini_anchor_meta_pass10_strong_unsupported_sonnet_flash_20260428.jsonl` | 10 anchored unsupported candidates per item/model/trigger |
 | HLE 20 adaptive anchor+meta filter agent | `Experimental/results/hle20_adaptive_trigger_gpt54mini_anchor_meta_pass10_filter_20260428.jsonl` | separate GPT-5.4-mini filter over generated candidates |
 | HLE 20 adaptive filtered second round | `Experimental/results/hle20_adaptive_trigger_gpt54mini_anchor_meta_pass10_filtered_second_round_20260428.jsonl` | second pressure turn after filtered first-round failures |
+
+### Context Pilot Files
+
+| file | purpose |
+| --- | --- |
+| `Experimental/context_pilot/hle_sonnet_flash_answerable_selected_20_context_items.json` | final 20-item HLE context/trigger pilot panel |
+| `Experimental/context_pilot/hle_sonnet_flash_answerable_gemini_selection_20_20260427.json` | Gemini Flash qualitative selection record |
+| `Experimental/context_pilot/results/hle_all4_sonnet_flash_neutral_screen_20260427.jsonl` | Sonnet and Gemini Flash neutral screen over all four-domain HLE candidates |
+| `Experimental/context_pilot/results/hle20_sonnet_flash_answerable_context_pass1_20260427.jsonl` | selected HLE 20 context-framing pilot |
+| `Experimental/context_pilot/results/hle20_sonnet_flash_answerable_8trigger_alltones_pass1_20260427.jsonl` | selected HLE 20 all-trigger, all-tone pilot |
+| `Experimental/context_pilot/results/stem_role_swap_gpt54mini_pass10_20260427.jsonl` | NGT role-swap diagnostic |
+| `Experimental/context_pilot/results/context_signal_8base_gpt54mini_pass5_20260427.jsonl` | early GT/NGT context signal pilot |
+
+Superseded HLE and hand-written GT pilot outputs are retained in
+`Experimental/context_pilot/results/` for traceability.
 
 ## Running Experiments
 
