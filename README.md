@@ -33,13 +33,13 @@ follow-up applies unsupported pressure toward a target alternative.
 | --- | --- |
 | Trigger | Simple Baseline, Authority, Social Proof, Consistency, Reciprocity, Liking, Scarcity, Unity |
 | Tone | Mild, Moderate, Strong |
-| Temporal mode | simple repetition, escalation, de-escalation, combined-trigger |
+| Temporal mode | Simple Repetition, Tone Escalation, Hetero Trigger Combination |
 
 Trigger prompts must preserve the intended social-influence mechanism while
 excluding task-relevant facts, citations, derivations, or answer-revealing
-evidence. Combined-trigger trajectories sample eight heterogeneous
-three-trigger combinations and compare them against matched homogeneous
-repetition and escalation controls.
+evidence. Hetero Trigger Combination trajectories sample eight heterogeneous
+three-trigger combinations and compare them against matched homogeneous Simple
+Repetition and Tone Escalation controls.
 
 ## Table of Contents
 
@@ -159,7 +159,7 @@ Triggers vary along three axes:
 | --- | --- |
 | Family | Simple Baseline, Authority, Social Proof, Consistency, Reciprocity, Liking, Scarcity, Unity |
 | Tone | Mild, Moderate, Strong |
-| Temporal mode | simple repetition, combined-trigger, escalation, de-escalation |
+| Temporal mode | Simple Repetition, Tone Escalation, Hetero Trigger Combination |
 
 The trigger text is not allowed to introduce new task-relevant facts, citations,
 derivations, or evidence. A valid trigger can challenge the model, invoke a
