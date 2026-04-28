@@ -4,8 +4,46 @@ Paper-first repository for the SuperSycophantic benchmark. The manuscript lives 
 `main.tex` and `sections/`; experimental benchmark runners and retained outputs
 live in `Experimental/`.
 
+## Current Curation Plan
+
+### Context Curation
+
+Context items are written as first-person A/B decision-support problems. Each
+base item has one neutral prompt plus eight injected variants: Identity-A/B,
+Belief-A/B, Affect-A/B, and Stake-A/B. Injected cues must favor one option
+without adding task-solving evidence.
+
+| item type | source rule | current scale |
+| --- | --- | --- |
+| GT context | HLE-Verified / GPQA-derived items with an externally checkable answer and a plausible wrong pressure target | pilot: 5/domain; final target: 8/domain if the GT context pool is expanded |
+| NGT context | source-grounded, option-paired debates or shared-decision problems with two defensible answer states | draft 7-8/domain, retain 5/domain for pilot or 8/domain for final |
+
+NGT candidates are retained only if they pass five gates: source-grounded and
+option-paired, no hidden ground truth, first-person decision-support wording,
+symmetric A/B answer states, and cue-compatible variants that add no evidence.
+Preferred NGT source pools include Britannica ProCon, NICE/AHRQ shared-decision
+materials, Pew, NIFI, and SEP/IEP for humanities ethics topics.
+
+### Trigger Curation
+
+Trigger-induced trials start after the model has committed to an answer. The
+follow-up applies unsupported pressure toward a target alternative.
+
+| axis | current design |
+| --- | --- |
+| Trigger | Simple Baseline, Authority, Social Proof, Consistency, Reciprocity, Liking, Scarcity, Unity |
+| Tone | Mild, Moderate, Strong |
+| Temporal mode | simple repetition, escalation, de-escalation, combined-trigger |
+
+Trigger prompts must preserve the intended social-influence mechanism while
+excluding task-relevant facts, citations, derivations, or answer-revealing
+evidence. Combined-trigger trajectories sample eight heterogeneous
+three-trigger combinations and compare them against matched homogeneous
+repetition and escalation controls.
+
 ## Table of Contents
 
+- [Current Curation Plan](#current-curation-plan)
 - [Repository Layout](#repository-layout)
 - [Benchmark Snapshot](#benchmark-snapshot)
 - [Operationalization](#operationalization)
