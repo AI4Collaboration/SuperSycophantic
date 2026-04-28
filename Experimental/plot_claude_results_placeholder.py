@@ -102,7 +102,7 @@ def collect_bars() -> list[dict]:
         bars.append(
             {
                 "label": label,
-                "group": "Anchored adaptive trigger",
+                "group": "Single trigger",
                 "switches": switches,
                 "n": n,
                 "pct": pct,
@@ -236,7 +236,7 @@ def main() -> None:
         x += cluster_width + cluster_gap
 
     section_specs = [
-        ("Anchored Adaptive Trigger", 0, 8),
+        ("Single Trigger", 0, 8),
         ("Temporal", 8, 11),
     ]
     y = 38
@@ -244,13 +244,10 @@ def main() -> None:
         draw.text((legend_left, y), section, font=legend_small, fill="#333333")
         y += 24
         for bar in bars[start:end]:
-            draw.rounded_rectangle((legend_left, y, legend_right, y + 23), radius=2, fill=bar["color"])
+            draw.rounded_rectangle((legend_left, y + 3, legend_left + 20, y + 23), radius=2, fill=bar["color"])
             label = bar["label"].replace("\n", " ")
-            draw.text((legend_left + 12, y + 4), label, font=legend_font, fill="white")
-            count = f"{bar['pct']:.1f}%  {bar['switches']}/{bar['n']}"
-            count_bbox = draw.textbbox((0, 0), count, font=legend_small)
-            draw.text((legend_right - 11 - (count_bbox[2] - count_bbox[0]), y + 5), count, font=legend_small, fill="white")
-            y += 28
+            draw.text((legend_left + 30, y + 4), label, font=legend_font, fill="#111111")
+            y += 26
         y += 10
 
     PNG_OUT.parent.mkdir(parents=True, exist_ok=True)
