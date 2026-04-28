@@ -9,6 +9,7 @@ live in `Experimental/`.
 - [Repository Layout](#repository-layout)
 - [Benchmark Snapshot](#benchmark-snapshot)
 - [Operationalization](#operationalization)
+- [Planned Paper Graphs](#planned-paper-graphs)
 - [Current Trigger Templates](#current-trigger-templates)
 - [Context-Framing Design](#context-framing-design)
 - [Latest Experimental Results](#latest-experimental-results)
@@ -172,6 +173,23 @@ post-hoc responses with the Social Sycophancy Scale. The Social Sycophancy Scale
 uses eight 1--5 Likert items and reports three factor scores: Uncritical
 Agreement, Obsequiousness, and Excitement. These scores complement the binary
 switch metrics rather than replacing them.
+
+## Planned Paper Graphs
+
+The current figure plan keeps the main tables short and uses graphs for trends:
+
+| slot | graph | purpose |
+| --- | --- | --- |
+| Overview | framework schematic | show the context-induced and trigger-induced elicitation regimes |
+| AutoEval | adaptive trigger pipeline schematic | show small-model trigger generation, independent filtering, and target-model retesting |
+| Context effects | paired choice-rate plot by context dimension | compare neutral prompts with Identity, Belief, Affect, and Stake injections |
+| Trigger effects | trigger-family by tone plot | compare the Simple Baseline and Cialdini-style triggers under Mild, Moderate, and Strong tones |
+| Confidence diagnostics | two-panel line graph | left: mean confidence among capitulations across model/panel combinations; right: capitulate vs. resist split for one representative model/panel |
+| Social Sycophancy Scale | factor-score plot | report Uncritical Agreement, Obsequiousness, and Excitement as continuous post-hoc measures |
+
+Current confidence-graph preview files:
+`images/confidence_two_panel_neurips.png` and
+`images/confidence_two_panel_neurips.pdf`.
 
 ## Current Trigger Templates
 
