@@ -184,7 +184,7 @@ The current figure plan keeps the main tables short and uses graphs for trends:
 | AutoEval | adaptive trigger pipeline schematic | show small-model trigger generation, independent filtering, and target-model retesting |
 | Context effects | paired choice-rate plot by context dimension | compare neutral prompts with Identity, Belief, Affect, and Stake injections |
 | Trigger effects | trigger-family by tone plot | compare the Simple Baseline and Cialdini-style triggers under Mild, Moderate, and Strong tones |
-| Confidence diagnostics | two-panel line graph | left: mean confidence among capitulations across model/panel combinations; right: capitulate vs. resist split for one representative model/panel |
+| Confidence diagnostics | two-panel line graph | left: model-level mean confidence among capitulations; right: capitulate vs. resist split for one representative model |
 | Social Sycophancy Scale | factor-score plot | report Uncritical Agreement, Obsequiousness, and Excitement as continuous post-hoc measures |
 
 Current confidence-graph preview files:
