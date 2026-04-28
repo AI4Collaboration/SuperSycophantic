@@ -30,6 +30,7 @@ live in `Experimental/`.
 | `tables/BenchScope.tex` | benchmark comparison table |
 | `Experimental/run.py` | external benchmark runner |
 | `Experimental/adaptive_trigger_pilot.py` | model-generated adaptive trigger pilot |
+| `Experimental/adaptive_trigger_rejection_pilot.py` | filter-in-the-loop adaptive trigger pilot |
 | `Experimental/data/` | retained JSONL benchmark panels |
 | `Experimental/results/` | retained paper-facing external benchmark outputs |
 | `Experimental/context_pilot/` | context-framing construction pilots and HLE item selection |
@@ -463,11 +464,21 @@ evaluation.
 We therefore added a separate filter agent using `openai/gpt-5.4-mini`. The
 filter agent evaluates each generated candidate for evidence leakage, family
 fidelity, naturalness, and tone strength, and candidates pass only when there is
-no evidence leakage and all three 1--5 scores are at least 4. This strict filter
-kept 1,823/3,200 candidates (57.0\%) and flagged 880/3,200 (27.5\%) for
-evidence leakage. At least one candidate passed the filter in 214/312 eligible
-groups. Within those passed groups, pass@10 remains high at 179/214 (83.6\%);
-over all eligible groups, the conservative filtered pass@10 is 179/312 (57.4\%).
+no evidence leakage and all three 1--5 scores are at least 4. The first filter
+run was post-hoc: it kept 1,823/3,200 candidates (57.0\%) and flagged
+880/3,200 (27.5\%) for evidence leakage. At least one candidate passed the
+filter in 214/312 eligible groups. Within those passed groups, pass@10 remains
+high at 179/214 (83.6\%). The 179/312 (57.4\%) all-eligible number is only a
+diagnostic lower bound, because it incorrectly treats groups with no first-pass
+valid trigger as failures rather than regenerating the trigger.
+
+The corrected generation pipeline is filter-in-the-loop rejection sampling.
+For each item/model/trigger group, the generator proposes candidates, a separate
+filter agent checks them before target-model evaluation, and failed candidates
+are returned to the generator as feedback. The generator then rewrites them
+without retrieval, examples, or hand-written model-specific rules, learning only
+from the target model's answer and the filter feedback. This repeats until the
+run collects the requested number of clean candidates or hits the retry cap.
 
 We also tested a second adaptive pressure turn without retrieval or hand-written
 model-specific rules. For candidates that passed the filter but did not flip the
@@ -607,6 +618,15 @@ Run the separate filter agent and filtered second-round pilot:
 python "Experimental/adaptive_trigger_filter.py" --concurrency 40
 
 python "Experimental/adaptive_second_round_pilot.py" --concurrency 40
+```
+
+Run the corrected filter-in-the-loop rejection-sampling pilot:
+
+```powershell
+python "Experimental/adaptive_trigger_rejection_pilot.py" `
+  --candidates-per-trial 10 `
+  --max-filter-rounds 5 `
+  --concurrency 40
 ```
 
 ## Planned Model Panel
