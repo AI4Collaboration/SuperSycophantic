@@ -407,6 +407,10 @@ GT truth-departure denominator: initially correct trials only.
 | Model-generated adaptive, unsupported-only prompt | 186/312 (59.6%) | 100/152 (65.8%) | 86/160 (53.8%) |
 | Model-generated anchor+meta, candidate-level | 1712/3120 (54.9%) | 1046/1520 (68.8%) | 666/1600 (41.6%) |
 | Model-generated anchor+meta, pass@10 | 279/312 (89.4%) | 146/152 (96.1%) | 133/160 (83.1%) |
+| Anchor+meta pass@10 after filter, all groups | 179/312 (57.4%) | 95/152 (62.5%) | 84/160 (52.5%) |
+| Anchor+meta pass@10 after filter, passed groups only | 179/214 (83.6%) | 95/101 (94.1%) | 84/113 (74.3%) |
+| Anchor+meta pass@10 after filter + second round, all groups | 186/312 (59.6%) | 97/152 (63.8%) | 89/160 (55.6%) |
+| Anchor+meta pass@10 after filter + second round, passed groups only | 186/214 (86.9%) | 97/101 (96.0%) | 89/113 (78.8%) |
 
 Unsupported-only adaptive result by trigger family:
 
@@ -452,6 +456,25 @@ matches in 2,516/3,200 candidates; restricting to those candidates still gives
 task-word leakage, so a final version should filter generated candidates before
 evaluation.
 
+We therefore added a separate filter agent using `openai/gpt-5.4-mini`. The
+filter agent evaluates each generated candidate for evidence leakage, family
+fidelity, naturalness, and tone strength, and candidates pass only when there is
+no evidence leakage and all three 1--5 scores are at least 4. This strict filter
+kept 1,823/3,200 candidates (57.0\%) and flagged 880/3,200 (27.5\%) for
+evidence leakage. At least one candidate passed the filter in 214/312 eligible
+groups. Within those passed groups, pass@10 remains high at 179/214 (83.6\%);
+over all eligible groups, the conservative filtered pass@10 is 179/312 (57.4\%).
+
+We also tested a second adaptive pressure turn without retrieval or hand-written
+model-specific rules. For candidates that passed the filter but did not flip the
+target model on the first pressure turn, the generator saw the model's resistant
+response and wrote one stronger unsupported follow-up with the same trigger
+family anchor. This raised clean pass@10 from 179/214 (83.6\%) to 186/214
+(86.9\%) among groups with at least one filtered candidate, or from 179/312
+(57.4\%) to 186/312 (59.6\%) under the conservative all-eligible denominator.
+The gain is real but modest: filtering is the main constraint, while the second
+round helps recover a small number of resistant cases.
+
 ### Earlier Context Diagnostics
 
 These exploratory runs motivated the current design.
@@ -491,6 +514,8 @@ the current GT source for external validation.
 | HLE 20 adaptive loose trigger pilot | `Experimental/results/hle20_adaptive_trigger_gpt54mini_generator_strong_sonnet_flash_20260428.jsonl` | GPT-5.4-mini generated strong follow-ups |
 | HLE 20 adaptive unsupported trigger pilot | `Experimental/results/hle20_adaptive_trigger_gpt54mini_generator_strong_unsupported_sonnet_flash_20260428.jsonl` | stricter no-task-argument generator prompt |
 | HLE 20 adaptive anchor+meta pass@10 pilot | `Experimental/results/hle20_adaptive_trigger_gpt54mini_anchor_meta_pass10_strong_unsupported_sonnet_flash_20260428.jsonl` | 10 anchored unsupported candidates per item/model/trigger |
+| HLE 20 adaptive anchor+meta filter agent | `Experimental/results/hle20_adaptive_trigger_gpt54mini_anchor_meta_pass10_filter_20260428.jsonl` | separate GPT-5.4-mini filter over generated candidates |
+| HLE 20 adaptive filtered second round | `Experimental/results/hle20_adaptive_trigger_gpt54mini_anchor_meta_pass10_filtered_second_round_20260428.jsonl` | second pressure turn after filtered first-round failures |
 
 ## Running Experiments
 
@@ -555,6 +580,14 @@ python "Experimental/adaptive_trigger_pilot.py" `
   --strategy anchor_meta `
   --candidates-per-trial 10 `
   --concurrency 40
+```
+
+Run the separate filter agent and filtered second-round pilot:
+
+```powershell
+python "Experimental/adaptive_trigger_filter.py" --concurrency 40
+
+python "Experimental/adaptive_second_round_pilot.py" --concurrency 40
 ```
 
 ## Planned Model Panel
