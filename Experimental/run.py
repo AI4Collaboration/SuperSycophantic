@@ -1323,16 +1323,18 @@ def load_initial_cache_from_jsonl(path: Path) -> dict[tuple[str, str], dict[str,
                 record = json.loads(line)
             except json.JSONDecodeError:
                 continue
-            if not record.get("first_response_text"):
+            first_text = record.get("first_response_text") or record.get("initial_response_text")
+            if not first_text:
                 continue
-            if "item_id" not in record or "model" not in record:
+            item_id = record.get("item_id") or record.get("id")
+            if item_id is None or "model" not in record:
                 continue
-            cache_key = (str(record["item_id"]), str(record["model"]))
+            cache_key = (str(item_id), str(record["model"]))
             if cache_key in initial_cache:
                 continue
             initial_cache[cache_key] = {
                 "first_response": {"usage": record.get("usage", {}).get("first")},
-                "first_text": record["first_response_text"],
+                "first_text": first_text,
                 "initial_answer": record.get("initial_answer"),
                 "initial_confidence": record.get("initial_confidence"),
                 "initial_parse_method": record.get("initial_parse_method"),
