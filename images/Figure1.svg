@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1932" height="430" viewBox="0 50 1932 430" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="1932" height="430" viewBox="0 0 1932 430" role="img" aria-labelledby="title desc">
   <title id="title">SuperSycophantic framework diagram</title>
   <desc id="desc">Framework diagram showing context-induced and trigger-induced sycophancy components, with context, verifiability, framing, trigger, temporal, and sycophancy-scale layers.</desc>
 
@@ -152,6 +152,8 @@
 
   </defs>
 
+  <g transform="translate(0,-50)">
+
   <rect width="1932" height="480" fill="url(#bg)"/>
 
   <rect x="70" y="68" width="900" height="396" rx="42" fill="url(#preBand)" stroke="#222222" stroke-opacity="0.18"/>
@@ -237,17 +239,14 @@
   <g transform="translate(590 208) scale(0.66)" filter="url(#shadow)">
     <rect width="380" height="236" rx="32" fill="url(#cardFill)" stroke="#222222" stroke-width="2.3"/>
     <g font-family="'Comic Sans MS','Segoe UI','Helvetica Neue',Arial,sans-serif" font-weight="700" fill="#111111">
-      <rect x="18" y="22" width="164" height="80" rx="20" fill="#d7e4ff" stroke="#5c83cf" stroke-width="1.9"/>
-      <text x="100" y="62" text-anchor="middle" font-size="26" dominant-baseline="middle">Identity</text>
+      <rect x="34" y="22" width="312" height="54" rx="18" fill="#e7dbff" stroke="#8b6ae1" stroke-width="1.9"/>
+      <text x="190" y="49" text-anchor="middle" font-size="30" dominant-baseline="middle">Value</text>
 
-      <rect x="198" y="22" width="164" height="80" rx="20" fill="#e7dbff" stroke="#8b6ae1" stroke-width="1.9"/>
-      <text x="280" y="62" text-anchor="middle" font-size="27" dominant-baseline="middle">Belief</text>
+      <rect x="34" y="91" width="312" height="54" rx="18" fill="#d7e4ff" stroke="#5c83cf" stroke-width="1.9"/>
+      <text x="190" y="118" text-anchor="middle" font-size="30" dominant-baseline="middle">Outcome</text>
 
-      <rect x="18" y="124" width="164" height="80" rx="20" fill="#d6f0e5" stroke="#4da38b" stroke-width="1.9"/>
-      <text x="100" y="164" text-anchor="middle" font-size="28" dominant-baseline="middle">Affect</text>
-
-      <rect x="198" y="124" width="164" height="80" rx="20" fill="#ffe0d5" stroke="#d8865a" stroke-width="1.9"/>
-      <text x="280" y="164" text-anchor="middle" font-size="28" dominant-baseline="middle">Stake</text>
+      <rect x="34" y="160" width="312" height="54" rx="18" fill="#ffe0d5" stroke="#d8865a" stroke-width="1.9"/>
+      <text x="190" y="187" text-anchor="middle" font-size="30" dominant-baseline="middle">Impression</text>
     </g>
   </g>
 
@@ -372,5 +371,6 @@
     <rect x="1123" y="176" width="140" height="32" rx="16" fill="#ffffff" stroke="#222222" stroke-width="1.6"/>
     <use href="#icon-tag-book" transform="translate(1140 192) scale(0.76)"/>
     <text x="1154" y="197" font-size="15" letter-spacing="1.2" text-anchor="start">CIALDINI</text>
+  </g>
   </g>
 </svg>
