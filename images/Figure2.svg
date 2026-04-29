@@ -158,8 +158,6 @@
 
   <rect x="70" y="68" width="900" height="396" rx="42" fill="none" stroke="none"/>
   <rect x="970" y="68" width="880" height="396" rx="42" fill="none" stroke="none"/>
-  <path d="M 970 68 V 464" fill="none" stroke="#111111" stroke-width="2.6" stroke-linecap="round"/>
-
   <g font-family="'Comic Sans MS','Segoe UI','Helvetica Neue',Arial,sans-serif" font-weight="700" fill="#111111">
     <text x="28" y="112" font-size="38" letter-spacing="0">(a)</text>
     <text x="520" y="109" text-anchor="middle" font-size="39" letter-spacing="0">Context-induced</text>
