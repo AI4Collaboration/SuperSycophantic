@@ -8,7 +8,7 @@ import math
 import re
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageFont
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -161,6 +161,18 @@ def draw_centered(draw: ImageDraw.ImageDraw, xy: tuple[float, float], text: str,
         y += h + 7
 
 
+def trim_whitespace(img: Image.Image, padding: int = 22) -> Image.Image:
+    bg = Image.new(img.mode, img.size, "white")
+    bbox = ImageChops.difference(img, bg).getbbox()
+    if bbox is None:
+        return img
+    left = max(0, bbox[0] - padding)
+    top = max(0, bbox[1] - padding)
+    right = min(img.width, bbox[2] + padding)
+    bottom = min(img.height, bbox[3] + padding)
+    return img.crop((left, top, right, bottom))
+
+
 def main() -> None:
     claude_bars = collect_bars()
     model_clusters = [
@@ -172,10 +184,10 @@ def main() -> None:
         ("Kimi K-2.6", placeholder_bars(claude_bars)),
     ]
     bars = claude_bars
-    width, height = 1650, 520
-    margin_left, plot_right = 95, 1300
-    legend_left = 1345
-    plot_top, plot_bottom = 70, 408
+    width, height = 1550, 455
+    margin_left, plot_right = 125, 1260
+    legend_left = 1295
+    plot_top, plot_bottom = 50, 365
     axis_bottom = plot_bottom
     max_y = 90
 
@@ -252,6 +264,7 @@ def main() -> None:
         y += 10
 
     PNG_OUT.parent.mkdir(parents=True, exist_ok=True)
+    img = trim_whitespace(img)
     img.save(PNG_OUT)
     img.save(PDF_OUT, "PDF", resolution=300)
     print(f"wrote {PNG_OUT}")
