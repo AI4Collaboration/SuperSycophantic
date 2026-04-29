@@ -379,7 +379,7 @@
 
     <rect x="632" y="176" width="166" height="32" rx="16" fill="#dcecff" stroke="#5c83cf" stroke-width="1.6"/>
     <use href="#icon-tag-book" transform="translate(649 192) scale(0.76)"/>
-    <text x="663" y="197" font-size="14.3" letter-spacing="1.02" text-anchor="start">INVOLVEMENT</text>
+    <text x="663" y="197" font-size="13.4" letter-spacing="0.7" text-anchor="start">JOHNSON-EAGLY</text>
 
     <rect x="1123" y="176" width="140" height="32" rx="16" fill="#ffffff" stroke="#222222" stroke-width="1.6"/>
     <use href="#icon-tag-book" transform="translate(1140 192) scale(0.76)"/>
