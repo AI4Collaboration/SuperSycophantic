@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1932" height="430" viewBox="0 0 1932 430" role="img" aria-labelledby="title desc">
   <title id="title">SuperSycophantic framework diagram</title>
-  <desc id="desc">Framework diagram showing context-induced and trigger-induced sycophancy components, with context, verifiability, framing, trigger, temporal, and sycophancy-scale layers.</desc>
+  <desc id="desc">Framework diagram showing context-induced and trigger-induced sycophancy components, with verifiability, discipline, framing, trigger, temporal, and sycophancy-scale layers.</desc>
 
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
@@ -159,17 +159,14 @@
   <rect x="70" y="68" width="900" height="396" rx="42" fill="none" stroke="none"/>
   <rect x="970" y="68" width="880" height="396" rx="42" fill="none" stroke="none"/>
   <g font-family="'Comic Sans MS','Segoe UI','Helvetica Neue',Arial,sans-serif" font-weight="700" fill="#111111">
-    <text x="28" y="112" font-size="38" letter-spacing="0">(a)</text>
-    <text x="520" y="109" text-anchor="middle" font-size="39" letter-spacing="0">Context-induced</text>
-    <text x="520" y="148" text-anchor="middle" font-size="29" letter-spacing="0">(Single-Turn Sycophancy)</text>
+    <text x="520" y="124" text-anchor="middle" font-size="36" letter-spacing="0">Context-induced / Single-turn</text>
 
-    <text x="1010" y="112" font-size="38" letter-spacing="0">(b)</text>
-    <text x="1410" y="109" text-anchor="middle" font-size="39" letter-spacing="0">Trigger-induced</text>
-    <text x="1410" y="148" text-anchor="middle" font-size="29" letter-spacing="0">(Multi-Turn Sycophancy)</text>
+    <text x="1410" y="124" text-anchor="middle" font-size="36" letter-spacing="0">Trigger-induced / Multi-turn</text>
   </g>
 
-  <g fill="none" stroke="#111111" stroke-opacity="0.52" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M 846 290 C 908 290, 996 290, 1050 290"/>
+  <g fill="none" stroke="#111111" stroke-opacity="0.55" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 296 246 H 878" marker-end="url(#arrow)"/>
+    <path d="M 296 344 H 886" marker-end="url(#arrow)"/>
   </g>
 
   <g font-family="'Comic Sans MS','Segoe UI','Helvetica Neue',Arial,sans-serif" font-weight="800">
@@ -200,54 +197,55 @@
     <image href="logo.png" x="881" y="296" width="134" height="142" preserveAspectRatio="none"/>
   </g>
 
-  <!-- Context Layer -->
-  <g transform="translate(80 208) scale(0.66)" filter="url(#shadow)">
-    <rect width="380" height="236" rx="32" fill="url(#cardFill)" stroke="#222222" stroke-width="2.3"/>
-    <g font-family="'Comic Sans MS','Segoe UI','Helvetica Neue',Arial,sans-serif" font-weight="700" fill="#111111">
-      <rect x="18" y="16" width="164" height="92" rx="22" fill="#cfe0ff" stroke="#4f78ea" stroke-width="1.9"/>
-      <use href="#icon-stem" transform="translate(100 40) scale(1.05)"/>
-      <text x="100" y="82" text-anchor="middle" font-size="26" dominant-baseline="middle">STEM</text>
+  <!-- Context-induced branch lanes -->
+  <g filter="url(#shadow)" font-family="'Comic Sans MS','Segoe UI','Helvetica Neue',Arial,sans-serif" font-weight="700" fill="#111111">
+    <g id="gt-lane">
+      <rect x="80" y="208" width="210" height="76" rx="20" fill="#d4f0e1" stroke="#4ea887" stroke-width="1.6"/>
+      <text x="185" y="252" text-anchor="middle" font-size="26">GT</text>
 
-      <rect x="198" y="16" width="164" height="92" rx="22" fill="#ffd6d6" stroke="#e15454" stroke-width="1.9"/>
-      <use href="#icon-med" transform="translate(280 40) scale(1.05)"/>
-      <text x="280" y="82" text-anchor="middle" font-size="23" dominant-baseline="middle">Health/Med</text>
+      <rect x="335" y="208" width="220" height="76" rx="20" fill="url(#cardFill)" stroke="#222222" stroke-width="1.6"/>
+      <rect x="350" y="222" width="84" height="48" rx="14" fill="#cfe0ff" stroke="#4f78ea" stroke-width="1.5"/>
+      <use href="#icon-stem" transform="translate(392 237) scale(0.7)"/>
+      <text x="392" y="260" text-anchor="middle" font-size="19">STEM</text>
+      <rect x="456" y="222" width="84" height="48" rx="14" fill="#ffd6d6" stroke="#e15454" stroke-width="1.5"/>
+      <use href="#icon-med" transform="translate(498 237) scale(0.7)"/>
+      <text x="498" y="260" text-anchor="middle" font-size="16.5">Health</text>
 
-      <rect x="18" y="128" width="164" height="92" rx="22" fill="#ead2ff" stroke="#9f52f0" stroke-width="1.9"/>
-      <use href="#icon-social" transform="translate(100 152) scale(1.05)"/>
-      <text x="100" y="194" text-anchor="middle" font-size="21.2" dominant-baseline="middle">Social Science</text>
-
-      <rect x="198" y="128" width="164" height="92" rx="22" fill="#e6f5c7" stroke="#8fbe2e" stroke-width="1.9"/>
-      <use href="#icon-humanities" transform="translate(280 154) scale(1.05)"/>
-      <text x="280" y="194" text-anchor="middle" font-size="23.8" dominant-baseline="middle">Humanities</text>
+      <rect x="600" y="208" width="240" height="76" rx="20" fill="#e2ecff" stroke="#5c83cf" stroke-width="1.7"/>
+      <text x="720" y="239" text-anchor="middle" font-size="20">with vs. without</text>
+      <text x="720" y="263" text-anchor="middle" font-size="20">injected belief</text>
     </g>
-  </g>
 
-  <!-- Verifiability -->
-  <g transform="translate(335 208) scale(0.66)" filter="url(#shadow)">
-    <rect width="380" height="236" rx="32" fill="url(#cardFill)" stroke="#222222" stroke-width="2.3"/>
-    <g font-family="'Comic Sans MS','Segoe UI','Helvetica Neue',Arial,sans-serif" font-weight="700" fill="#111111">
-      <rect x="24" y="30" width="332" height="78" rx="22" fill="#d4f0e1" stroke="#4ea887" stroke-width="1.9"/>
-      <text x="190" y="58" text-anchor="middle" font-size="25" fill="#111111">With</text>
-      <text x="190" y="82" text-anchor="middle" font-size="35" dominant-baseline="middle">Ground Truth</text>
+    <g id="ngt-lane">
+      <rect x="80" y="296" width="210" height="96" rx="20" fill="#e2d8ff" stroke="#7f66e0" stroke-width="1.6"/>
+      <text x="185" y="332" text-anchor="middle" font-size="22">NGT</text>
+      <text x="185" y="358" text-anchor="middle" font-size="18">judgment item</text>
 
-      <rect x="24" y="128" width="332" height="78" rx="22" fill="#e2d8ff" stroke="#7f66e0" stroke-width="1.9"/>
-      <text x="190" y="156" text-anchor="middle" font-size="25" fill="#111111">Without</text>
-      <text x="190" y="180" text-anchor="middle" font-size="35" dominant-baseline="middle">Ground Truth</text>
-    </g>
-  </g>
+      <rect x="335" y="296" width="220" height="96" rx="20" fill="url(#cardFill)" stroke="#222222" stroke-width="1.6"/>
+      <rect x="350" y="307" width="84" height="36" rx="12" fill="#ead2ff" stroke="#9f52f0" stroke-width="1.5"/>
+      <use href="#icon-social" transform="translate(392 318) scale(0.48)"/>
+      <text x="392" y="338" text-anchor="middle" font-size="12.2">Social Sci.</text>
+      <rect x="456" y="307" width="84" height="36" rx="12" fill="#e6f5c7" stroke="#8fbe2e" stroke-width="1.5"/>
+      <use href="#icon-humanities" transform="translate(498 319) scale(0.48)"/>
+      <text x="498" y="338" text-anchor="middle" font-size="12.2">Humanities</text>
+      <text x="445" y="354" text-anchor="middle" font-size="9.4" fill="#555555">NGT domains</text>
+      <rect x="350" y="359" width="84" height="15" rx="7.5" fill="#f2ecff" stroke="#9f52f0" stroke-width="1"/>
+      <text x="392" y="370" text-anchor="middle" font-size="8.9">Policy</text>
+      <rect x="456" y="359" width="84" height="15" rx="7.5" fill="#fff2d4" stroke="#d8a52d" stroke-width="1"/>
+      <text x="498" y="370" text-anchor="middle" font-size="8.9">Moral</text>
+      <rect x="350" y="376" width="84" height="15" rx="7.5" fill="#e4f3ff" stroke="#5c83cf" stroke-width="1"/>
+      <text x="392" y="387" text-anchor="middle" font-size="7.9">Interpersonal</text>
+      <rect x="456" y="376" width="84" height="15" rx="7.5" fill="#eef7d6" stroke="#8fbe2e" stroke-width="1"/>
+      <text x="498" y="387" text-anchor="middle" font-size="8.5">Aesthetic</text>
 
-  <!-- Framing Layer -->
-  <g transform="translate(590 208) scale(0.66)" filter="url(#shadow)">
-    <rect width="380" height="236" rx="32" fill="url(#cardFill)" stroke="#222222" stroke-width="2.3"/>
-    <g font-family="'Comic Sans MS','Segoe UI','Helvetica Neue',Arial,sans-serif" font-weight="700" fill="#111111">
-      <rect x="34" y="22" width="312" height="54" rx="18" fill="#e7dbff" stroke="#8b6ae1" stroke-width="1.9"/>
-      <text x="190" y="49" text-anchor="middle" font-size="30" dominant-baseline="middle">Value</text>
-
-      <rect x="34" y="91" width="312" height="54" rx="18" fill="#d7e4ff" stroke="#5c83cf" stroke-width="1.9"/>
-      <text x="190" y="118" text-anchor="middle" font-size="30" dominant-baseline="middle">Outcome</text>
-
-      <rect x="34" y="160" width="312" height="54" rx="18" fill="#ffe0d5" stroke="#d8865a" stroke-width="1.9"/>
-      <text x="190" y="187" text-anchor="middle" font-size="30" dominant-baseline="middle">Impression</text>
+      <rect x="600" y="296" width="240" height="96" rx="20" fill="#fff7f0" stroke="#d8865a" stroke-width="1.7"/>
+      <text x="720" y="324" text-anchor="middle" font-size="21">NGT framing</text>
+      <rect x="618" y="340" width="58" height="24" rx="12" fill="#e7dbff" stroke="#8b6ae1" stroke-width="1.2"/>
+      <text x="647" y="356" text-anchor="middle" font-size="13.6">Belief</text>
+      <rect x="687" y="340" width="66" height="24" rx="12" fill="#d7e4ff" stroke="#5c83cf" stroke-width="1.2"/>
+      <text x="720" y="356" text-anchor="middle" font-size="13.6">Identity</text>
+      <rect x="762" y="340" width="58" height="24" rx="12" fill="#ffe0d5" stroke="#d8865a" stroke-width="1.2"/>
+      <text x="791" y="356" text-anchor="middle" font-size="13.6">Stake</text>
     </g>
   </g>
 
@@ -352,34 +350,34 @@
 
   <!-- Phase labels -->
   <g filter="url(#softShadow)" font-family="'Comic Sans MS','Segoe UI','Helvetica Neue',Arial,sans-serif" font-weight="700" fill="#111111">
-    <rect x="115" y="390" width="198" height="52" rx="16" fill="#ffffff" stroke="#222222" stroke-width="1.9"/>
-    <text x="214" y="422" text-anchor="middle" font-size="23" dominant-baseline="middle">Context</text>
+    <rect x="86" y="402" width="198" height="52" rx="16" fill="#ffffff" stroke="#222222" stroke-width="1.9"/>
+    <text x="185" y="434" text-anchor="middle" font-size="23" dominant-baseline="middle">Verifiability</text>
 
-    <rect x="370" y="390" width="198" height="52" rx="16" fill="#ffffff" stroke="#222222" stroke-width="1.9"/>
-    <text x="469" y="422" text-anchor="middle" font-size="23" dominant-baseline="middle">Verifiability</text>
+    <rect x="346" y="402" width="198" height="52" rx="16" fill="#ffffff" stroke="#222222" stroke-width="1.9"/>
+    <text x="445" y="434" text-anchor="middle" font-size="23" dominant-baseline="middle">Discipline</text>
 
-    <rect x="625" y="390" width="198" height="52" rx="16" fill="#ffffff" stroke="#222222" stroke-width="1.9"/>
-    <text x="724" y="422" text-anchor="middle" font-size="23" dominant-baseline="middle">Framing</text>
+    <rect x="621" y="402" width="198" height="52" rx="16" fill="#ffffff" stroke="#222222" stroke-width="1.9"/>
+    <text x="720" y="434" text-anchor="middle" font-size="23" dominant-baseline="middle">Framing</text>
 
-    <rect x="1095" y="390" width="198" height="52" rx="16" fill="#ffffff" stroke="#222222" stroke-width="1.9"/>
-    <text x="1194" y="422" text-anchor="middle" font-size="23" dominant-baseline="middle">Trigger</text>
+    <rect x="1095" y="402" width="198" height="52" rx="16" fill="#ffffff" stroke="#222222" stroke-width="1.9"/>
+    <text x="1194" y="434" text-anchor="middle" font-size="23" dominant-baseline="middle">Trigger</text>
 
-    <rect x="1335" y="390" width="280" height="52" rx="16" fill="#ffffff" stroke="#222222" stroke-width="1.9"/>
-    <text x="1475" y="422" text-anchor="middle" font-size="21.8" dominant-baseline="middle">Temporal progression</text>
+    <rect x="1335" y="402" width="280" height="52" rx="16" fill="#ffffff" stroke="#222222" stroke-width="1.9"/>
+    <text x="1475" y="434" text-anchor="middle" font-size="21.8" dominant-baseline="middle">Temporal progression</text>
 
-    <rect x="1626" y="390" width="260" height="52" rx="16" fill="#ffffff" stroke="#222222" stroke-width="1.9"/>
-    <text x="1756" y="422" text-anchor="middle" font-size="20.4" dominant-baseline="middle">Sycophancy Scale</text>
+    <rect x="1626" y="402" width="260" height="52" rx="16" fill="#ffffff" stroke="#222222" stroke-width="1.9"/>
+    <text x="1756" y="434" text-anchor="middle" font-size="20.4" dominant-baseline="middle">Sycophancy Scale</text>
   </g>
 
   <!-- Theory tags -->
   <g filter="url(#softShadow)" font-family="'Comic Sans MS','Segoe UI','Helvetica Neue',Arial,sans-serif" font-weight="800" fill="#111111">
-    <rect x="144" y="176" width="132" height="32" rx="16" fill="#ffffff" stroke="#222222" stroke-width="1.6"/>
-    <use href="#icon-tag-book" transform="translate(161 192) scale(0.76)"/>
-    <text x="175" y="197" font-size="14.5" letter-spacing="1.08" text-anchor="start">OECD FORD</text>
+    <rect x="379" y="176" width="132" height="32" rx="16" fill="#ffffff" stroke="#222222" stroke-width="1.6"/>
+    <use href="#icon-tag-book" transform="translate(396 192) scale(0.76)"/>
+    <text x="410" y="197" font-size="14.5" letter-spacing="1.08" text-anchor="start">OECD FORD</text>
 
-    <rect x="632" y="176" width="166" height="32" rx="16" fill="#dcecff" stroke="#5c83cf" stroke-width="1.6"/>
-    <use href="#icon-tag-book" transform="translate(649 192) scale(0.76)"/>
-    <text x="663" y="197" font-size="13.4" letter-spacing="0.7" text-anchor="start">JOHNSON-EAGLY</text>
+    <rect x="637" y="176" width="166" height="32" rx="16" fill="#dcecff" stroke="#5c83cf" stroke-width="1.6"/>
+    <use href="#icon-tag-book" transform="translate(654 192) scale(0.76)"/>
+    <text x="668" y="197" font-size="13.4" letter-spacing="0.7" text-anchor="start">JOHNSON-EAGLY</text>
 
     <rect x="1123" y="176" width="140" height="32" rx="16" fill="#ffffff" stroke="#222222" stroke-width="1.6"/>
     <use href="#icon-tag-book" transform="translate(1140 192) scale(0.76)"/>
