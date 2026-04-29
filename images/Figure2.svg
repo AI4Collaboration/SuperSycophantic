@@ -218,8 +218,7 @@
 
     <g id="ngt-lane">
       <rect x="80" y="296" width="210" height="96" rx="20" fill="#e2d8ff" stroke="#7f66e0" stroke-width="1.6"/>
-      <text x="185" y="332" text-anchor="middle" font-size="22">NGT</text>
-      <text x="185" y="358" text-anchor="middle" font-size="18">judgment item</text>
+      <text x="185" y="350" text-anchor="middle" font-size="24">NGT</text>
 
       <rect x="335" y="296" width="220" height="96" rx="20" fill="url(#cardFill)" stroke="#222222" stroke-width="1.6"/>
       <rect x="350" y="307" width="84" height="36" rx="12" fill="#ead2ff" stroke="#9f52f0" stroke-width="1.5"/>
@@ -239,13 +238,12 @@
       <text x="498" y="387" text-anchor="middle" font-size="8.5">Aesthetic</text>
 
       <rect x="600" y="296" width="240" height="96" rx="20" fill="#fff7f0" stroke="#d8865a" stroke-width="1.7"/>
-      <text x="720" y="324" text-anchor="middle" font-size="21">NGT framing</text>
-      <rect x="618" y="340" width="58" height="24" rx="12" fill="#e7dbff" stroke="#8b6ae1" stroke-width="1.2"/>
-      <text x="647" y="356" text-anchor="middle" font-size="13.6">Belief</text>
-      <rect x="687" y="340" width="66" height="24" rx="12" fill="#d7e4ff" stroke="#5c83cf" stroke-width="1.2"/>
-      <text x="720" y="356" text-anchor="middle" font-size="13.6">Identity</text>
-      <rect x="762" y="340" width="58" height="24" rx="12" fill="#ffe0d5" stroke="#d8865a" stroke-width="1.2"/>
-      <text x="791" y="356" text-anchor="middle" font-size="13.6">Stake</text>
+      <rect x="614" y="332" width="64" height="28" rx="14" fill="#e7dbff" stroke="#8b6ae1" stroke-width="1.2"/>
+      <text x="646" y="350" text-anchor="middle" font-size="13.6">Belief</text>
+      <rect x="686" y="332" width="68" height="28" rx="14" fill="#d7e4ff" stroke="#5c83cf" stroke-width="1.2"/>
+      <text x="720" y="350" text-anchor="middle" font-size="13.6">Identity</text>
+      <rect x="762" y="332" width="64" height="28" rx="14" fill="#ffe0d5" stroke="#d8865a" stroke-width="1.2"/>
+      <text x="794" y="350" text-anchor="middle" font-size="13.6">Stake</text>
     </g>
   </g>
 
@@ -253,49 +251,49 @@
   <g transform="translate(1055 208) scale(0.66)" filter="url(#shadow)">
     <rect width="420" height="236" rx="32" fill="url(#cardFill)" stroke="#222222" stroke-width="2.3"/>
     <g font-family="'Comic Sans MS','Segoe UI','Helvetica Neue',Arial,sans-serif" font-weight="700" text-anchor="middle">
-      <g transform="translate(58 56)">
+      <g transform="translate(66 66)">
         <rect x="-44" y="-38" width="88" height="78" rx="16" fill="#e2ecff" stroke="#5c83cf" stroke-width="1.7"/>
         <use href="#icon-trigger-authority" transform="scale(1.24)"/>
         <text x="0" y="44" font-size="20.8" fill="#111111">authority</text>
       </g>
 
-      <g transform="translate(156 56)">
+      <g transform="translate(166 66)">
         <rect x="-44" y="-38" width="88" height="78" rx="16" fill="#eadcff" stroke="#9b66e7" stroke-width="1.7"/>
         <use href="#icon-trigger-social-proof" transform="scale(1.24)"/>
         <text x="0" y="44" font-size="20.8" fill="#111111">social</text>
       </g>
 
-      <g transform="translate(264 56)">
+      <g transform="translate(266 66)">
         <rect x="-44" y="-38" width="88" height="78" rx="16" fill="#fff2b8" stroke="#c5a100" stroke-width="1.7"/>
         <use href="#icon-trigger-unity" transform="scale(1.24)"/>
         <text x="0" y="44" font-size="20.8" fill="#111111">unity</text>
       </g>
 
-      <g transform="translate(362 56)">
+      <g transform="translate(366 66)">
         <rect x="-44" y="-38" width="88" height="78" rx="16" fill="#e5f6d9" stroke="#5aa94e" stroke-width="1.7"/>
         <use href="#icon-trigger-reciprocity" transform="scale(1.26)"/>
         <text x="0" y="44" font-size="18.2" fill="#111111">reciprocal</text>
       </g>
 
-      <g transform="translate(58 156)">
+      <g transform="translate(66 168)">
         <rect x="-44" y="-38" width="88" height="78" rx="16" fill="#ffe2f3" stroke="#d85bc1" stroke-width="1.7"/>
         <use href="#icon-trigger-liking" transform="scale(1.24)"/>
         <text x="0" y="44" font-size="20.8" fill="#111111">liking</text>
       </g>
 
-      <g transform="translate(156 156)">
+      <g transform="translate(166 168)">
         <rect x="-44" y="-38" width="88" height="78" rx="16" fill="#ffe8d8" stroke="#c87645" stroke-width="1.7"/>
         <use href="#icon-trigger-scarcity" transform="scale(1.24)"/>
         <text x="0" y="44" font-size="19.8" fill="#111111">scarcity</text>
       </g>
 
-      <g transform="translate(264 156)">
+      <g transform="translate(266 168)">
         <rect x="-44" y="-38" width="88" height="78" rx="16" fill="#dcf5f0" stroke="#3aaea3" stroke-width="1.7"/>
         <use href="#icon-trigger-consistency" transform="scale(1.22)"/>
         <text x="0" y="44" font-size="18.2" fill="#111111">consistent</text>
       </g>
 
-      <g transform="translate(362 156)">
+      <g transform="translate(366 168)">
         <rect x="-44" y="-38" width="88" height="78" rx="16" fill="#eeeeee" stroke="#777777" stroke-width="1.7"/>
         <use href="#icon-trigger-simple" transform="scale(1.18)"/>
         <text x="0" y="44" font-size="20.8" fill="#111111">simple</text>
