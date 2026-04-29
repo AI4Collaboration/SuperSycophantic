@@ -687,7 +687,7 @@ python "Experimental/adaptive_trigger_rejection_pilot.py" `
 
 ## Planned Model Panel
 
-The intended evaluated model roster is OpenAI, Claude, Gemini, Grok, GLM, Qwen,
+The intended evaluated model roster is OpenAI, Claude, Gemini, GLM, Qwen,
 Kimi, and DeepSeek. The current experimental files already include OpenAI,
 Claude, and Gemini pilot coverage.
 
@@ -696,7 +696,6 @@ Claude, and Gemini pilot coverage.
 | OpenAI | `openai/gpt-5.5` | `openai/gpt-5.4-mini` |
 | Claude | `anthropic/claude-opus-4.7` | `anthropic/claude-sonnet-4.6` |
 | Gemini | `google/gemini-3.1-pro-preview` | `google/gemini-3-flash-preview` |
-| Grok | TBD | TBD |
 | GLM | `z-ai/glm-5.1` | `z-ai/glm-4.7-flash` |
 | Qwen | TBD | TBD |
 | Kimi | `moonshotai/kimi-k2.6` | TBD |

@@ -171,10 +171,10 @@ def main() -> None:
         ("Kimi K-2.6", placeholder_bars(claude_bars)),
     ]
     bars = claude_bars
-    width, height = 1900, 640
-    margin_left, plot_right = 95, 1325
-    legend_left, legend_right = 1380, 1835
-    plot_top, plot_bottom = 100, 475
+    width, height = 1500, 520
+    margin_left, plot_right = 95, 1185
+    legend_left = 1225
+    plot_top, plot_bottom = 70, 408
     axis_bottom = plot_bottom
     max_y = 90
 
@@ -207,8 +207,8 @@ def main() -> None:
 
     gap_after = {7: 8, 10: 8}
     base_gap = 2
-    bar_w = 7
-    cluster_gap = 72
+    bar_w = 9
+    cluster_gap = 48
     cluster_width = len(bars) * bar_w + (len(bars) - 1) * base_gap + sum(gap_after.values())
     total_clusters_width = len(model_clusters) * cluster_width + (len(model_clusters) - 1) * cluster_gap
     x = margin_left + (plot_right - margin_left - total_clusters_width) / 2
