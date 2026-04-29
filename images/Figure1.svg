@@ -160,11 +160,11 @@
   <rect x="970" y="68" width="880" height="396" rx="42" fill="url(#postBand)" stroke="#222222" stroke-opacity="0.18"/>
 
   <g filter="url(#softShadow)" font-family="'Comic Sans MS','Segoe UI','Helvetica Neue',Arial,sans-serif" font-weight="800">
-    <rect x="14" y="98" width="292" height="46" rx="23" fill="url(#endPillLeft)" stroke="#111111" stroke-width="2"/>
-    <text x="160" y="127" text-anchor="middle" font-size="24.5" letter-spacing="0" fill="#111111">Context-induced</text>
+    <rect x="40" y="101" width="240" height="38" rx="19" fill="url(#endPillLeft)" stroke="#111111" stroke-width="1.8"/>
+    <text x="160" y="125" text-anchor="middle" font-size="20.5" letter-spacing="0" fill="#111111">Context-induced</text>
 
-    <rect x="1594" y="98" width="292" height="46" rx="23" fill="url(#endPillRight)" stroke="#111111" stroke-width="2"/>
-    <text x="1740" y="127" text-anchor="middle" font-size="24.5" letter-spacing="0" fill="#111111">Trigger-induced</text>
+    <rect x="1620" y="101" width="240" height="38" rx="19" fill="url(#endPillRight)" stroke="#111111" stroke-width="1.8"/>
+    <text x="1740" y="125" text-anchor="middle" font-size="20.5" letter-spacing="0" fill="#111111">Trigger-induced</text>
   </g>
 
   <g fill="none" stroke="#111111" stroke-opacity="0.52" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
