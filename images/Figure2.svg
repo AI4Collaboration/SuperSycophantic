@@ -384,6 +384,10 @@
     <rect x="1123" y="176" width="140" height="32" rx="16" fill="#ffffff" stroke="#222222" stroke-width="1.6"/>
     <use href="#icon-tag-book" transform="translate(1140 192) scale(0.76)"/>
     <text x="1154" y="197" font-size="15" letter-spacing="1.2" text-anchor="start">CIALDINI</text>
+
+    <rect x="1700" y="176" width="112" height="32" rx="16" fill="#ffffff" stroke="#222222" stroke-width="1.6"/>
+    <use href="#icon-tag-book" transform="translate(1717 192) scale(0.76)"/>
+    <text x="1731" y="197" font-size="15" letter-spacing="1.2" text-anchor="start">REHANI</text>
   </g>
   </g>
 </svg>
