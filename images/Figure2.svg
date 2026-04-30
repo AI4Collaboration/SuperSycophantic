@@ -166,7 +166,7 @@
 
   <g fill="none" stroke="#111111" stroke-opacity="0.55" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
     <path d="M 296 246 H 878" marker-end="url(#arrow)"/>
-    <path d="M 296 344 H 886" marker-end="url(#arrow)"/>
+    <path d="M 296 334 H 886" marker-end="url(#arrow)"/>
   </g>
 
   <g font-family="'Comic Sans MS','Segoe UI','Helvetica Neue',Arial,sans-serif" font-weight="800">
@@ -227,25 +227,25 @@
     </g>
 
     <g id="ngt-lane">
-      <rect x="80" y="296" width="210" height="96" rx="20" fill="#e2d8ff" stroke="#7f66e0" stroke-width="1.6"/>
-      <text x="185" y="338" text-anchor="middle" font-size="20">without</text>
-      <text x="185" y="363" text-anchor="middle" font-size="20">Ground-Truth</text>
+      <rect x="80" y="296" width="210" height="76" rx="20" fill="#e2d8ff" stroke="#7f66e0" stroke-width="1.6"/>
+      <text x="185" y="328" text-anchor="middle" font-size="20">without</text>
+      <text x="185" y="353" text-anchor="middle" font-size="20">Ground-Truth</text>
 
-      <rect x="335" y="296" width="220" height="96" rx="20" fill="url(#cardFill)" stroke="#222222" stroke-width="1.6"/>
-      <rect x="350" y="307" width="84" height="36" rx="12" fill="#ead2ff" stroke="#9f52f0" stroke-width="1.5"/>
-      <use href="#icon-social" transform="translate(392 318) scale(0.48)"/>
-      <text x="392" y="338" text-anchor="middle" font-size="12.2">Social Sci.</text>
-      <rect x="456" y="307" width="84" height="36" rx="12" fill="#e6f5c7" stroke="#8fbe2e" stroke-width="1.5"/>
-      <use href="#icon-humanities" transform="translate(498 319) scale(0.48)"/>
-      <text x="498" y="338" text-anchor="middle" font-size="12.2">Humanities</text>
+      <rect x="335" y="296" width="220" height="76" rx="20" fill="url(#cardFill)" stroke="#222222" stroke-width="1.6"/>
+      <rect x="350" y="310" width="84" height="48" rx="14" fill="#ead2ff" stroke="#9f52f0" stroke-width="1.5"/>
+      <use href="#icon-social" transform="translate(392 325) scale(0.58)"/>
+      <text x="392" y="348" text-anchor="middle" font-size="12.5">Social Sci.</text>
+      <rect x="456" y="310" width="84" height="48" rx="14" fill="#e6f5c7" stroke="#8fbe2e" stroke-width="1.5"/>
+      <use href="#icon-humanities" transform="translate(498 325) scale(0.58)"/>
+      <text x="498" y="348" text-anchor="middle" font-size="12.5">Humanities</text>
 
-      <rect x="600" y="296" width="240" height="96" rx="20" fill="#fff7f0" stroke="#d8865a" stroke-width="1.7"/>
-      <rect x="614" y="332" width="64" height="28" rx="14" fill="#e7dbff" stroke="#8b6ae1" stroke-width="1.2"/>
-      <text x="646" y="350" text-anchor="middle" font-size="13.6">Belief</text>
-      <rect x="686" y="332" width="68" height="28" rx="14" fill="#d7e4ff" stroke="#5c83cf" stroke-width="1.2"/>
-      <text x="720" y="350" text-anchor="middle" font-size="13.6">Identity</text>
-      <rect x="762" y="332" width="64" height="28" rx="14" fill="#ffe0d5" stroke="#d8865a" stroke-width="1.2"/>
-      <text x="794" y="350" text-anchor="middle" font-size="13.6">Stake</text>
+      <rect x="600" y="296" width="240" height="76" rx="20" fill="#fff7f0" stroke="#d8865a" stroke-width="1.7"/>
+      <rect x="614" y="320" width="64" height="28" rx="14" fill="#e7dbff" stroke="#8b6ae1" stroke-width="1.2"/>
+      <text x="646" y="338" text-anchor="middle" font-size="13.6">Belief</text>
+      <rect x="686" y="320" width="68" height="28" rx="14" fill="#d7e4ff" stroke="#5c83cf" stroke-width="1.2"/>
+      <text x="720" y="338" text-anchor="middle" font-size="13.6">Identity</text>
+      <rect x="762" y="320" width="64" height="28" rx="14" fill="#ffe0d5" stroke="#d8865a" stroke-width="1.2"/>
+      <text x="794" y="338" text-anchor="middle" font-size="13.6">Stake</text>
     </g>
   </g>
 
