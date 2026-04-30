@@ -5,6 +5,7 @@
 - This is a paper-first LaTeX repository.
 - Most work should be direct manuscript editing.
 - Keep edits narrow and follow the existing LaTeX structure.
+- When the user says to update Overleaf, treat that as updating the local LaTeX source files in this repo, not as requiring a separate Overleaf remote.
 
 ## Git
 

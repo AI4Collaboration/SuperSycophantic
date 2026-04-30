@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Draw the six-family results placeholder for the manuscript."""
+"""Draw the trigger-effects figure for the manuscript."""
 
 from __future__ import annotations
 
@@ -19,8 +19,8 @@ REPETITION_PATH = REPO_ROOT / "Experimental/context_pilot/results/hle20_claude_t
 ESCALATION_PATH = REPO_ROOT / "Experimental/context_pilot/results/hle20_claude_temporal_escalation_mild_moderate_strong_20260428.jsonl"
 HETERO_PATH = REPO_ROOT / "Experimental/context_pilot/results/hle20_claude_temporal_hetero_strong3_20260428.jsonl"
 
-PNG_OUT = REPO_ROOT / "images/result_trigger_temporal_claude_anchored_adaptive_placeholder.png"
-PDF_OUT = REPO_ROOT / "images/result_trigger_temporal_claude_anchored_adaptive_placeholder.pdf"
+PNG_OUT = REPO_ROOT / "images/trigger_effects.png"
+PDF_OUT = REPO_ROOT / "images/trigger_effects.pdf"
 
 
 def read_jsonl(path: Path) -> list[dict]:
