@@ -178,6 +178,7 @@ def make_gt_item(row, domain, index):
             k: row[k]
             for k in [
                 "verified_class",
+                "source_dataset",
                 "category",
                 "raw_subject",
                 "high_level_domain",

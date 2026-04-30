@@ -9,7 +9,8 @@ GT_PATH = DATA_DIR / "supersycophantic_gt_200.json"
 NGT_PATH = DATA_DIR / "supersycophantic_ngt_200.json"
 
 GT_VARIANTS = {"neutral", "injected_wrong_answer"}
-NGT_VARIANTS = {"neutral", "belief_A", "belief_B", "identity_A", "identity_B", "stake_A", "stake_B"}
+NGT_VARIANT_ORDER = ["neutral", "belief_A", "belief_B", "identity_A", "identity_B", "stake_A", "stake_B"]
+NGT_VARIANTS = set(NGT_VARIANT_ORDER)
 FORBIDDEN_CONTEXT_KEYS = {
     "pressure_target",
     "pressure_target_text",
@@ -239,9 +240,36 @@ def normalize_gt_item(item):
 def normalize_ngt_item(item):
     item = strip_context_only_forbidden_fields(dict(item))
     item = normalize_response_format(item)
+    item["answer_mode"] = "tracked_ab"
+    packet = item.setdefault("source_packet", {})
+    states = item.get("answer_states", {})
+    if not packet.get("support_A") and isinstance(states.get("A"), dict):
+        packet["support_A"] = states["A"].get("support_notes")
+    if not packet.get("support_B") and isinstance(states.get("B"), dict):
+        packet["support_B"] = states["B"].get("support_notes")
     variants = item.get("context_variants", {})
     if set(variants) != NGT_VARIANTS:
         raise ValueError(f"{item.get('item_id')} has NGT variants {sorted(variants)}")
+    normalized_variants = {}
+    for variant_name, variant in variants.items():
+        if isinstance(variant, dict):
+            normalized = dict(variant)
+        else:
+            prompt = str(variant)
+            framing = ""
+            marker = "\n\nUser framing: "
+            if marker in prompt:
+                framing = prompt.split(marker, 1)[1].strip()
+            normalized = {"prompt": prompt, "user_framing": framing}
+        normalized.pop("user_side_answer_state", None)
+        if variant_name != "neutral":
+            cue_type, direction = variant_name.rsplit("_", 1)
+            normalized["cue_type"] = cue_type
+            normalized["direction"] = direction
+        normalized_variants[variant_name] = normalized
+    item["context_variants"] = normalized_variants
+    variants = item["context_variants"]
+    item["context_variant_order"] = NGT_VARIANT_ORDER
     neutral_prompt = make_ngt_neutral_prompt(item)
     item["neutral_prompt"] = neutral_prompt
     for variant_name, variant in variants.items():
@@ -332,6 +360,8 @@ def validate_gt_item(item):
 def validate_ngt_item(item):
     if set(item.get("context_variants", {})) != NGT_VARIANTS:
         raise ValueError(f"{item.get('item_id')} has wrong NGT variants")
+    if item.get("context_variant_order") != NGT_VARIANT_ORDER:
+        raise ValueError(f"{item.get('item_id')} has wrong NGT variant order")
     if item.get("correct_answer") or item.get("verified_answer"):
         raise ValueError(f"{item.get('item_id')} has NGT truth-bearing field")
     validate_boxed_response_format(item)
@@ -340,6 +370,8 @@ def validate_ngt_item(item):
 def validate_boxed_response_format(item):
     if "\\boxed" not in item.get("response_template", ""):
         raise ValueError(f"{item.get('item_id')} response_template is not boxed")
+    if "Confidence:" not in item.get("response_template", ""):
+        raise ValueError(f"{item.get('item_id')} response_template does not request confidence")
     if HARDCODED_FINAL_ANSWER_RE.search(item.get("response_template", "")):
         raise ValueError(f"{item.get('item_id')} response_template hard-codes a final option")
     prompts = [item.get("neutral_prompt", "")]
@@ -350,6 +382,8 @@ def validate_boxed_response_format(item):
     )
     if any("\\boxed" not in prompt for prompt in prompts):
         raise ValueError(f"{item.get('item_id')} prompt is not boxed")
+    if any("Confidence:" not in prompt for prompt in prompts):
+        raise ValueError(f"{item.get('item_id')} prompt does not request confidence")
     if any(HARDCODED_FINAL_ANSWER_RE.search(prompt) for prompt in prompts):
         raise ValueError(f"{item.get('item_id')} prompt hard-codes a final option")
 

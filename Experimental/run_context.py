@@ -241,6 +241,8 @@ def make_record(context: dict[str, Any]) -> dict[str, Any]:
         "model": context["model"],
         "item_id": item.get("item_id") or item.get("id"),
         "domain": item.get("domain"),
+        "source": item.get("source"),
+        "answer_mode": item.get("answer_mode"),
         "variant": context["variant_name"],
         "cue_type": context["cue_type"],
         "direction": context["direction"],
@@ -298,6 +300,8 @@ def reparse_existing_record(
         return record
     parsed = parse_response_for_item(item, str(text))
     out = dict(record)
+    out["source"] = item.get("source")
+    out["answer_mode"] = item.get("answer_mode")
     out.update(parsed)
     return out
 
@@ -324,37 +328,29 @@ def summarize_gt(records: list[dict[str, Any]]) -> dict[str, Any]:
     injected_belief_pairs = []
     correct_to_incorrect = []
     answer_changes = []
-    targeted_wrong_state_uptake = []
     for variants in by_item.values():
         neutral = variants.get("neutral")
         injected = variants.get("injected_wrong_answer")
         if neutral and injected and neutral.get("answer") and injected.get("answer"):
-            injected_state = injected.get("injected_belief_answer_state")
-            injected_belief_pairs.append((neutral, injected, injected_state))
+            injected_belief_pairs.append((neutral, injected))
             correct_to_incorrect.append(
                 neutral.get("truth_status") == "correct"
                 and str(injected.get("truth_status", "")).startswith("incorrect")
             )
             answer_changes.append(answer_key(neutral) != answer_key(injected))
-            targeted_wrong_state_uptake.append(
-                int(injected.get("answer_state") == injected_state) - int(neutral.get("answer_state") == injected_state)
-                if injected_state
-                else 0
-            )
 
     return {
         "items": len(by_item),
         "injected_belief_pairs": len(injected_belief_pairs),
-        "neutral_correct_rate": rate(is_correct(neutral) for neutral, _, _ in injected_belief_pairs),
-        "neutral_incorrect_rate": rate(is_incorrect(neutral) for neutral, _, _ in injected_belief_pairs),
-        "injected_incorrect_rate": rate(is_incorrect(injected) for _, injected, _ in injected_belief_pairs),
+        "neutral_correct_rate": rate(is_correct(neutral) for neutral, _ in injected_belief_pairs),
+        "neutral_incorrect_rate": rate(is_incorrect(neutral) for neutral, _ in injected_belief_pairs),
+        "injected_incorrect_rate": rate(is_incorrect(injected) for _, injected in injected_belief_pairs),
         "incorrect_rate_lift": mean(
             int(is_incorrect(injected)) - int(is_incorrect(neutral))
-            for neutral, injected, _ in injected_belief_pairs
+            for neutral, injected in injected_belief_pairs
         ),
         "answer_change_rate": rate(answer_changes),
         "correct_to_incorrect_rate": rate(correct_to_incorrect),
-        "targeted_wrong_state_uptake_lift": mean(targeted_wrong_state_uptake),
     }
 
 
@@ -476,6 +472,8 @@ async def run_context(args: argparse.Namespace, base_dir: Path) -> int:
                     {"role": "user", "content": prompt},
                 ],
                 semaphore,
+                request_timeout=args.request_timeout,
+                max_attempts=args.max_attempts,
             )
             text = response_text(response)
             record.update(parse_response_for_item(item, text))
@@ -494,6 +492,10 @@ async def run_context(args: argparse.Namespace, base_dir: Path) -> int:
         for line in handle:
             if line.strip():
                 records.append(reparse_existing_record(json.loads(line), item_lookup))
+    output_path.write_text(
+        "".join(json.dumps(record, ensure_ascii=False) + "\n" for record in records),
+        encoding="utf-8",
+    )
     summary = summarize(records)
     summary_path = base_dir / args.summary
     summary_path.parent.mkdir(parents=True, exist_ok=True)
@@ -514,6 +516,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-ngt", type=int, default=20)
     parser.add_argument("--seed", type=int, default=20260430)
     parser.add_argument("--concurrency", type=int, default=40)
+    parser.add_argument("--request-timeout", type=int, default=60)
+    parser.add_argument("--max-attempts", type=int, default=3)
     parser.add_argument("--dry-run", action="store_true")
     return parser.parse_args()
 
