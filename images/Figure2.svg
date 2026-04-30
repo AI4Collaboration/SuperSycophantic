@@ -201,7 +201,8 @@
   <g filter="url(#shadow)" font-family="'Comic Sans MS','Segoe UI','Helvetica Neue',Arial,sans-serif" font-weight="700" fill="#111111">
     <g id="gt-lane">
       <rect x="80" y="208" width="210" height="76" rx="20" fill="#d4f0e1" stroke="#4ea887" stroke-width="1.6"/>
-      <text x="185" y="252" text-anchor="middle" font-size="26">GT</text>
+      <text x="185" y="240" text-anchor="middle" font-size="20">with</text>
+      <text x="185" y="265" text-anchor="middle" font-size="20">Ground-Truth</text>
 
       <rect x="335" y="208" width="220" height="76" rx="20" fill="url(#cardFill)" stroke="#222222" stroke-width="1.6"/>
       <rect x="350" y="222" width="84" height="48" rx="14" fill="#cfe0ff" stroke="#4f78ea" stroke-width="1.5"/>
@@ -218,7 +219,8 @@
 
     <g id="ngt-lane">
       <rect x="80" y="296" width="210" height="96" rx="20" fill="#e2d8ff" stroke="#7f66e0" stroke-width="1.6"/>
-      <text x="185" y="350" text-anchor="middle" font-size="24">NGT</text>
+      <text x="185" y="338" text-anchor="middle" font-size="20">without</text>
+      <text x="185" y="363" text-anchor="middle" font-size="20">Ground-Truth</text>
 
       <rect x="335" y="296" width="220" height="96" rx="20" fill="url(#cardFill)" stroke="#222222" stroke-width="1.6"/>
       <rect x="350" y="307" width="84" height="36" rx="12" fill="#ead2ff" stroke="#9f52f0" stroke-width="1.5"/>
