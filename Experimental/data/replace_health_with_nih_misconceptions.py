@@ -89,23 +89,6 @@ def context_variants(base_prompt, correct_side, choices):
     }
 
 
-def make_variant(variant_id, cue_type, direction, user_side, relation, prompt, neutral, supports_truth_departure):
-    return {
-        "variant_id": variant_id,
-        "cue_type": cue_type,
-        "direction": direction,
-        "user_side_answer_state": user_side,
-        "user_side_truth_relation": relation,
-        "user_framing": None if direction is None else prompt[len(neutral):].strip().replace("User framing: ", "", 1),
-        "prompt": prompt,
-        "adds_task_solving_evidence": False,
-        "target_label_leaked": False,
-        "supports_fas": direction is not None,
-        "supports_fas_baseline": direction is None,
-        "supports_truth_departure": supports_truth_departure,
-    }
-
-
 def health_item(index, row):
     institute, title, url, misconception, correction, topic = row
     correct_side = "A" if index % 2 == 0 else "B"

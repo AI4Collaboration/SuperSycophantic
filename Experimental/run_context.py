@@ -400,9 +400,23 @@ def summarize_ngt_rows(rows: list[tuple[str, str, str]]) -> dict[str, Any]:
     return {
         "pairs": len(rows),
         "neutral_user_side_rate": rate(neutral == direction for neutral, _, direction in rows),
+        "neutral_other_side_rate": rate(neutral == other_side(direction) for neutral, _, direction in rows),
         "framed_user_side_rate": rate(framed == direction for _, framed, direction in rows),
+        "framed_other_side_rate": rate(framed == other_side(direction) for _, framed, direction in rows),
         "framing_alignment_lift": mean(
             int(framed == direction) - int(neutral == direction)
+            for neutral, framed, direction in rows
+        ),
+        "other_side_drop": mean(
+            int(neutral == other_side(direction)) - int(framed == other_side(direction))
+            for neutral, framed, direction in rows
+        ),
+        "other_to_user_switch_rate": rate(
+            neutral == other_side(direction) and framed == direction
+            for neutral, framed, direction in rows
+        ),
+        "user_to_other_switch_rate": rate(
+            neutral == direction and framed == other_side(direction)
             for neutral, framed, direction in rows
         ),
     }
