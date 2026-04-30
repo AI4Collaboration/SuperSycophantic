@@ -51,6 +51,14 @@
       <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#111111" flood-opacity="0.045"/>
     </filter>
 
+    <clipPath id="gt-framing-clip" clipPathUnits="userSpaceOnUse">
+      <rect x="600" y="208" width="240" height="76" rx="20"/>
+    </clipPath>
+
+    <clipPath id="ngt-framing-clip" clipPathUnits="userSpaceOnUse">
+      <rect x="600" y="296" width="240" height="76" rx="20"/>
+    </clipPath>
+
     <marker id="arrow" markerWidth="6" markerHeight="6" refX="5.1" refY="3" orient="auto">
       <path d="M 0.9 0.9 L 5.1 3 L 0.9 5.1" fill="none" stroke="#111111" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/>
     </marker>
@@ -195,9 +203,18 @@
       <use href="#icon-med" transform="translate(498 237) scale(0.7)"/>
       <text x="498" y="260" text-anchor="middle" font-size="16.5">Health</text>
 
-      <rect x="600" y="208" width="240" height="76" rx="20" fill="#e2ecff" stroke="#5c83cf" stroke-width="1.7"/>
-      <text x="720" y="239" text-anchor="middle" font-size="20">with vs. without</text>
-      <text x="720" y="263" text-anchor="middle" font-size="20">injected belief</text>
+      <g clip-path="url(#gt-framing-clip)">
+        <polygon points="600,208 730,208 708,284 600,284" fill="#dce9ff"/>
+        <polygon points="730,208 840,208 840,284 708,284" fill="#fff0dc"/>
+        <line x1="730" y1="208" x2="708" y2="284" stroke="#5c83cf" stroke-width="2"/>
+      </g>
+      <rect x="600" y="208" width="240" height="76" rx="20" fill="none" stroke="#5c83cf" stroke-width="1.7"/>
+      <text x="659" y="233" text-anchor="middle" font-size="13.6">with</text>
+      <text x="657" y="252" text-anchor="middle" font-size="13.6">injected</text>
+      <text x="657" y="270" text-anchor="middle" font-size="13.6">belief</text>
+      <text x="780" y="233" text-anchor="middle" font-size="13.6">without</text>
+      <text x="781" y="252" text-anchor="middle" font-size="13.6">injected</text>
+      <text x="781" y="270" text-anchor="middle" font-size="13.6">belief</text>
     </g>
 
     <g id="ngt-lane">
@@ -206,20 +223,26 @@
       <text x="185" y="353" text-anchor="middle" font-size="20">Ground-Truth</text>
 
       <rect x="335" y="296" width="220" height="76" rx="20" fill="url(#cardFill)" stroke="#222222" stroke-width="1.6"/>
-      <rect x="350" y="310" width="84" height="48" rx="14" fill="#ead2ff" stroke="#9f52f0" stroke-width="1.5"/>
-      <use href="#icon-social" transform="translate(392 325) scale(0.58)"/>
-      <text x="392" y="348" text-anchor="middle" font-size="12.5">Social Sci.</text>
-      <rect x="456" y="310" width="84" height="48" rx="14" fill="#e6f5c7" stroke="#8fbe2e" stroke-width="1.5"/>
-      <use href="#icon-humanities" transform="translate(498 325) scale(0.58)"/>
-      <text x="498" y="348" text-anchor="middle" font-size="12.5">Humanities</text>
+      <rect x="348" y="306" width="88" height="24" rx="10" fill="#dce8ff" stroke="#5c83cf" stroke-width="1.35"/>
+      <text x="392" y="322" text-anchor="middle" font-size="12.2">Policy</text>
+      <rect x="454" y="306" width="88" height="24" rx="10" fill="#fff1bf" stroke="#c5a100" stroke-width="1.35"/>
+      <text x="498" y="322" text-anchor="middle" font-size="12.2">Moral</text>
+      <rect x="348" y="338" width="88" height="24" rx="10" fill="#e8dcff" stroke="#8b6ae1" stroke-width="1.35"/>
+      <text x="392" y="354" text-anchor="middle" font-size="10.8">Interpersonal</text>
+      <rect x="454" y="338" width="88" height="24" rx="10" fill="#e6f5c7" stroke="#8fbe2e" stroke-width="1.35"/>
+      <text x="498" y="354" text-anchor="middle" font-size="11.6">Aesthetic</text>
 
-      <rect x="600" y="296" width="240" height="76" rx="20" fill="#fff7f0" stroke="#d8865a" stroke-width="1.7"/>
-      <rect x="614" y="320" width="64" height="28" rx="14" fill="#e7dbff" stroke="#8b6ae1" stroke-width="1.2"/>
-      <text x="646" y="338" text-anchor="middle" font-size="13.6">Belief</text>
-      <rect x="686" y="320" width="68" height="28" rx="14" fill="#d7e4ff" stroke="#5c83cf" stroke-width="1.2"/>
-      <text x="720" y="338" text-anchor="middle" font-size="13.6">Identity</text>
-      <rect x="762" y="320" width="64" height="28" rx="14" fill="#ffe0d5" stroke="#d8865a" stroke-width="1.2"/>
-      <text x="794" y="338" text-anchor="middle" font-size="13.6">Stake</text>
+      <g clip-path="url(#ngt-framing-clip)">
+        <polygon points="600,296 690,296 670,372 600,372" fill="#e8dcff"/>
+        <polygon points="690,296 770,296 750,372 670,372" fill="#dce8ff"/>
+        <polygon points="770,296 840,296 840,372 750,372" fill="#ffe0d5"/>
+        <line x1="690" y1="296" x2="670" y2="372" stroke="#8b6ae1" stroke-width="1.8"/>
+        <line x1="770" y1="296" x2="750" y2="372" stroke="#d8865a" stroke-width="1.8"/>
+      </g>
+      <rect x="600" y="296" width="240" height="76" rx="20" fill="none" stroke="#d8865a" stroke-width="1.7"/>
+      <text x="638" y="338" text-anchor="middle" font-size="13.4">Belief</text>
+      <text x="720" y="338" text-anchor="middle" font-size="13.4">Identity</text>
+      <text x="798" y="338" text-anchor="middle" font-size="13.4">Stake</text>
     </g>
   </g>
 
