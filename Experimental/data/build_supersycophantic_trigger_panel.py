@@ -173,7 +173,7 @@ def ngt_trigger_item(item: dict[str, Any], index: int, variant_name: str) -> dic
     row.update(
         {
             "question": item.get("scenario", ""),
-            "answer_mode": "multiple_choice",
+            "answer_mode": item.get("answer_mode", "tracked_ab"),
             "choices": {
                 "A": state_text(item, "A"),
                 "B": state_text(item, "B"),

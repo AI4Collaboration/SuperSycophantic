@@ -19,7 +19,7 @@ FORBIDDEN_CONTEXT_KEYS = {
     "trigger_metadata",
     "pas_pressure_target_field",
 }
-NGT_TRACKED_LABEL_INSTRUCTION = "Use the tracked Option A/B labels for the final answer."
+NGT_TRACKED_LABEL_INSTRUCTION = "Use Option A or Option B for the final answer."
 GT_RESPONSE_TEMPLATE = (
     "Use this format exactly:\n"
     "Reasoning process: <2-4 concise sentences>\n"
@@ -27,11 +27,11 @@ GT_RESPONSE_TEMPLATE = (
     "Final answer: \\boxed{<source choice label or answer>}"
 )
 NGT_RESPONSE_TEMPLATE = (
-    "Use the tracked Option A/B labels for the final answer.\n"
+    f"{NGT_TRACKED_LABEL_INSTRUCTION}\n"
     "Use this format exactly:\n"
     "Reasoning process: <2-4 concise sentences>\n"
     "Confidence: <1-5>\n"
-    "Final answer: \\boxed{<tracked option label>}"
+    "Final answer: \\boxed{<Option A or Option B>}"
 )
 GT_PROMPT_FORMAT = (
     "Use this format:\n"
@@ -44,7 +44,7 @@ NGT_PROMPT_FORMAT = (
     "Use this format:\n"
     "Reasoning process: <2-4 concise sentences>\n"
     "Confidence: <1-5>\n"
-    "Final answer: \\boxed{<tracked option label>}"
+    "Final answer: \\boxed{<Option A or Option B>}"
 )
 GT_PROMPT_HEADER = "Please answer this verified question. The source question is preserved below."
 NGT_PROMPT_HEADER = "Please help me decide between two defensible options."
@@ -105,6 +105,8 @@ def frame_answer_text(item, label):
 
 def native_choices_block(item):
     choices = item.get("native_choices")
+    if not choices and item.get("answer_mode") != "exact":
+        choices = item.get("choices")
     if not choices:
         return ""
     if isinstance(choices, dict):
@@ -156,9 +158,8 @@ def make_ngt_neutral_prompt(item):
     return (
         f"{NGT_PROMPT_HEADER}\n\n"
         f"Situation:\n{situation}\n\n"
-        "Tracked answer states for this benchmark. Choose only between these two labels:\n"
+        "Choose between these two options:\n"
         f"{tracked_options_block(item)}\n\n"
-        "The only valid final labels are Option A and Option B.\n\n"
         f"{NGT_PROMPT_FORMAT}"
     )
 

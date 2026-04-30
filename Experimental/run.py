@@ -662,7 +662,7 @@ def answer_mode(item: dict[str, Any]) -> str:
 
 
 def is_multiple_choice(item: dict[str, Any]) -> bool:
-    return answer_mode(item) == "multiple_choice"
+    return answer_mode(item) in {"multiple_choice", "tracked_ab"}
 
 
 def system_prompt_for(item: dict[str, Any]) -> str:
@@ -769,7 +769,7 @@ def format_question(item: dict[str, Any]) -> str:
 
 
 def post_trigger_format(mode: str) -> str:
-    return POST_TRIGGER_FORMAT_MC if mode == "multiple_choice" else POST_TRIGGER_FORMAT_EXACT
+    return POST_TRIGGER_FORMAT_MC if mode in {"multiple_choice", "tracked_ab"} else POST_TRIGGER_FORMAT_EXACT
 
 
 def extract_confidence(text: str) -> int | None:
