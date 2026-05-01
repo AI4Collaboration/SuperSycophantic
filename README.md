@@ -110,11 +110,11 @@ Run everything branch-split:
 | --- | --- | --- |
 | GT context-only | GT context JSON | `results/gt_context_only_boxed_eval.*` |
 | NGT context-only | NGT context JSON | `results/ngt_context_only_boxed_eval.*` |
-| GT neutral trigger | branch-split GT neutral JSONL | `results/gt_neutral_trigger_{static,adaptive}_eval.jsonl` |
-| NGT neutral trigger | branch-split NGT neutral JSONL | `results/ngt_neutral_trigger_{static,adaptive}_eval.jsonl` |
-| GT biased trigger | branch-split GT biased JSONL | `results/gt_biased_trigger_{static,adaptive}_eval.jsonl` |
-| NGT biased trigger | branch-split NGT biased JSONL | `results/ngt_biased_trigger_{static,adaptive}_eval.jsonl` |
-| temporal trigger | same branch-split inputs | `results/{gt,ngt}_{neutral,biased}_trigger_temporal_{static,adaptive}_eval.jsonl` |
+| GT neutral trigger | branch-split GT neutral JSONL | `results/gt_neutral_trigger_{static,adaptive}_eval.jsonl.gz` |
+| NGT neutral trigger | branch-split NGT neutral JSONL | `results/ngt_neutral_trigger_{static,adaptive}_eval.jsonl.gz` |
+| GT biased trigger | branch-split GT biased JSONL | `results/gt_biased_trigger_{static,adaptive}_eval.jsonl.gz` |
+| NGT biased trigger | branch-split NGT biased JSONL | `results/ngt_biased_trigger_{static,adaptive}_eval.jsonl.gz` |
+| temporal trigger | same branch-split inputs | `results/{gt,ngt}_{neutral,biased}_trigger_temporal_{static,adaptive}_eval.jsonl.gz` |
 
 There should be no committed paper-facing eval outputs right now. Start each
 fresh eval pass by deleting old generated results:
@@ -144,7 +144,7 @@ full model panel listed in the manuscript:
 python Experimental/run_context.py `
   --gt-input data/supersycophantic_gt_200.json `
   --ngt-input data/supersycophantic_ngt_100.json `
-  --output results/gt_context_only_boxed_eval.jsonl `
+  --output results/gt_context_only_boxed_eval.jsonl.gz `
   --summary results/gt_context_only_boxed_eval_summary.json `
   --models google/gemini-3.1-flash-lite-preview `
   --max-gt 200 `
@@ -153,7 +153,7 @@ python Experimental/run_context.py `
 python Experimental/run_context.py `
   --gt-input data/supersycophantic_gt_200.json `
   --ngt-input data/supersycophantic_ngt_100.json `
-  --output results/ngt_context_only_boxed_eval.jsonl `
+  --output results/ngt_context_only_boxed_eval.jsonl.gz `
   --summary results/ngt_context_only_boxed_eval_summary.json `
   --models google/gemini-3.1-flash-lite-preview `
   --max-gt 0 `
@@ -185,7 +185,7 @@ Example static/adaptive paired trigger run:
 ```powershell
 python Experimental/run.py eval `
   --input data/supersycophantic_trigger_gt_neutral_200.jsonl `
-  --output results/gt_neutral_trigger_static_eval.jsonl `
+  --output results/gt_neutral_trigger_static_eval.jsonl.gz `
   --models openai/gpt-5.4-mini `
   --triggers all `
   --tones mild moderate strong `
@@ -196,7 +196,7 @@ python Experimental/run.py eval `
 
 python Experimental/run.py eval `
   --input data/supersycophantic_trigger_gt_neutral_200.jsonl `
-  --output results/gt_neutral_trigger_adaptive_eval.jsonl `
+  --output results/gt_neutral_trigger_adaptive_eval.jsonl.gz `
   --models openai/gpt-5.4-mini `
   --triggers all `
   --tones mild moderate strong `
@@ -212,7 +212,7 @@ Temporal uses the same branch-split inputs:
 ```powershell
 python Experimental/run.py temporal `
   --input data/supersycophantic_trigger_gt_neutral_200.jsonl `
-  --output results/gt_neutral_trigger_temporal_static_eval.jsonl `
+  --output results/gt_neutral_trigger_temporal_static_eval.jsonl.gz `
   --models openai/gpt-5.4-mini `
   --triggers all `
   --tone-sequence mild moderate strong `

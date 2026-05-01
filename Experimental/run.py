@@ -20,6 +20,7 @@ import argparse
 import asyncio
 import concurrent.futures
 import csv
+import gzip
 import http.client
 import io
 import json
@@ -157,7 +158,7 @@ def parse_args() -> argparse.Namespace:
 
     first_turn = subparsers.add_parser("first-turn", help="Run first-turn accuracy only.")
     first_turn.add_argument("--input", default="data/supersycophantic_trigger_neutral_300.jsonl", help="Input JSONL with benchmark items.")
-    first_turn.add_argument("--output", default="results/supersycophantic_first_turn_screen.jsonl", help="Output JSONL path.")
+    first_turn.add_argument("--output", default="results/supersycophantic_first_turn_screen.jsonl.gz", help="Output JSONL.GZ path.")
     first_turn.add_argument("--models", nargs="+", help="OpenRouter model ids, e.g. openai/gpt-5.4-mini.")
     first_turn.add_argument("--max-items", type=int, default=None)
     first_turn.add_argument("--concurrency", type=int, default=100, help="Maximum concurrent OpenRouter requests.")
@@ -167,7 +168,7 @@ def parse_args() -> argparse.Namespace:
 
     evaluate = subparsers.add_parser("eval", help="Run or dry-run the trigger screen.")
     evaluate.add_argument("--input", default="data/supersycophantic_trigger_neutral_300.jsonl", help="Input JSONL with benchmark items.")
-    evaluate.add_argument("--output", default="results/supersycophantic_trigger_screen.jsonl", help="Output JSONL path.")
+    evaluate.add_argument("--output", default="results/supersycophantic_trigger_screen.jsonl.gz", help="Output JSONL.GZ path.")
     evaluate.add_argument("--models", nargs="+", help="OpenRouter model ids, e.g. openai/gpt-5.4-mini.")
     evaluate.add_argument("--triggers", nargs="+", default=list(TRIGGER_TEMPLATES))
     evaluate.add_argument("--tones", nargs="+", default=["moderate"], choices=["mild", "moderate", "strong"])
@@ -199,7 +200,7 @@ def parse_args() -> argparse.Namespace:
 
     temporal = subparsers.add_parser("temporal", help="Run escalating three-step trigger trajectories.")
     temporal.add_argument("--input", default="data/supersycophantic_trigger_neutral_300.jsonl", help="Input JSONL with benchmark items.")
-    temporal.add_argument("--output", default="results/supersycophantic_temporal_trigger_screen.jsonl", help="Output JSONL path.")
+    temporal.add_argument("--output", default="results/supersycophantic_temporal_trigger_screen.jsonl.gz", help="Output JSONL.GZ path.")
     temporal.add_argument("--models", nargs="+", help="OpenRouter model ids, e.g. openai/gpt-5.4-mini.")
     temporal.add_argument("--triggers", nargs="+", default=list(TRIGGER_TEMPLATES))
     temporal.add_argument(
@@ -253,6 +254,32 @@ def resolve_output_path(base_dir: Path, value: str | Path) -> Path:
     if path.is_absolute():
         return path
     return base_dir / path
+
+
+def compressed_jsonl_output_path(path: Path) -> Path:
+    if path.name.endswith(".jsonl"):
+        return path.with_name(path.name + ".gz")
+    return path
+
+
+def existing_jsonl_path(path: Path) -> Path:
+    if path.exists():
+        return path
+    if path.name.endswith(".jsonl"):
+        gz_path = path.with_name(path.name + ".gz")
+        if gz_path.exists():
+            return gz_path
+    if path.name.endswith(".jsonl.gz"):
+        plain_path = path.with_name(path.name[:-3])
+        if plain_path.exists():
+            return plain_path
+    return path
+
+
+def open_text(path: Path, mode: str, encoding: str = "utf-8"):
+    if path.name.endswith(".gz"):
+        return gzip.open(path, mode, encoding=encoding)
+    return path.open(mode, encoding=encoding)
 
 
 def get_gpqa_zip(args: argparse.Namespace) -> Path:
@@ -600,7 +627,7 @@ def prepare_panel(args: argparse.Namespace, base_dir: Path) -> int:
 
 def read_jsonl(path: Path, max_items: int | None) -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
-    with path.open("r", encoding="utf-8-sig") as handle:
+    with open_text(existing_jsonl_path(path), "rt", encoding="utf-8-sig") as handle:
         for line_number, line in enumerate(handle, start=1):
             if not line.strip():
                 continue
@@ -1314,10 +1341,11 @@ def first_turn_key(record: dict[str, Any]) -> tuple[str, str]:
 
 
 def load_completed_trials(output_path: Path) -> set[tuple[str, str, str, str, str]]:
+    output_path = existing_jsonl_path(output_path)
     if not output_path.exists():
         return set()
     completed: set[tuple[str, str, str, str, str]] = set()
-    with output_path.open("r", encoding="utf-8-sig") as handle:
+    with open_text(output_path, "rt", encoding="utf-8-sig") as handle:
         for line in handle:
             if not line.strip():
                 continue
@@ -1331,10 +1359,11 @@ def load_completed_trials(output_path: Path) -> set[tuple[str, str, str, str, st
 
 
 def load_completed_first_turn_trials(output_path: Path) -> set[tuple[str, str]]:
+    output_path = existing_jsonl_path(output_path)
     if not output_path.exists():
         return set()
     completed: set[tuple[str, str]] = set()
-    with output_path.open("r", encoding="utf-8-sig") as handle:
+    with open_text(output_path, "rt", encoding="utf-8-sig") as handle:
         for line in handle:
             if not line.strip():
                 continue
@@ -1348,10 +1377,11 @@ def load_completed_first_turn_trials(output_path: Path) -> set[tuple[str, str]]:
 
 
 def load_completed_temporal_trials(output_path: Path) -> set[tuple[str, str, str, str, str]]:
+    output_path = existing_jsonl_path(output_path)
     if not output_path.exists():
         return set()
     completed: set[tuple[str, str, str, str, str]] = set()
-    with output_path.open("r", encoding="utf-8-sig") as handle:
+    with open_text(output_path, "rt", encoding="utf-8-sig") as handle:
         for line in handle:
             if not line.strip():
                 continue
@@ -1450,11 +1480,12 @@ def load_existing_initials_and_switches(
 ) -> tuple[dict[tuple[str, str], dict[str, Any]], dict[str, int]]:
     initial_cache: dict[tuple[str, str], dict[str, Any]] = {}
     switches = {model: 0 for model in planned_keys}
+    output_path = existing_jsonl_path(output_path)
     if not output_path.exists():
         return initial_cache, switches
 
     all_planned = set().union(*planned_keys.values()) if planned_keys else set()
-    with output_path.open("r", encoding="utf-8-sig") as handle:
+    with open_text(output_path, "rt", encoding="utf-8-sig") as handle:
         for line in handle:
             if not line.strip():
                 continue
@@ -1488,11 +1519,12 @@ def load_existing_temporal_initials_and_switches(
 ) -> tuple[dict[tuple[str, str], dict[str, Any]], dict[str, int]]:
     initial_cache: dict[tuple[str, str], dict[str, Any]] = {}
     switches = {model: 0 for model in planned_keys}
+    output_path = existing_jsonl_path(output_path)
     if not output_path.exists():
         return initial_cache, switches
 
     all_planned = set().union(*planned_keys.values()) if planned_keys else set()
-    with output_path.open("r", encoding="utf-8-sig") as handle:
+    with open_text(output_path, "rt", encoding="utf-8-sig") as handle:
         for line in handle:
             if not line.strip():
                 continue
@@ -1522,9 +1554,10 @@ def load_existing_temporal_initials_and_switches(
 
 def load_initial_cache_from_jsonl(path: Path) -> dict[tuple[str, str], dict[str, Any]]:
     initial_cache: dict[tuple[str, str], dict[str, Any]] = {}
+    path = existing_jsonl_path(path)
     if not path.exists():
         raise SystemExit(f"Initial cache file does not exist: {path}")
-    with path.open("r", encoding="utf-8-sig") as handle:
+    with open_text(path, "rt", encoding="utf-8-sig") as handle:
         for line in handle:
             if not line.strip():
                 continue
@@ -1632,7 +1665,7 @@ async def run_eval_async(args: argparse.Namespace, base_dir: Path) -> int:
         raise SystemExit("OPENROUTER_API_KEY is not set. Put it in the environment or .env.")
 
     items = read_jsonl(resolve_output_path(base_dir, args.input), args.max_items)
-    output_path = resolve_output_path(base_dir, args.output)
+    output_path = compressed_jsonl_output_path(resolve_output_path(base_dir, args.output))
     output_path.parent.mkdir(parents=True, exist_ok=True)
     completed_trials = load_completed_trials(output_path)
     planned_keys = planned_trial_keys(items, models, triggers, args.tones, trigger_prompt_mode, adaptive_trigger_model)
@@ -1656,7 +1689,7 @@ async def run_eval_async(args: argparse.Namespace, base_dir: Path) -> int:
             initial_locks[cache_key] = lock
         return lock
 
-    with output_path.open("a", encoding="utf-8") as out:
+    with open_text(output_path, "at", encoding="utf-8") as out:
         async def write_record(record: dict[str, Any], switch_for_progress: bool = False) -> None:
             async with write_lock:
                 key = trial_key(record)
@@ -1886,10 +1919,11 @@ def load_existing_first_turn_correct(
     planned_keys: dict[str, set[tuple[str, str]]],
 ) -> dict[str, int]:
     correct = {model: 0 for model in planned_keys}
+    output_path = existing_jsonl_path(output_path)
     if not output_path.exists():
         return correct
     all_planned = set().union(*planned_keys.values()) if planned_keys else set()
-    with output_path.open("r", encoding="utf-8-sig") as handle:
+    with open_text(output_path, "rt", encoding="utf-8-sig") as handle:
         for line in handle:
             if not line.strip():
                 continue
@@ -1933,7 +1967,7 @@ async def run_first_turn_async(args: argparse.Namespace, base_dir: Path) -> int:
         raise SystemExit("OPENROUTER_API_KEY is not set. Put it in the environment or .env.")
 
     items = read_jsonl(resolve_output_path(base_dir, args.input), args.max_items)
-    output_path = resolve_output_path(base_dir, args.output)
+    output_path = compressed_jsonl_output_path(resolve_output_path(base_dir, args.output))
     output_path.parent.mkdir(parents=True, exist_ok=True)
     completed_trials = load_completed_first_turn_trials(output_path)
     planned_keys = planned_first_turn_keys(items, models)
@@ -1947,7 +1981,7 @@ async def run_first_turn_async(args: argparse.Namespace, base_dir: Path) -> int:
     semaphore = asyncio.Semaphore(max(1, args.concurrency))
     write_lock = asyncio.Lock()
 
-    with output_path.open("a", encoding="utf-8") as out:
+    with open_text(output_path, "at", encoding="utf-8") as out:
         async def write_record(record: dict[str, Any]) -> None:
             async with write_lock:
                 key = first_turn_key(record)
@@ -2052,7 +2086,7 @@ async def run_temporal_async(args: argparse.Namespace, base_dir: Path) -> int:
         raise SystemExit("OPENROUTER_API_KEY is not set. Put it in the environment or .env.")
 
     items = read_jsonl(resolve_output_path(base_dir, args.input), args.max_items)
-    output_path = resolve_output_path(base_dir, args.output)
+    output_path = compressed_jsonl_output_path(resolve_output_path(base_dir, args.output))
     output_path.parent.mkdir(parents=True, exist_ok=True)
     completed_trials = load_completed_temporal_trials(output_path)
     planned_keys = planned_temporal_keys(
@@ -2085,7 +2119,7 @@ async def run_temporal_async(args: argparse.Namespace, base_dir: Path) -> int:
             initial_locks[cache_key] = lock
         return lock
 
-    with output_path.open("a", encoding="utf-8") as out:
+    with open_text(output_path, "at", encoding="utf-8") as out:
         async def write_record(record: dict[str, Any]) -> None:
             async with write_lock:
                 key = temporal_key(record)

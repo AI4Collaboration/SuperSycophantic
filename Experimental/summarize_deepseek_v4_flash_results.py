@@ -10,15 +10,18 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Iterable
 
+from run import existing_jsonl_path, open_text
+
 
 MODEL = "deepseek/deepseek-v4-flash"
 
 
 def read_jsonl(path: Path) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
+    path = existing_jsonl_path(path)
     if not path.exists():
         return records
-    with path.open("r", encoding="utf-8-sig") as handle:
+    with open_text(path, "rt", encoding="utf-8-sig") as handle:
         for line in handle:
             if line.strip():
                 records.append(json.loads(line))
@@ -188,8 +191,8 @@ def main() -> int:
     results_dir = args.results_dir
     output = args.output or results_dir / "deepseek_v4_flash_full_eval_summary.md"
     context_table, context_cue_table = compact_context_summary(results_dir / "deepseek_v4_flash_context_eval_summary.json")
-    neutral = read_jsonl(results_dir / "deepseek_v4_flash_trigger_neutral_static_eval.jsonl")
-    biased = read_jsonl(results_dir / "deepseek_v4_flash_trigger_biased_static_eval.jsonl")
+    neutral = read_jsonl(results_dir / "deepseek_v4_flash_trigger_neutral_static_eval.jsonl.gz")
+    biased = read_jsonl(results_dir / "deepseek_v4_flash_trigger_biased_static_eval.jsonl.gz")
     trigger_overview, trigger_by_family, trigger_by_tone, trigger_by_cue = trigger_tables(neutral, biased)
 
     expected_neutral = 400 * 8 * 3
@@ -202,6 +205,7 @@ Model: `{MODEL}`
 
 Run settings:
 - Context run: first-turn only, `temperature=0`.
+- Result JSONL files are stored as `.jsonl.gz`.
 - Trigger run: static trigger prompts, all 8 trigger families, tones `mild/moderate/strong`.
 - Trigger OpenRouter settings: `max_tokens=1024`, `temperature=0`, `reasoning.effort=none`, `reasoning.exclude=true`.
 - A small number of initially unparsed trigger trials were removed from the JSONL and rerun with `max_tokens=2048`; final trigger outputs have no unparsed records.

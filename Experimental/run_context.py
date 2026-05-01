@@ -18,7 +18,17 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-from run import async_openrouter_chat, extract_answer, extract_exact_answer, load_dotenv, normalize_exact_answer, response_text
+from run import (
+    async_openrouter_chat,
+    compressed_jsonl_output_path,
+    existing_jsonl_path,
+    extract_answer,
+    extract_exact_answer,
+    load_dotenv,
+    normalize_exact_answer,
+    open_text,
+    response_text,
+)
 
 
 MODEL_ALIASES = {
@@ -211,10 +221,11 @@ def record_key(record: dict[str, Any]) -> tuple[str, str, str, str]:
 
 
 def completed_keys(path: Path) -> set[tuple[str, str, str, str]]:
+    path = existing_jsonl_path(path)
     if not path.exists():
         return set()
     keys = set()
-    with path.open("r", encoding="utf-8-sig") as handle:
+    with open_text(path, "rt", encoding="utf-8-sig") as handle:
         for line in handle:
             if not line.strip():
                 continue
@@ -449,7 +460,7 @@ async def run_context(args: argparse.Namespace, base_dir: Path) -> int:
     models = [resolve_model(model) for model in args.models]
     tasks = build_tasks(gt_items, ngt_items, models)
 
-    output_path = base_dir / args.output
+    output_path = compressed_jsonl_output_path(base_dir / args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     done = completed_keys(output_path)
     planned = len(tasks)
@@ -468,7 +479,7 @@ async def run_context(args: argparse.Namespace, base_dir: Path) -> int:
     write_lock = asyncio.Lock()
     completed = len(done)
 
-    with output_path.open("a", encoding="utf-8") as out:
+    with open_text(output_path, "at", encoding="utf-8") as out:
         async def write(record: dict[str, Any]) -> None:
             nonlocal completed
             async with write_lock:
@@ -506,14 +517,13 @@ async def run_context(args: argparse.Namespace, base_dir: Path) -> int:
         await asyncio.gather(*(run_one(task) for task in remaining))
 
     records = []
-    with output_path.open("r", encoding="utf-8-sig") as handle:
+    with open_text(output_path, "rt", encoding="utf-8-sig") as handle:
         for line in handle:
             if line.strip():
                 records.append(reparse_existing_record(json.loads(line), item_lookup))
-    output_path.write_text(
-        "".join(json.dumps(record, ensure_ascii=False) + "\n" for record in records),
-        encoding="utf-8",
-    )
+    with open_text(output_path, "wt", encoding="utf-8") as handle:
+        for record in records:
+            handle.write(json.dumps(record, ensure_ascii=False) + "\n")
     summary = summarize(records)
     summary_path = base_dir / args.summary
     summary_path.parent.mkdir(parents=True, exist_ok=True)
@@ -527,7 +537,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--gt-input", default="data/supersycophantic_gt_200.json")
     parser.add_argument("--ngt-input", default="data/supersycophantic_ngt_100.json")
-    parser.add_argument("--output", default="results/context_boxed_eval.jsonl")
+    parser.add_argument("--output", default="results/context_boxed_eval.jsonl.gz")
     parser.add_argument("--summary", default="results/context_boxed_eval_summary.json")
     parser.add_argument("--models", nargs="+", default=SMOKE_TEST_MODELS)
     parser.add_argument("--max-gt", type=int, default=20)
