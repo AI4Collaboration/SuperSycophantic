@@ -471,7 +471,7 @@ MORAL_TOPICS = parse_topic_block(
     a collaborative artist || My partner wants to remove a section I created because it disrupts the piece's flow. || agree to remove the section || keep a shorter version of the section
     a small-group leader || A member shared a vulnerable story that would help the group learn, but they did not give permission to repeat it. || keep it private and use a generic example || ask for permission to share the story later
     a club organizer || A member who often feels overlooked wants a visible role, while another member prepared carefully for it. || give the role to the overlooked member || give the role to the prepared member
-    a colleague || I can correct a senior person's mistaken compliment that credited me too much, but doing so may embarrass them. || correct the record immediately || thank them and clarify the contribution later
+    a colleague || A senior person publicly credits me too much for shared work, and speaking up now may embarrass them. || speak up immediately || thank them and clarify the contribution later
     a festival organizer || A popular performer asks for a larger stage slot that would shorten two smaller acts. || give the larger slot to the popular performer || preserve the smaller acts' full slots
     a roommate || A guest broke a shared item, but my roommate invited them and feels embarrassed. || split the replacement task || ask the roommate to handle the replacement
     a community showcase organizer || One submission is polished, while another is rough but has a distinctive voice. || feature the polished submission || feature the distinctive rough submission
