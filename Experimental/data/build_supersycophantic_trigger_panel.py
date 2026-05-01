@@ -89,17 +89,27 @@ def variant_metadata(item: dict[str, Any], variant_name: str) -> dict[str, Any]:
 def base_metadata(item: dict[str, Any], variant_name: str) -> dict[str, Any]:
     base_id = item.get("item_id") or item.get("id")
     row_id = str(base_id) if variant_name == "neutral" else f"{base_id}__{variant_name}"
-    return {
+    row = {
         "id": row_id,
-        "source_item_id": base_id,
+        "source": base_id,
         "verifiability": item.get("verifiability"),
         "domain": item.get("domain"),
-        "source": item.get("source"),
-        "source_file": item.get("source_file"),
-        "record_id": item.get("record_id"),
-        "native_id": item.get("native_id"),
+        "base_decision_id": item.get("base_decision_id"),
         **variant_metadata(item, variant_name),
     }
+    if item.get("verifiability") == "GT":
+        row.update(
+            {
+                "source_dataset": item.get("source"),
+                "source_file": item.get("source_file"),
+                "source_url": item.get("source_url"),
+                "source_quote": item.get("source_quote"),
+                "source_cache_file": item.get("source_cache_file"),
+                "record_id": item.get("record_id"),
+                "native_id": item.get("native_id"),
+            }
+        )
+    return row
 
 
 def gt_trigger_item(item: dict[str, Any], variant_name: str) -> dict[str, Any]:
@@ -205,11 +215,22 @@ def validate(rows: list[dict[str, Any]]) -> None:
     for row in rows:
         if not row.get("id") or not row.get("question") or not row.get("initial_prompt"):
             raise ValueError(f"{row.get('id')} missing id, question, or initial_prompt")
+        if not row.get("source"):
+            raise ValueError(f"{row.get('id')} missing source item id")
         prompt = str(row.get("initial_prompt"))
         if "Confidence:" not in prompt or "\\boxed" not in prompt:
             raise ValueError(f"{row.get('id')} initial prompt missing confidence or boxed answer format")
         if row.get("context_condition") == "biased" and not row.get("direction"):
             raise ValueError(f"{row.get('id')} biased row missing direction")
+        if row.get("verifiability") == "GT":
+            if not str(row.get("source_file", "")).startswith(("http://", "https://")):
+                raise ValueError(f"{row.get('id')} GT source_file must be a URL")
+            if not row.get("source_url") or not row.get("source_quote"):
+                raise ValueError(f"{row.get('id')} GT row missing source_url or source_quote")
+        if row.get("verifiability") == "NGT":
+            for field in ["source_file", "source_url", "source_quote", "correct_answer", "verified_answer"]:
+                if field in row:
+                    raise ValueError(f"{row.get('id')} NGT row should not carry {field}")
         if row.get("answer_mode") == "exact":
             if not row.get("correct_answer") or not row.get("pressure_target"):
                 raise ValueError(f"{row.get('id')} missing exact answer fields")
@@ -246,8 +267,8 @@ def build(args: argparse.Namespace) -> list[dict[str, Any]]:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--gt-input", default="supersycophantic_gt_200.json")
-    parser.add_argument("--ngt-input", default="supersycophantic_ngt_200.json")
-    parser.add_argument("--output", default="supersycophantic_trigger_neutral_400.jsonl")
+    parser.add_argument("--ngt-input", default="supersycophantic_ngt_100.json")
+    parser.add_argument("--output", default=None)
     parser.add_argument(
         "--context-condition",
         choices=["neutral", "biased", "all"],
@@ -264,6 +285,9 @@ def main() -> int:
     if args.gt_only and args.ngt_only:
         raise SystemExit("--gt-only and --ngt-only cannot be combined")
     rows = build(args)
+    if args.output is None:
+        branch = "_gt" if args.gt_only else "_ngt" if args.ngt_only else ""
+        args.output = f"supersycophantic_trigger{branch}_{args.context_condition}_{len(rows)}.jsonl"
     output = DATA_DIR / args.output
     write_jsonl(output, rows)
     counts: dict[str, int] = {}

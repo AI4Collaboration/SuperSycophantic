@@ -10,15 +10,23 @@ Current data:
 | file | role |
 | --- | --- |
 | `Experimental/data/supersycophantic_gt_200.json` | 200 GT items, neutral + injected-wrong-answer context |
-| `Experimental/data/supersycophantic_ngt_200.json` | 200 NGT items, neutral + belief/identity/stake context |
-| `Experimental/data/supersycophantic_trigger_neutral_400.jsonl` | derived neutral trigger panel, useful for inspection |
-| `Experimental/data/supersycophantic_trigger_biased_1400.jsonl` | derived biased trigger panel, useful for inspection |
+| `Experimental/data/supersycophantic_ngt_100.json` | 100 NGT items, 25 materially different bases per domain, neutral + belief/identity/stake context |
+| `Experimental/data/supersycophantic_trigger_neutral_300.jsonl` | derived neutral trigger panel, useful for inspection |
+| `Experimental/data/supersycophantic_trigger_biased_800.jsonl` | derived biased trigger panel, useful for inspection |
 | `Experimental/data/build_supersycophantic_trigger_panel.py` | builds branch-split trigger panels for eval |
 
 GT domains are `Mathematical Science`, `Physical Science`, `Bio&Chem`, and
-`Health`. Math uses selected HLE-Verified text math items. Health uses
-NIH-style misconception/correction pairs. NGT domains are `policy`,
-`moral dilemma`, `interpersonal`, and `aesthetic`.
+`Health`. Math uses selected HLE-Verified Gold text-only Math items;
+Physical Science and Bio&Chem use GPQA-Diamond; Health uses NIH-style
+misconception/correction pairs. NGT domains are `policy`, `moral dilemma`,
+`interpersonal`, and `personal choice`.
+
+NGT items do not carry item-level source URLs, source quotations, or answer
+keys. They do carry `domain_grounding.construct_sources`, with URL and quote,
+to document why each NGT domain is a grounded class of two-sided decisions.
+Those construct sources are not evidence for Option A or Option B. NGT
+`answer_states` contain only the two option texts, with no extra side-specific
+fields.
 
 Context inputs are first-turn prompts only. They must not contain trigger
 families, tone, temporal schedule, or trigger scoring targets.
@@ -41,7 +49,10 @@ wrong belief only needs to be clearly incorrect; GT scoring tracks answer
 change, incorrect-rate lift, and correct-to-incorrect movement.
 
 NGT context variants are `neutral`, `belief_A`, `belief_B`, `identity_A`,
-`identity_B`, `stake_A`, and `stake_B`. NGT has no hidden correct answer.
+`identity_B`, `stake_A`, and `stake_B`. In reporting, A/B directions are
+paired minimum-change controls inside one framing mode, so `belief_A` and
+`belief_B` count as one `belief` context type, and likewise for `identity`
+and `stake`. NGT has no hidden correct answer.
 For context-induced NGT, `direction` is the `user_view`; the opposite answer
 state is the `other_view`.
 
@@ -51,7 +62,7 @@ Trigger inputs are post-commitment items. The model first answers
 ```json
 {
   "id": "...",
-  "source_item_id": "...",
+  "source": "source context item id",
   "verifiability": "GT or NGT",
   "context_condition": "neutral or biased",
   "context_variant": "neutral, injected_wrong_answer, belief_A, ...",
@@ -65,7 +76,9 @@ Trigger inputs are post-commitment items. The model first answers
 
 For NGT trigger items, omit `correct_answer`. `pressure_target` is the
 unsupported side the follow-up pressures toward. For GT trigger items,
-`correct_answer` enables truth-departure scoring.
+`correct_answer` enables truth-departure scoring. In trigger files, `source`
+points back to the source context item id; GT external provenance is carried by
+`source_dataset`, `source_file`, `source_url`, and `source_quote`.
 
 ## Experimental Structure
 
@@ -123,26 +136,28 @@ Check context panels:
 python Experimental/data/build_supersycophantic_context_panels.py
 ```
 
-Run context-only eval, GT and NGT separately:
+Run context-only eval, GT and NGT separately. These examples use a single
+fast smoke-test route from the manuscript panel; main paper runs should use the
+full model panel listed in the manuscript:
 
 ```powershell
 python Experimental/run_context.py `
   --gt-input data/supersycophantic_gt_200.json `
-  --ngt-input data/supersycophantic_ngt_200.json `
+  --ngt-input data/supersycophantic_ngt_100.json `
   --output results/gt_context_only_boxed_eval.jsonl `
   --summary results/gt_context_only_boxed_eval_summary.json `
-  --models mini gemini-flash-lite deepseek-v4-flash `
+  --models google/gemini-3.1-flash-lite-preview `
   --max-gt 200 `
   --max-ngt 0
 
 python Experimental/run_context.py `
   --gt-input data/supersycophantic_gt_200.json `
-  --ngt-input data/supersycophantic_ngt_200.json `
+  --ngt-input data/supersycophantic_ngt_100.json `
   --output results/ngt_context_only_boxed_eval.jsonl `
   --summary results/ngt_context_only_boxed_eval_summary.json `
-  --models mini gemini-flash-lite deepseek-v4-flash `
+  --models google/gemini-3.1-flash-lite-preview `
   --max-gt 0 `
-  --max-ngt 200
+  --max-ngt 100
 ```
 
 Build branch-split trigger panels:
@@ -154,7 +169,7 @@ python Experimental/data/build_supersycophantic_trigger_panel.py `
 
 python Experimental/data/build_supersycophantic_trigger_panel.py `
   --context-condition neutral --ngt-only `
-  --output supersycophantic_trigger_ngt_neutral_200.jsonl
+  --output supersycophantic_trigger_ngt_neutral_100.jsonl
 
 python Experimental/data/build_supersycophantic_trigger_panel.py `
   --context-condition biased --gt-only `
@@ -162,7 +177,7 @@ python Experimental/data/build_supersycophantic_trigger_panel.py `
 
 python Experimental/data/build_supersycophantic_trigger_panel.py `
   --context-condition biased --ngt-only `
-  --output supersycophantic_trigger_ngt_biased_1200.jsonl
+  --output supersycophantic_trigger_ngt_biased_600.jsonl
 ```
 
 Example static/adaptive paired trigger run:
@@ -212,13 +227,13 @@ name ending in `_temporal_adaptive_eval.jsonl`.
 
 ## Human Review
 
-Before release, each item needs source traceability, GT/NGT validity checks,
-variant fidelity checks, evidence non-leakage checks, and a pass/fail reviewer
-verdict. The 400 context items are not a human-released benchmark until this
-review is complete.
+Before release, each item needs GT source traceability or NGT construct
+grounding, GT/NGT validity checks, variant fidelity checks, evidence
+non-leakage checks, and a pass/fail reviewer verdict. The context items are
+not a human-released benchmark until this review is complete.
 
 ## Notes
 
 - "Update Overleaf" means update local `.tex` files in this repo.
 - Do not run local LaTeX compilation unless explicitly requested.
-- Keep pilot outputs out of the current analysis.
+- Keep old exploratory outputs out of the current analysis.
