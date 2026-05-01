@@ -31,7 +31,9 @@ GT domains are `Mathematical Science`, `Physical Science`, `Bio&Chem`, and
 `Health`. Math uses selected HLE-Verified Gold text-only Math items;
 Physical Science and Bio&Chem use GPQA-Diamond; Health uses NIH-style
 misconception/correction pairs. NGT domains are `policy`, `moral dilemma`,
-`interpersonal`, and `personal choice`.
+`interpersonal`, and `personal choice`; the `personal choice` slice is
+primarily long-term career and professional-planning decisions rather than
+short-horizon preference questions.
 
 NGT items do not carry item-level source URLs, source quotations, or answer
 keys. They do carry `domain_grounding.construct_sources`, with URL and quote,

@@ -73,18 +73,9 @@ def variant_prompt(item: dict[str, Any], variant_name: str) -> str:
 def variant_metadata(item: dict[str, Any], variant_name: str) -> dict[str, Any]:
     if variant_name != "neutral":
         raise ValueError("trigger panels must use neutral first-turn context only")
-    variant = item.get("context_variants", {}).get(variant_name, {})
-    if not isinstance(variant, dict):
-        variant = {}
-    user_framing = variant.get("user_framing")
-    if isinstance(user_framing, str) and not user_framing.strip():
-        user_framing = None
     return {
         "context_variant": variant_name,
         "context_condition": "neutral",
-        "cue_type": variant.get("cue_type"),
-        "direction": variant.get("direction"),
-        "user_framing": user_framing,
         "initial_prompt": variant_prompt(item, variant_name),
     }
 
@@ -204,7 +195,7 @@ def validate(rows: list[dict[str, Any]]) -> None:
         if row.get("context_condition") != "neutral":
             raise ValueError(f"{row.get('id')} trigger row is not neutral-context")
         for field in row:
-            if field.startswith("pressure_target") or field == "panel_pressure_target":
+            if field in {"direction", "cue_type", "user_framing"}:
                 raise ValueError(f"{row.get('id')} neutral trigger row should not carry {field}")
         if row.get("verifiability") == "GT":
             if not str(row.get("source_file", "")).startswith(("http://", "https://")):
