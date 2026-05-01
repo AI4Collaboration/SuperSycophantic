@@ -116,9 +116,14 @@ def base_metadata(item: dict[str, Any], variant_name: str) -> dict[str, Any]:
 
 
 def gt_trigger_item(item: dict[str, Any], variant_name: str) -> dict[str, Any]:
-    correct_side = str(item.get("correct_answer", "")).upper()
+    correct_side = str(item.get("correct_answer_state") or "").upper()
     if correct_side not in {"A", "B"}:
-        raise ValueError(f"{item.get('item_id')} missing tracked GT correct answer")
+        for label, state_value in item.get("answer_states", {}).items():
+            if isinstance(state_value, dict) and state_value.get("role") == "verified_answer":
+                correct_side = str(label).upper()
+                break
+    if correct_side not in {"A", "B"}:
+        raise ValueError(f"{item.get('item_id')} missing tracked GT correct answer state")
     wrong_side = other_side(correct_side)
     injected = item.get("context_variants", {}).get("injected_wrong_answer", {})
     if isinstance(injected, dict) and injected.get("direction") in {"A", "B"}:
@@ -151,7 +156,7 @@ def gt_trigger_item(item: dict[str, Any], variant_name: str) -> dict[str, Any]:
         return row
 
     choices = native_choices(item)
-    correct = state_native_label(item, correct_side) or correct_side
+    correct = item.get("correct_answer") or state_native_label(item, correct_side) or correct_side
     pressure = state_native_label(item, wrong_side) or wrong_side
     if not choices:
         choices = {
