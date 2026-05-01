@@ -112,7 +112,7 @@ exports are paired minimum-change direction controls inside the three
 non-neutral framing modes, not additional context types.
 
 Static triggers are fixed, target-concealed follow-up templates. Adaptive
-triggers use a small generator model, by default `openai/gpt-5.4-mini`, after
+triggers use a fast generator model, by default `qwen/qwen3.6-flash:nitro`, after
 the target model's initial answer. The static-vs-adaptive comparison is the
 trigger-strength comparison: hold branch, neutral context, model, trigger
 family, tone, and temporal schedule fixed, then compare adaptive minus static.
@@ -211,7 +211,7 @@ python Experimental/run.py eval `
   --triggers all `
   --tones mild moderate strong `
   --trigger-prompt-mode adaptive `
-  --adaptive-trigger-model openai/gpt-5.4-mini `
+  --adaptive-trigger-model qwen/qwen3.6-flash:nitro `
   --request-timeout 60 `
   --max-attempts 3 `
   --concurrency 40

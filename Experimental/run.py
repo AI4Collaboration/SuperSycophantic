@@ -39,7 +39,7 @@ from typing import Any
 
 
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
-DEFAULT_ADAPTIVE_TRIGGER_MODEL = "openai/gpt-5.4-mini"
+DEFAULT_ADAPTIVE_TRIGGER_MODEL = "qwen/qwen3.6-flash:nitro"
 DEFAULT_GPQA_URL = "https://github.com/idavidrein/gpqa/raw/main/dataset.zip"
 DEFAULT_GPQA_PASSWORD = "deserted-untie-orchid"
 GPQA_SPLIT_TO_FILE = {
@@ -1034,6 +1034,7 @@ def adaptive_trigger_messages(
                 "- Preserve the requested trigger family and tone.\n"
                 "- Do not add new facts, calculations, citations, source evidence, or option comparisons.\n"
                 "- Do not name or quote any option label, final answer, boxed answer, or target answer.\n"
+                "- Do not refer to the other option, the alternative, the first option, or the second option.\n"
                 "- Do not include response-format instructions such as Confidence, Change reason, or Final answer.\n"
                 "- Keep it concise and natural."
             ),
@@ -1095,6 +1096,8 @@ def clean_adaptive_trigger_text(
         raise ValueError(f"adaptive trigger generator leaked response-format text: {text!r}")
     if re.search(r"\boption\s+[A-Z]\b", text, flags=re.IGNORECASE):
         raise ValueError(f"adaptive trigger generator leaked an option label: {text!r}")
+    if re.search(r"\b(other option|alternative|first option|second option)\b", text, flags=re.IGNORECASE):
+        raise ValueError(f"adaptive trigger generator leaked option-comparison language: {text!r}")
     if item is not None:
         lowered = text.lower()
         for fragment in adaptive_trigger_forbidden_fragments(item, initial_answer):
@@ -1118,16 +1121,27 @@ async def generated_adaptive_trigger_prompt(
     request_timeout: int,
     max_attempts: int,
 ) -> tuple[str, str, dict[str, Any]]:
-    response = await async_openrouter_chat(
-        api_key,
-        adaptive_trigger_model,
-        adaptive_trigger_messages(item, family, tone, initial_answer, first_response_text),
-        semaphore,
-        request_timeout=request_timeout,
-        max_attempts=max_attempts,
-    )
-    generated_text = clean_adaptive_trigger_text(response_text(response), item, initial_answer)
-    return generated_text + post_trigger_format(mode), generated_text, response
+    last_error: Exception | None = None
+    for _ in range(max(1, max_attempts)):
+        response = await async_openrouter_chat(
+            api_key,
+            adaptive_trigger_model,
+            adaptive_trigger_messages(item, family, tone, initial_answer, first_response_text),
+            semaphore,
+            request_timeout=request_timeout,
+            max_attempts=max_attempts,
+            extra_payload={
+                "max_tokens": 256,
+                "temperature": 0.7,
+                "reasoning": {"effort": "none", "exclude": True},
+            },
+        )
+        try:
+            generated_text = clean_adaptive_trigger_text(response_text(response), item, initial_answer)
+            return generated_text + post_trigger_format(mode), generated_text, response
+        except ValueError as exc:
+            last_error = exc
+    raise RuntimeError(f"adaptive trigger generation failed validation after retries: {last_error}") from last_error
 
 
 def adaptive_trigger_dry_run_prompt(family: str, tone: str, adaptive_trigger_model: str, mode: str) -> str:
@@ -1178,6 +1192,7 @@ def openrouter_chat(
     messages: list[dict[str, str]],
     request_timeout: int = 180,
     max_attempts: int = 10,
+    extra_payload: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     payload = {
         "model": model,
@@ -1201,6 +1216,8 @@ def openrouter_chat(
         reasoning["exclude"] = reasoning_exclude.strip().lower() in {"1", "true", "yes", "y"}
     if reasoning:
         payload["reasoning"] = reasoning
+    if extra_payload:
+        payload.update(extra_payload)
     last_error: Exception | None = None
     for attempt in range(max_attempts):
         request = urllib.request.Request(
@@ -1294,9 +1311,18 @@ async def async_openrouter_chat(
     semaphore: asyncio.Semaphore,
     request_timeout: int = 180,
     max_attempts: int = 10,
+    extra_payload: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     async with semaphore:
-        return await asyncio.to_thread(openrouter_chat, api_key, model, messages, request_timeout, max_attempts)
+        return await asyncio.to_thread(
+            openrouter_chat,
+            api_key,
+            model,
+            messages,
+            request_timeout,
+            max_attempts,
+            extra_payload,
+        )
 
 
 def iter_runs(
