@@ -4,7 +4,8 @@
 The context data keep GT and NGT in rich JSON objects. The trigger runner uses a
 flat JSONL format with one first-turn prompt per line and one internally
 recorded pressure target. This script is the canonical bridge between those
-schemas for neutral-context and biased-context trigger runs.
+schemas for neutral-context trigger runs. Biased first-turn prompts are
+context-only controls and are not valid trigger inputs.
 """
 
 from __future__ import annotations
@@ -73,12 +74,14 @@ def variant_prompt(item: dict[str, Any], variant_name: str) -> str:
 
 
 def variant_metadata(item: dict[str, Any], variant_name: str) -> dict[str, Any]:
+    if variant_name != "neutral":
+        raise ValueError("trigger panels must use neutral first-turn context only")
     variant = item.get("context_variants", {}).get(variant_name, {})
     if not isinstance(variant, dict):
         variant = {}
     return {
         "context_variant": variant_name,
-        "context_condition": "neutral" if variant_name == "neutral" else "biased",
+        "context_condition": "neutral",
         "cue_type": variant.get("cue_type"),
         "direction": variant.get("direction"),
         "user_framing": variant.get("user_framing"),
@@ -198,14 +201,9 @@ def ngt_trigger_item(item: dict[str, Any], index: int, variant_name: str) -> dic
 
 
 def selected_variants(item: dict[str, Any], context_condition: str) -> list[str]:
-    order = list(item.get("context_variant_order", []))
     if context_condition == "neutral":
         return ["neutral"]
-    if context_condition == "biased":
-        return [name for name in order if name != "neutral"]
-    if context_condition == "all":
-        return order
-    raise ValueError(f"unknown context condition: {context_condition}")
+    raise ValueError("trigger panels must use neutral first-turn context only")
 
 
 def validate(rows: list[dict[str, Any]]) -> None:
@@ -220,8 +218,8 @@ def validate(rows: list[dict[str, Any]]) -> None:
         prompt = str(row.get("initial_prompt"))
         if "Confidence:" not in prompt or "\\boxed" not in prompt:
             raise ValueError(f"{row.get('id')} initial prompt missing confidence or boxed answer format")
-        if row.get("context_condition") == "biased" and not row.get("direction"):
-            raise ValueError(f"{row.get('id')} biased row missing direction")
+        if row.get("context_condition") != "neutral":
+            raise ValueError(f"{row.get('id')} trigger row is not neutral-context")
         if row.get("verifiability") == "GT":
             if not str(row.get("source_file", "")).startswith(("http://", "https://")):
                 raise ValueError(f"{row.get('id')} GT source_file must be a URL")
@@ -271,9 +269,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output", default=None)
     parser.add_argument(
         "--context-condition",
-        choices=["neutral", "biased", "all"],
+        choices=["neutral"],
         default="neutral",
-        help="Which first-turn context variants to export for trigger runs.",
+        help="Trigger panels use neutral first-turn context only.",
     )
     parser.add_argument("--gt-only", action="store_true")
     parser.add_argument("--ngt-only", action="store_true")

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Summarize DeepSeek V4 Flash context and trigger runs."""
+"""Summarize DeepSeek V4 Flash context and neutral-trigger runs."""
 
 from __future__ import annotations
 
@@ -136,12 +136,9 @@ def compact_context_summary(summary_path: Path) -> tuple[str, str]:
     )
 
 
-def trigger_tables(neutral: list[dict[str, Any]], biased: list[dict[str, Any]]) -> tuple[str, str, str, str]:
-    all_records = neutral + biased
-    overview_rows = [
-        summary_row("neutral / all", neutral),
-        summary_row("biased / all", biased),
-    ]
+def trigger_tables(neutral: list[dict[str, Any]]) -> tuple[str, str, str]:
+    all_records = neutral
+    overview_rows = [summary_row("neutral / all", neutral)]
     for (condition, branch), rows in sorted(group_by(all_records, "context_condition", "verifiability").items()):
         overview_rows.append(summary_row(f"{condition} / {branch}", rows))
 
@@ -152,10 +149,6 @@ def trigger_tables(neutral: list[dict[str, Any]], biased: list[dict[str, Any]]) 
     tone_rows = [
         summary_row(tone, rows)
         for (tone,), rows in sorted(group_by(all_records, "tone").items())
-    ]
-    cue_rows = [
-        summary_row(cue, rows)
-        for (cue,), rows in sorted(group_by([r for r in biased if r.get("verifiability") == "NGT"], "cue_type").items())
     ]
     headers = [
         "Slice",
@@ -173,7 +166,6 @@ def trigger_tables(neutral: list[dict[str, Any]], biased: list[dict[str, Any]]) 
         md_table(headers, overview_rows),
         md_table(headers, trigger_rows),
         md_table(headers, tone_rows),
-        md_table(headers, cue_rows),
     )
 
 
@@ -192,11 +184,9 @@ def main() -> int:
     output = args.output or results_dir / "deepseek_v4_flash_full_eval_summary.md"
     context_table, context_cue_table = compact_context_summary(results_dir / "deepseek_v4_flash_context_eval_summary.json")
     neutral = read_jsonl(results_dir / "deepseek_v4_flash_trigger_neutral_static_eval.jsonl.gz")
-    biased = read_jsonl(results_dir / "deepseek_v4_flash_trigger_biased_static_eval.jsonl.gz")
-    trigger_overview, trigger_by_family, trigger_by_tone, trigger_by_cue = trigger_tables(neutral, biased)
+    trigger_overview, trigger_by_family, trigger_by_tone = trigger_tables(neutral)
 
-    expected_neutral = 400 * 8 * 3
-    expected_biased = 1400 * 8 * 3
+    expected_neutral = 300 * 8 * 3
     body = f"""# DeepSeek V4 Flash Full Evaluation Summary
 
 Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
@@ -213,11 +203,10 @@ Run settings:
 
 ## Inputs And Completion
 
-| Panel | Expected records | Completed records | Final parse methods |
+| Panel | Expected input | Completed records | Final parse methods |
 | --- | ---: | ---: | --- |
-| Context | 1800 | 1800 | see context summary JSON |
+| Context | 800 framing cells (1100 exported prompt rows) | see context summary JSON | see context summary JSON |
 | Trigger neutral | {expected_neutral} | {len(neutral)} | {parse_counts(neutral) if neutral else "--"} |
-| Trigger biased | {expected_biased} | {len(biased)} | {parse_counts(biased) if biased else "--"} |
 
 ## Context Framing
 
@@ -240,10 +229,6 @@ Switch rates use eligible trials as denominator. The parsed-eligible column excl
 ### By Tone
 
 {trigger_by_tone}
-
-### Biased NGT By Cue
-
-{trigger_by_cue}
 """
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(body, encoding="utf-8")

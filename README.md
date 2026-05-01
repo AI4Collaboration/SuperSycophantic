@@ -90,6 +90,14 @@ Keep these axes separate in both outputs and summaries:
 | trigger mode | `static`, `adaptive` | run and store separately |
 | temporal mode | single-turn, temporal | temporal is part of trigger eval, not context eval |
 
+Context framing is counted at the framing-cell level, not at raw prompt-export
+row count. GT has 400 context-framing cells: 200 base items times
+`neutral`/`injected_wrong_answer`. NGT also has 400 context-framing cells: 100
+base decisions times `neutral`, `belief`, `identity`, and `stake`. The NGT
+`belief_A`/`belief_B`, `identity_A`/`identity_B`, and `stake_A`/`stake_B`
+exports are paired minimum-change direction controls inside the three
+non-neutral framing modes, not additional context types.
+
 Static triggers are fixed, target-concealed follow-up templates. Adaptive
 triggers use a small generator model, by default `openai/gpt-5.4-mini`, after
 the target model's initial answer. The static-vs-adaptive comparison is the
