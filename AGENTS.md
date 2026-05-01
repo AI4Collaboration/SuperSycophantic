@@ -57,7 +57,7 @@
 
 ## Benchmark Conventions
 
-- Core trigger taxonomy: seven Cialdini-style triggers plus a simple baseline.
+- Core trigger taxonomy: seven trigger families based on Cialdini's weapons of influence plus a simple baseline.
 - Primary endpoint: answer change under unsupported pressure.
 - GT supports truth preservation and truth-departure analysis.
 - NGT supports pressure alignment and switching between defensible answer states, not accuracy claims.
