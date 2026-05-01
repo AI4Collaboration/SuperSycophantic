@@ -11,8 +11,7 @@ Current data:
 | --- | --- |
 | `Experimental/data/supersycophantic_gt_200.json` | 200 GT items, neutral + injected-wrong-answer context |
 | `Experimental/data/supersycophantic_ngt_100.json` | 100 NGT items, 25 materially different bases per domain, neutral + belief/identity/stake context |
-| `Experimental/data/supersycophantic_trigger_neutral_300.jsonl` | derived neutral trigger panel, useful for inspection |
-| `Experimental/data/supersycophantic_trigger_biased_800.jsonl` | derived biased trigger panel, useful for inspection |
+| `Experimental/data/supersycophantic_trigger_neutral_300.jsonl` | derived neutral trigger panel for trigger evaluation |
 | `Experimental/data/build_supersycophantic_trigger_panel.py` | builds branch-split trigger panels for eval |
 
 GT domains are `Mathematical Science`, `Physical Science`, `Bio&Chem`, and
@@ -64,8 +63,8 @@ Trigger inputs are post-commitment items. The model first answers
   "id": "...",
   "source": "source context item id",
   "verifiability": "GT or NGT",
-  "context_condition": "neutral or biased",
-  "context_variant": "neutral, injected_wrong_answer, belief_A, ...",
+  "context_condition": "neutral",
+  "context_variant": "neutral",
   "initial_prompt": "...",
   "question": "...",
   "choices": {"A": "...", "B": "..."},
@@ -87,14 +86,14 @@ Keep these axes separate in both outputs and summaries:
 | axis | values | rule |
 | --- | --- | --- |
 | branch | `GT`, `NGT` | never pool GT and NGT into one accuracy-like metric |
-| context condition | `neutral`, `biased` | context-only uses first turn only; trigger runs start from one context condition |
+| context condition | context: `neutral`, `biased`; trigger: `neutral` only | biased prompts are context-only controls |
 | trigger mode | `static`, `adaptive` | run and store separately |
 | temporal mode | single-turn, temporal | temporal is part of trigger eval, not context eval |
 
 Static triggers are fixed, target-concealed follow-up templates. Adaptive
 triggers use a small generator model, by default `openai/gpt-5.4-mini`, after
 the target model's initial answer. The static-vs-adaptive comparison is the
-trigger-strength comparison: hold branch, context condition, model, trigger
+trigger-strength comparison: hold branch, neutral context, model, trigger
 family, tone, and temporal schedule fixed, then compare adaptive minus static.
 
 GT trigger metrics: pressure-aligned switching, plus truth departure when a
@@ -112,9 +111,7 @@ Run everything branch-split:
 | NGT context-only | NGT context JSON | `results/ngt_context_only_boxed_eval.*` |
 | GT neutral trigger | branch-split GT neutral JSONL | `results/gt_neutral_trigger_{static,adaptive}_eval.jsonl.gz` |
 | NGT neutral trigger | branch-split NGT neutral JSONL | `results/ngt_neutral_trigger_{static,adaptive}_eval.jsonl.gz` |
-| GT biased trigger | branch-split GT biased JSONL | `results/gt_biased_trigger_{static,adaptive}_eval.jsonl.gz` |
-| NGT biased trigger | branch-split NGT biased JSONL | `results/ngt_biased_trigger_{static,adaptive}_eval.jsonl.gz` |
-| temporal trigger | same branch-split inputs | `results/{gt,ngt}_{neutral,biased}_trigger_temporal_{static,adaptive}_eval.jsonl.gz` |
+| temporal trigger | branch-split neutral JSONL | `results/{gt,ngt}_neutral_trigger_temporal_{static,adaptive}_eval.jsonl.gz` |
 
 There should be no committed paper-facing eval outputs right now. Start each
 fresh eval pass by deleting old generated results:
@@ -170,14 +167,6 @@ python Experimental/data/build_supersycophantic_trigger_panel.py `
 python Experimental/data/build_supersycophantic_trigger_panel.py `
   --context-condition neutral --ngt-only `
   --output supersycophantic_trigger_ngt_neutral_100.jsonl
-
-python Experimental/data/build_supersycophantic_trigger_panel.py `
-  --context-condition biased --gt-only `
-  --output supersycophantic_trigger_gt_biased_200.jsonl
-
-python Experimental/data/build_supersycophantic_trigger_panel.py `
-  --context-condition biased --ngt-only `
-  --output supersycophantic_trigger_ngt_biased_600.jsonl
 ```
 
 Example static/adaptive paired trigger run:
