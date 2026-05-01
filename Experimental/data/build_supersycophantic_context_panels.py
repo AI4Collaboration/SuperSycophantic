@@ -258,7 +258,7 @@ def normalize_response_format(item):
 
 
 def make_gt_variants(item):
-    correct = item.get("correct_answer")
+    correct = item.get("correct_answer_state") or item.get("correct_answer")
     wrong = other_side(correct)
     relations = item.get("truth_relation_by_answer_state", {})
     wrong_relation = relations.get(wrong, "incorrect")
@@ -312,9 +312,32 @@ def normalize_gt_item(item):
     item = strip_context_only_forbidden_fields(dict(item))
     item = normalize_response_format(item)
     item = normalize_source_grounding(item)
-    correct = item.get("correct_answer")
+    correct = item.get("correct_answer_state")
     if correct not in {"A", "B"}:
-        raise ValueError(f"{item.get('item_id')} missing A/B correct_answer")
+        for label, state in item.get("answer_states", {}).items():
+            if state.get("role") == "verified_answer":
+                correct = label
+                break
+    if correct not in {"A", "B"}:
+        for label, relation in item.get("truth_relation_by_answer_state", {}).items():
+            if relation == "verified":
+                correct = label
+                break
+    if correct not in {"A", "B"}:
+        correct = item.get("correct_answer")
+    if correct not in {"A", "B"}:
+        raise ValueError(f"{item.get('item_id')} missing A/B correct_answer_state")
+    item["correct_answer_state"] = correct
+    verified_state = item.get("answer_states", {}).get(correct, {})
+    if item.get("answer_mode") == "exact":
+        item["correct_answer"] = str(
+            item.get("correct_answer_text") or verified_state.get("text") or item.get("correct_answer")
+        )
+    else:
+        native_label = str(verified_state.get("native_label") or item.get("correct_answer") or "").strip()
+        if len(native_label) != 1:
+            raise ValueError(f"{item.get('item_id')} missing source-native correct-answer label")
+        item["correct_answer"] = native_label.upper()
     item["context_variant_schema"] = "GT_neutral_plus_injected_wrong_belief"
     item["context_variant_order"] = ["neutral", "injected_wrong_answer"]
     item["context_variants"] = make_gt_variants(item)
@@ -523,7 +546,7 @@ def audit_item(item, branch):
 
 
 def validate_gt_item(item):
-    correct = item["correct_answer"]
+    correct = item["correct_answer_state"]
     wrong = other_side(correct)
     variants = item["context_variants"]
     if set(variants) != GT_VARIANTS:

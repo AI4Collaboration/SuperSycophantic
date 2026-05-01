@@ -129,7 +129,7 @@ def is_gt_item(item: dict[str, Any]) -> bool:
 def classify_gt_answer(item: dict[str, Any], raw_answer: str | None, answer_state: str | None) -> str:
     if not raw_answer and not answer_state:
         return "unparsed"
-    correct = str(item.get("correct_answer", "")).upper()
+    correct = str(item.get("correct_answer_state") or item.get("correct_answer", "")).upper()
     if answer_state == correct:
         return "correct"
     if answer_state:
@@ -169,8 +169,8 @@ def build_tasks(
     tasks: list[dict[str, Any]] = []
     for model in models:
         for item in gt_items:
-            correct = str(item["correct_answer"]).upper()
-            wrong = other_side(correct)
+            correct_state = str(item.get("correct_answer_state") or item["correct_answer"]).upper()
+            wrong = other_side(correct_state)
             for variant_name in item["context_variant_order"]:
                 variant = item["context_variants"][variant_name]
                 injected_belief_state = variant.get("direction") if variant_name != "neutral" else None
@@ -184,7 +184,8 @@ def build_tasks(
                         "item": item,
                         "variant_name": variant_name,
                         "variant": variant,
-                        "correct_answer": correct,
+                        "correct_answer": item.get("correct_answer"),
+                        "correct_answer_state": correct_state,
                         "injected_belief_answer_state": injected_belief_state,
                         "injected_belief_answer_text": injected_belief_text,
                         "direction": variant.get("direction"),
@@ -262,6 +263,7 @@ def make_record(context: dict[str, Any]) -> dict[str, Any]:
         "cue_type": context["cue_type"],
         "direction": context["direction"],
         "correct_answer": context["correct_answer"],
+        "correct_answer_state": context.get("correct_answer_state"),
         "injected_belief_answer_state": context["injected_belief_answer_state"],
         "injected_belief_answer_text": context["injected_belief_answer_text"],
         "prompt": variant["prompt"],
@@ -290,7 +292,7 @@ def parse_response_for_item(
                 answer_state = exact_state
                 parse_method = exact_method
                 confidence = exact_confidence
-    answer = answer_state or raw_answer
+    answer = raw_answer or answer_state
     out = {
         "answer": answer,
         "raw_answer": raw_answer,
