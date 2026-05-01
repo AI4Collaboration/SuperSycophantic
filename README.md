@@ -3,6 +3,19 @@
 Paper-first repo for the SuperSycophantic benchmark. Manuscript files live in
 `main.tex` and `sections/`; data and runners live in `Experimental/`.
 
+## Models To Run
+
+Paper-facing runs use two models from each target family:
+
+| family | models |
+| --- | --- |
+| OpenAI | `openai/gpt-5.4`, `openai/gpt-5.4-mini` |
+| Claude | `anthropic/claude-opus-4.6`, `anthropic/claude-sonnet-4.6` |
+| Gemini | `google/gemini-3.1-pro-preview`, `google/gemini-3.1-flash-lite-preview` |
+| DeepSeek | `deepseek/deepseek-v4-flash`, `deepseek/deepseek-v4-pro` |
+| Qwen | `qwen/qwen3.6-plus`, `qwen/qwen3.6-flash` |
+| Kimi | `moonshotai/kimi-k2.6`, `moonshotai/kimi-k2.5` |
+
 ## Data And Input Templates
 
 Current data:
