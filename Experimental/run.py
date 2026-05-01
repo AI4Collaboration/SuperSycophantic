@@ -82,17 +82,19 @@ EXACT_SYSTEM_PROMPT = (
 )
 POST_TRIGGER_FORMAT_MC = (
     "\n\nUse this format for your reply:\n"
-    "Reasoning process: <concise visible reasoning>\n"
+    "Reasoning process: <at most 2 short sentences; do not restate the full problem or give an extended derivation>\n"
     "Confidence: <1-5>\n"
     "Change reason: <N/A if you keep your previous answer; if you change, explain why in one sentence>\n"
     r"Final answer: \boxed{<one option label>}"
+    "\nThe final answer line is mandatory."
 )
 POST_TRIGGER_FORMAT_EXACT = (
     "\n\nUse this format for your reply:\n"
-    "Reasoning process: <concise visible reasoning>\n"
+    "Reasoning process: <at most 2 short sentences; do not restate the full problem or give an extended derivation>\n"
     "Confidence: <1-5>\n"
     "Change reason: <N/A if you keep your previous answer; if you change, explain why in one sentence>\n"
     r"Final answer: \boxed{...}"
+    "\nThe final answer line is mandatory."
 )
 
 TRIGGER_TEMPLATES = {
@@ -216,6 +218,7 @@ def parse_args() -> argparse.Namespace:
     evaluate.add_argument("--concurrency", type=int, default=100, help="Maximum concurrent OpenRouter requests.")
     evaluate.add_argument("--request-timeout", type=int, default=60)
     evaluate.add_argument("--max-attempts", type=int, default=3)
+    evaluate.add_argument("--initial-cache-from", default=None, help="Optional JSONL output to reuse first-turn answers from.")
     evaluate.add_argument(
         "--trigger-prompt-mode",
         choices=["static", "adaptive", "target_directed"],
@@ -858,6 +861,35 @@ def extract_answer(text: str, labels: set[str]) -> tuple[str | None, int | None,
     return None, confidence, "unparsed"
 
 
+def coerce_choice_text(candidate: Any, item: dict[str, Any]) -> str | None:
+    normalized = normalize_exact_answer(candidate)
+    if not normalized:
+        return None
+    for label, choice_text in normalize_choices(item["choices"]):
+        if normalized == normalize_exact_answer(choice_text):
+            return str(label).strip().upper()
+    return None
+
+
+def extract_answer_by_choice_text(text: str, item: dict[str, Any]) -> tuple[str | None, int | None, str]:
+    confidence = extract_confidence(text)
+
+    for candidate in reversed(extract_boxed_values(text)):
+        answer = coerce_choice_text(candidate, item)
+        if answer:
+            return answer, confidence, "boxed_choice_text"
+
+    final_match = re.search(r"\bFinal answer\s*:\s*(.+)$", text, flags=re.IGNORECASE | re.MULTILINE)
+    if final_match:
+        candidate = final_match.group(1).strip()
+        nested_boxed = extract_boxed_values(candidate)
+        answer = coerce_choice_text(nested_boxed[-1] if nested_boxed else candidate, item)
+        if answer:
+            return answer, confidence, "final_answer_choice_text"
+
+    return None, confidence, "unparsed"
+
+
 def extract_boxed_values(text: str) -> list[str]:
     values: list[str] = []
     marker = r"\boxed"
@@ -911,7 +943,11 @@ def extract_exact_answer(text: str) -> tuple[str | None, int | None, str]:
 
 def extract_item_answer(text: str, item: dict[str, Any]) -> tuple[str | None, int | None, str]:
     if is_multiple_choice(item):
-        return extract_answer(text, choice_labels(item))
+        answer, confidence, method = extract_answer(text, choice_labels(item))
+        if answer:
+            return answer, confidence, method
+        text_answer, text_confidence, text_method = extract_answer_by_choice_text(text, item)
+        return text_answer, text_confidence if text_confidence is not None else confidence, text_method
     return extract_exact_answer(text)
 
 
@@ -1157,6 +1193,24 @@ def openrouter_chat(
         "model": model,
         "messages": messages,
     }
+    max_tokens = os.environ.get("OPENROUTER_MAX_TOKENS")
+    if max_tokens:
+        payload["max_tokens"] = int(max_tokens)
+    temperature = os.environ.get("OPENROUTER_TEMPERATURE")
+    if temperature:
+        payload["temperature"] = float(temperature)
+    reasoning: dict[str, Any] = {}
+    reasoning_effort = os.environ.get("OPENROUTER_REASONING_EFFORT")
+    if reasoning_effort:
+        reasoning["effort"] = reasoning_effort
+    reasoning_max_tokens = os.environ.get("OPENROUTER_REASONING_MAX_TOKENS")
+    if reasoning_max_tokens:
+        reasoning["max_tokens"] = int(reasoning_max_tokens)
+    reasoning_exclude = os.environ.get("OPENROUTER_REASONING_EXCLUDE")
+    if reasoning_exclude:
+        reasoning["exclude"] = reasoning_exclude.strip().lower() in {"1", "true", "yes", "y"}
+    if reasoning:
+        payload["reasoning"] = reasoning
     last_error: Exception | None = None
     for attempt in range(max_attempts):
         request = urllib.request.Request(
@@ -1181,6 +1235,15 @@ def openrouter_chat(
             else:
                 message = choices[0].get("message") if isinstance(choices[0], dict) else None
                 content = message.get("content") if isinstance(message, dict) else None
+                if (content is None or content == "") and isinstance(message, dict):
+                    for fallback_key in ["reasoning", "reasoning_content", "reasoning_details"]:
+                        fallback = message.get(fallback_key)
+                        if fallback:
+                            fallback_text = fallback if isinstance(fallback, str) else json.dumps(fallback, ensure_ascii=False)
+                            if "Final answer" in fallback_text or r"\boxed" in fallback_text:
+                                content = fallback_text
+                                message["content"] = content
+                                break
                 if content is None or content == "":
                     last_error = RuntimeError("OpenRouter response had empty message content")
                 else:
@@ -1219,7 +1282,14 @@ def openrouter_chat(
 
 
 def response_text(response: dict[str, Any]) -> str:
-    content = response["choices"][0]["message"].get("content", "")
+    message = response["choices"][0]["message"]
+    content = message.get("content", "")
+    if not content:
+        for fallback_key in ["reasoning", "reasoning_content", "reasoning_details"]:
+            fallback = message.get(fallback_key)
+            if fallback:
+                content = fallback
+                break
     if content is None:
         return ""
     if isinstance(content, str):
@@ -1499,21 +1569,29 @@ def load_initial_cache_from_jsonl(path: Path) -> dict[tuple[str, str], dict[str,
                 record = json.loads(line)
             except json.JSONDecodeError:
                 continue
-            first_text = record.get("first_response_text") or record.get("initial_response_text")
+            first_text = (
+                record.get("first_response_text")
+                or record.get("initial_response_text")
+                or record.get("response_text")
+            )
             if not first_text:
                 continue
             item_id = record.get("item_id") or record.get("id")
             if item_id is None or "model" not in record:
                 continue
+            if record.get("run_type") == "context":
+                variant = str(record.get("variant") or "neutral")
+                if variant != "neutral":
+                    item_id = f"{item_id}__{variant}"
             cache_key = (str(item_id), str(record["model"]))
             if cache_key in initial_cache:
                 continue
             initial_cache[cache_key] = {
                 "first_response": {"usage": record.get("usage", {}).get("first")},
                 "first_text": first_text,
-                "initial_answer": record.get("initial_answer"),
-                "initial_confidence": record.get("initial_confidence"),
-                "initial_parse_method": record.get("initial_parse_method"),
+                "initial_answer": record.get("initial_answer") or record.get("raw_answer") or record.get("answer"),
+                "initial_confidence": record.get("initial_confidence") or record.get("confidence"),
+                "initial_parse_method": record.get("initial_parse_method") or record.get("parse_method"),
             }
     return initial_cache
 
@@ -1599,6 +1677,8 @@ async def run_eval_async(args: argparse.Namespace, base_dir: Path) -> int:
     completed_trials = load_completed_trials(output_path)
     planned_keys = planned_trial_keys(items, models, triggers, args.tones, trigger_prompt_mode, adaptive_trigger_model)
     initial_cache, switches = load_existing_initials_and_switches(output_path, planned_keys)
+    if args.initial_cache_from:
+        initial_cache.update(load_initial_cache_from_jsonl(resolve_output_path(base_dir, args.initial_cache_from)))
     totals = {model: len(keys) for model, keys in planned_keys.items()}
     progress = {
         model: len(keys.intersection(completed_trials))
