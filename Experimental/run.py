@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prepare and run trigger screens through OpenRouter.
+"""Run SuperSycophantic trigger screens through OpenRouter.
 
 The eval input is JSONL. Each item should contain:
   id: stable item id
@@ -18,57 +18,30 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import concurrent.futures
-import csv
+import contextvars
 import gzip
 import http.client
-import io
 import json
 import os
 import random
 import re
 import socket
 import sys
-import tempfile
 import time
 import urllib.error
 import urllib.request
-import zipfile
 from pathlib import Path
 from typing import Any
+
+try:
+    import aiohttp
+except ImportError:  # pragma: no cover - fallback keeps older script environments usable.
+    aiohttp = None  # type: ignore[assignment]
 
 
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
 DEFAULT_ADAPTIVE_TRIGGER_MODEL = "google/gemini-3.1-flash-lite-preview"
 DEFAULT_ADAPTIVE_TRIGGER_CHECKER_MODEL = DEFAULT_ADAPTIVE_TRIGGER_MODEL
-DEFAULT_GPQA_URL = "https://github.com/idavidrein/gpqa/raw/main/dataset.zip"
-DEFAULT_GPQA_PASSWORD = "deserted-untie-orchid"
-GPQA_SPLIT_TO_FILE = {
-    "main": "dataset/gpqa_main.csv",
-    "diamond": "dataset/gpqa_diamond.csv",
-    "experts": "dataset/gpqa_experts.csv",
-    "extended": "dataset/gpqa_extended.csv",
-}
-BENCHMARK_DEFAULT_SPLITS = {
-    "gpqa": "diamond",
-    "hle_verified": "train",
-    "mmlu": "test",
-    "mmlu_pro": "test",
-    "sciq": "test",
-}
-BENCHMARK_DATASETS = {
-    "hle_verified": ("skylenage/HLE-Verified", None),
-    "mmlu": ("cais/mmlu", None),
-    "mmlu_pro": ("TIGER-Lab/MMLU-Pro", None),
-    "sciq": ("sciq", None),
-}
-DEFAULT_MMLU_SUBJECTS = [
-    "high_school_biology",
-    "high_school_geography",
-    "high_school_psychology",
-    "high_school_government_and_politics",
-]
-LABELS = [chr(ord("A") + i) for i in range(26)]
 
 SYSTEM_PROMPT = (
     "You are answering difficult multiple-choice questions. "
@@ -145,17 +118,6 @@ TRIGGER_TEMPLATES = {
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
-
-    prepare = subparsers.add_parser("prepare", help="Prepare a benchmark JSONL panel.")
-    prepare.add_argument("--benchmark", default="gpqa", choices=sorted(BENCHMARK_DEFAULT_SPLITS))
-    prepare.add_argument("--output", default=None, help="Output JSONL path.")
-    prepare.add_argument("--split", default=None, help="Benchmark split. Defaults to diamond for GPQA and test otherwise.")
-    prepare.add_argument("--max-items", type=int, default=None)
-    prepare.add_argument("--subjects", nargs="+", default=None, help="Optional MMLU subjects/configs.")
-    prepare.add_argument("--seed", type=int, default=20260425)
-    prepare.add_argument("--zip", type=Path, default=None, help="Optional local official GPQA dataset.zip.")
-    prepare.add_argument("--url", default=DEFAULT_GPQA_URL, help="Official GPQA dataset.zip URL.")
-    prepare.add_argument("--password", default=DEFAULT_GPQA_PASSWORD, help="Password from the official GPQA README.")
 
     first_turn = subparsers.add_parser("first-turn", help="Run first-turn accuracy only.")
     first_turn.add_argument("--input", default="data/supersycophantic_trigger_neutral_300.jsonl", help="Input JSONL with benchmark items.")
@@ -297,349 +259,6 @@ def open_text(path: Path, mode: str, encoding: str = "utf-8"):
     if path.name.endswith(".gz"):
         return gzip.open(path, mode, encoding=encoding)
     return path.open(mode, encoding=encoding)
-
-
-def get_gpqa_zip(args: argparse.Namespace) -> Path:
-    if args.zip is not None:
-        return args.zip
-    cache_dir = Path(tempfile.gettempdir()) / "supersycophantic_gpqa"
-    cache_dir.mkdir(parents=True, exist_ok=True)
-    zip_path = cache_dir / "dataset.zip"
-    if not zip_path.exists():
-        urllib.request.urlretrieve(args.url, zip_path)
-    return zip_path
-
-
-def read_gpqa_split(zip_path: Path, split: str, password: str) -> list[dict[str, str]]:
-    if split not in GPQA_SPLIT_TO_FILE:
-        raise SystemExit(f"Unknown GPQA split {split!r}; choose one of {sorted(GPQA_SPLIT_TO_FILE)}")
-    with zipfile.ZipFile(zip_path) as archive:
-        raw = archive.read(GPQA_SPLIT_TO_FILE[split], pwd=password.encode("utf-8"))
-    return list(csv.DictReader(io.StringIO(raw.decode("utf-8-sig"))))
-
-
-def make_gpqa_item(row: dict[str, str], split: str, index: int, seed: int) -> dict[str, Any]:
-    choices = [
-        {"text": row["Correct Answer"].strip(), "is_correct": True},
-        {"text": row["Incorrect Answer 1"].strip(), "is_correct": False},
-        {"text": row["Incorrect Answer 2"].strip(), "is_correct": False},
-        {"text": row["Incorrect Answer 3"].strip(), "is_correct": False},
-    ]
-    rng = random.Random(seed + index)
-    rng.shuffle(choices)
-
-    labels = LABELS[: len(choices)]
-    labelled_choices = {label: choice["text"] for label, choice in zip(labels, choices)}
-    correct_label = next(label for label, choice in zip(labels, choices) if choice["is_correct"])
-    pressure_label = next(label for label, choice in zip(labels, choices) if not choice["is_correct"])
-
-    return {
-        "id": f"gpqa-{split}-{index + 1:04d}",
-        "source": f"gpqa_{split}",
-        "record_id": row.get("Record ID", ""),
-        "high_level_domain": row.get("High-level domain", ""),
-        "subdomain": row.get("Subdomain", ""),
-        "question": row["Question"].strip(),
-        "choices": labelled_choices,
-        "correct_answer": correct_label,
-        "correct_answer_text": labelled_choices[correct_label],
-        "pressure_target": pressure_label,
-        "pressure_target_text": labelled_choices[pressure_label],
-    }
-
-
-def default_panel_output(benchmark: str, split: str) -> str:
-    safe_split = re.sub(r"[^A-Za-z0-9_.-]+", "_", split).strip("_").lower()
-    return f"data/{benchmark}_{safe_split}_panel.jsonl"
-
-
-def resolved_prepare_split(args: argparse.Namespace) -> str:
-    return args.split or BENCHMARK_DEFAULT_SPLITS[args.benchmark]
-
-
-def resolved_prepare_output(args: argparse.Namespace, split: str) -> str:
-    return args.output or default_panel_output(args.benchmark, split)
-
-
-def prepare_gpqa_panel(args: argparse.Namespace, base_dir: Path) -> int:
-    split = resolved_prepare_split(args)
-    rows = read_gpqa_split(get_gpqa_zip(args), split, args.password)
-    if args.max_items is not None:
-        rows = rows[: args.max_items]
-
-    output_path = resolve_output_path(base_dir, resolved_prepare_output(args, split))
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    with output_path.open("w", encoding="utf-8") as handle:
-        for index, row in enumerate(rows):
-            item = make_gpqa_item(row, split, index, args.seed)
-            handle.write(json.dumps(item, ensure_ascii=False) + "\n")
-    print(f"Wrote {len(rows)} items to {output_path}")
-    return 0
-
-
-def shuffled_labelled_choices(
-    raw_choices: list[dict[str, Any]],
-    seed: int,
-    index: int,
-) -> tuple[dict[str, str], str, str]:
-    if len(raw_choices) > len(LABELS):
-        raise ValueError(f"too many choices ({len(raw_choices)}); max supported is {len(LABELS)}")
-    choices = list(raw_choices)
-    rng = random.Random(seed + index)
-    rng.shuffle(choices)
-
-    labels = LABELS[: len(choices)]
-    labelled_choices = {label: str(choice["text"]).strip() for label, choice in zip(labels, choices)}
-    correct_label = next(label for label, choice in zip(labels, choices) if choice["is_correct"])
-    pressure_label = next(label for label, choice in zip(labels, choices) if not choice["is_correct"])
-    return labelled_choices, correct_label, pressure_label
-
-
-def make_mmlu_pro_item(row: dict[str, Any], split: str, index: int, seed: int) -> dict[str, Any]:
-    options = [str(option).strip() for option in row["options"]]
-    answer_index = int(row["answer_index"])
-    choices = [
-        {"text": option, "is_correct": option_index == answer_index}
-        for option_index, option in enumerate(options)
-    ]
-    labelled_choices, correct_label, pressure_label = shuffled_labelled_choices(choices, seed, index)
-    return {
-        "id": f"mmlu_pro-{split}-{row.get('question_id', index)}",
-        "source": f"mmlu_pro_{split}",
-        "record_id": row.get("question_id", ""),
-        "category": row.get("category", ""),
-        "question": str(row["question"]).strip(),
-        "choices": labelled_choices,
-        "correct_answer": correct_label,
-        "correct_answer_text": labelled_choices[correct_label],
-        "pressure_target": pressure_label,
-        "pressure_target_text": labelled_choices[pressure_label],
-    }
-
-
-def make_mmlu_item(row: dict[str, Any], split: str, index: int, seed: int) -> dict[str, Any]:
-    options = [str(option).strip() for option in row["choices"]]
-    answer_index = int(row["answer"])
-    choices = [
-        {"text": option, "is_correct": option_index == answer_index}
-        for option_index, option in enumerate(options)
-    ]
-    labelled_choices, correct_label, pressure_label = shuffled_labelled_choices(choices, seed, index)
-    subject = str(row.get("subject", "")).strip()
-    return {
-        "id": f"mmlu-{split}-{subject or 'unknown'}-{index + 1:04d}",
-        "source": f"mmlu_{split}",
-        "record_id": index,
-        "subject": subject,
-        "question": str(row["question"]).strip(),
-        "choices": labelled_choices,
-        "correct_answer": correct_label,
-        "correct_answer_text": labelled_choices[correct_label],
-        "pressure_target": pressure_label,
-        "pressure_target_text": labelled_choices[pressure_label],
-    }
-
-
-def parse_hle_question_and_choices(question: str) -> tuple[str, dict[str, str]]:
-    parts = re.split(r"\n\s*Answer Choices:\s*\n", str(question), maxsplit=1, flags=re.IGNORECASE)
-    if len(parts) != 2:
-        raise ValueError("HLE multiple-choice question is missing an Answer Choices block")
-    stem, choices_block = parts
-    matches = list(
-        re.finditer(
-            r"(?ms)^\s*([A-Z])[\.\)]\s*(.*?)(?=^\s*[A-Z][\.\)]\s|\Z)",
-            choices_block.strip(),
-        )
-    )
-    choices = {match.group(1).strip().upper(): match.group(2).strip() for match in matches}
-    if len(choices) < 2:
-        raise ValueError("HLE multiple-choice question has fewer than two parsed choices")
-    return stem.strip(), choices
-
-
-def hle_json(row: dict[str, Any]) -> dict[str, Any]:
-    raw = row.get("json")
-    if isinstance(raw, dict):
-        return raw
-    if isinstance(raw, str) and raw.strip():
-        try:
-            return json.loads(raw)
-        except json.JSONDecodeError:
-            return {}
-    return {}
-
-
-def is_hle_verified_mc_text_row(row: dict[str, Any]) -> bool:
-    meta = hle_json(row)
-    verified_class = str(row.get("Verified_Classes", "")).lower()
-    answer_type = str(meta.get("answer_type", "")).lower()
-    image = meta.get("image")
-    return (
-        "gold" in verified_class
-        and str(row.get("problem_is_valid", "")).strip() == "1"
-        and str(row.get("answer_is_valid", "")).strip() == "1"
-        and answer_type == "multiplechoice"
-        and not image
-    )
-
-
-def make_hle_verified_item(row: dict[str, Any], split: str, index: int, seed: int) -> dict[str, Any]:
-    meta = hle_json(row)
-    question = str(meta.get("question") or row["question"]).strip()
-    stem, parsed_choices = parse_hle_question_and_choices(question)
-    correct_original = str(meta.get("answer") or row["answer"]).strip().upper()
-    if correct_original not in parsed_choices:
-        raise ValueError(f"HLE answer {correct_original!r} is missing from parsed choices")
-    raw_choices = [
-        {"text": text, "is_correct": label == correct_original}
-        for label, text in parsed_choices.items()
-    ]
-    labelled_choices, correct_label, pressure_label = shuffled_labelled_choices(raw_choices, seed, index)
-    return {
-        "id": f"hle_verified-{split}-{row.get('id', index)}",
-        "source": f"hle_verified_{split}",
-        "record_id": row.get("id", ""),
-        "verified_class": row.get("Verified_Classes", ""),
-        "category": row.get("category", ""),
-        "raw_subject": row.get("raw_subject", ""),
-        "question": stem,
-        "choices": labelled_choices,
-        "correct_answer": correct_label,
-        "correct_answer_text": labelled_choices[correct_label],
-        "pressure_target": pressure_label,
-        "pressure_target_text": labelled_choices[pressure_label],
-    }
-
-
-def make_sciq_item(row: dict[str, Any], split: str, index: int, seed: int) -> dict[str, Any]:
-    choices = [
-        {"text": str(row["correct_answer"]).strip(), "is_correct": True},
-        {"text": str(row["distractor1"]).strip(), "is_correct": False},
-        {"text": str(row["distractor2"]).strip(), "is_correct": False},
-        {"text": str(row["distractor3"]).strip(), "is_correct": False},
-    ]
-    labelled_choices, correct_label, pressure_label = shuffled_labelled_choices(choices, seed, index)
-    return {
-        "id": f"sciq-{split}-{index + 1:04d}",
-        "source": f"sciq_{split}",
-        "record_id": index,
-        "question": str(row["question"]).strip(),
-        "support": str(row.get("support", "")).strip(),
-        "choices": labelled_choices,
-        "correct_answer": correct_label,
-        "correct_answer_text": labelled_choices[correct_label],
-        "pressure_target": pressure_label,
-        "pressure_target_text": labelled_choices[pressure_label],
-    }
-
-
-HF_ITEM_MAKERS = {
-    "hle_verified": make_hle_verified_item,
-    "mmlu": make_mmlu_item,
-    "mmlu_pro": make_mmlu_pro_item,
-    "sciq": make_sciq_item,
-}
-
-
-def prepare_hf_panel(args: argparse.Namespace, base_dir: Path) -> int:
-    try:
-        from datasets import load_dataset
-    except ImportError as exc:
-        raise SystemExit("The 'datasets' package is required for Hugging Face benchmark panels.") from exc
-
-    split = resolved_prepare_split(args)
-    dataset_name, config = BENCHMARK_DATASETS[args.benchmark]
-    dataset_args = (dataset_name,) if config is None else (dataset_name, config)
-    dataset = load_dataset(*dataset_args, split=split)
-    if args.max_items is not None:
-        dataset = dataset.select(range(min(args.max_items, len(dataset))))
-
-    output_path = resolve_output_path(base_dir, resolved_prepare_output(args, split))
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    make_item = HF_ITEM_MAKERS[args.benchmark]
-    with output_path.open("w", encoding="utf-8") as handle:
-        for index, row in enumerate(dataset):
-            item = make_item(row, split, index, args.seed)
-            handle.write(json.dumps(item, ensure_ascii=False) + "\n")
-    print(f"Wrote {len(dataset)} items to {output_path}")
-    return 0
-
-
-def prepare_mmlu_panel(args: argparse.Namespace, base_dir: Path) -> int:
-    try:
-        from datasets import load_dataset
-    except ImportError as exc:
-        raise SystemExit("The 'datasets' package is required for MMLU.") from exc
-
-    split = resolved_prepare_split(args)
-    subjects = args.subjects or DEFAULT_MMLU_SUBJECTS
-    rows: list[dict[str, Any]] = []
-    for subject in subjects:
-        dataset = load_dataset("cais/mmlu", subject, split=split)
-        for row in dataset:
-            rows.append(dict(row))
-
-    rng = random.Random(args.seed)
-    rng.shuffle(rows)
-    if args.max_items is not None:
-        rows = rows[: args.max_items]
-
-    output_path = resolve_output_path(base_dir, resolved_prepare_output(args, split))
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    with output_path.open("w", encoding="utf-8") as handle:
-        for index, row in enumerate(rows):
-            item = make_mmlu_item(row, split, index, args.seed)
-            handle.write(json.dumps(item, ensure_ascii=False) + "\n")
-    print(f"Wrote {len(rows)} MMLU items from {len(subjects)} subjects to {output_path}")
-    return 0
-
-
-def prepare_hle_verified_panel(args: argparse.Namespace, base_dir: Path) -> int:
-    try:
-        from datasets import load_dataset
-    except ImportError as exc:
-        raise SystemExit("The 'datasets' package is required for HLE-Verified.") from exc
-
-    split = resolved_prepare_split(args)
-    dataset = load_dataset("skylenage/HLE-Verified", split=split, streaming=True)
-    eligible_rows: list[dict[str, Any]] = []
-    skipped_parse_errors = 0
-    for row in dataset:
-        if not is_hle_verified_mc_text_row(row):
-            continue
-        try:
-            parse_hle_question_and_choices(str(hle_json(row).get("question") or row["question"]))
-        except ValueError:
-            skipped_parse_errors += 1
-            continue
-        eligible_rows.append(dict(row))
-
-    rng = random.Random(args.seed)
-    rng.shuffle(eligible_rows)
-    if args.max_items is not None:
-        eligible_rows = eligible_rows[: args.max_items]
-
-    output_path = resolve_output_path(base_dir, resolved_prepare_output(args, split))
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    with output_path.open("w", encoding="utf-8") as handle:
-        for index, row in enumerate(eligible_rows):
-            item = make_hle_verified_item(row, split, index, args.seed)
-            handle.write(json.dumps(item, ensure_ascii=False) + "\n")
-    print(
-        f"Wrote {len(eligible_rows)} HLE-Verified Gold text MC items to {output_path} "
-        f"(skipped_parse_errors={skipped_parse_errors})"
-    )
-    return 0
-
-
-def prepare_panel(args: argparse.Namespace, base_dir: Path) -> int:
-    if args.benchmark == "gpqa":
-        return prepare_gpqa_panel(args, base_dir)
-    if args.benchmark == "hle_verified":
-        return prepare_hle_verified_panel(args, base_dir)
-    if args.benchmark == "mmlu":
-        return prepare_mmlu_panel(args, base_dir)
-    return prepare_hf_panel(args, base_dir)
 
 
 def read_jsonl(path: Path, max_items: int | None) -> list[dict[str, Any]]:
@@ -1333,12 +952,9 @@ def resolve_temporal_trigger_plans(
     return [(trigger, [trigger] * num_steps) for trigger in resolve_triggers(trigger_args)]
 
 
-def openrouter_chat(
-    api_key: str,
+def openrouter_payload(
     model: str,
     messages: list[dict[str, str]],
-    request_timeout: int = 180,
-    max_attempts: int = 10,
     extra_payload: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     payload = {
@@ -1365,17 +981,68 @@ def openrouter_chat(
         payload["reasoning"] = reasoning
     if extra_payload:
         payload.update(extra_payload)
+    return payload
+
+
+def openrouter_headers(api_key: str) -> dict[str, str]:
+    return {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://github.com/AI4Collaboration/SuperSycophantic",
+        "X-OpenRouter-Title": "SuperSycophantic trigger screen",
+    }
+
+
+def require_openrouter_message_content(data: dict[str, Any]) -> dict[str, Any]:
+    choices = data.get("choices")
+    if not isinstance(choices, list) or not choices:
+        raise RuntimeError("OpenRouter response had no choices")
+    message = choices[0].get("message") if isinstance(choices[0], dict) else None
+    content = message.get("content") if isinstance(message, dict) else None
+    if (content is None or content == "") and isinstance(message, dict):
+        for fallback_key in ["reasoning", "reasoning_content", "reasoning_details"]:
+            fallback = message.get(fallback_key)
+            if fallback:
+                fallback_text = fallback if isinstance(fallback, str) else json.dumps(fallback, ensure_ascii=False)
+                if "Final answer" in fallback_text or r"\boxed" in fallback_text:
+                    content = fallback_text
+                    message["content"] = content
+                    break
+    if content is None or content == "":
+        raise RuntimeError("OpenRouter response had empty message content")
+    return data
+
+
+def parse_retry_after(value: str | None) -> float | None:
+    if not value:
+        return None
+    try:
+        return float(value)
+    except ValueError:
+        return None
+
+
+def retry_delay(attempt: int, retry_after: float | None) -> float:
+    if retry_after is not None:
+        return min(retry_after, 120.0)
+    return min(60, 2**attempt) + random.uniform(0.25, 1.5)
+
+
+def openrouter_chat(
+    api_key: str,
+    model: str,
+    messages: list[dict[str, str]],
+    request_timeout: int = 180,
+    max_attempts: int = 10,
+    extra_payload: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    payload = openrouter_payload(model, messages, extra_payload)
     last_error: Exception | None = None
     for attempt in range(max_attempts):
         request = urllib.request.Request(
             API_URL,
             data=json.dumps(payload).encode("utf-8"),
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-                "HTTP-Referer": "https://github.com/AI4Collaboration/SuperSycophantic",
-                "X-OpenRouter-Title": "SuperSycophantic trigger screen",
-            },
+            headers=openrouter_headers(api_key),
             method="POST",
         )
         retry_after: float | None = None
@@ -1383,33 +1050,13 @@ def openrouter_chat(
             with urllib.request.urlopen(request, timeout=request_timeout) as response:
                 raw = response.read().decode("utf-8")
             data = json.loads(raw)
-            choices = data.get("choices")
-            if not isinstance(choices, list) or not choices:
-                last_error = RuntimeError("OpenRouter response had no choices")
-            else:
-                message = choices[0].get("message") if isinstance(choices[0], dict) else None
-                content = message.get("content") if isinstance(message, dict) else None
-                if (content is None or content == "") and isinstance(message, dict):
-                    for fallback_key in ["reasoning", "reasoning_content", "reasoning_details"]:
-                        fallback = message.get(fallback_key)
-                        if fallback:
-                            fallback_text = fallback if isinstance(fallback, str) else json.dumps(fallback, ensure_ascii=False)
-                            if "Final answer" in fallback_text or r"\boxed" in fallback_text:
-                                content = fallback_text
-                                message["content"] = content
-                                break
-                if content is None or content == "":
-                    last_error = RuntimeError("OpenRouter response had empty message content")
-                else:
-                    return data
+            try:
+                return require_openrouter_message_content(data)
+            except RuntimeError as exc:
+                last_error = exc
         except urllib.error.HTTPError as exc:
             detail = exc.read().decode("utf-8", errors="replace")
-            retry_after_header = exc.headers.get("Retry-After")
-            if retry_after_header:
-                try:
-                    retry_after = float(retry_after_header)
-                except ValueError:
-                    retry_after = None
+            retry_after = parse_retry_after(exc.headers.get("Retry-After"))
             if exc.code not in {408, 409, 425, 429} and exc.code < 500:
                 raise RuntimeError(f"OpenRouter HTTP {exc.code}: {detail}") from exc
             last_error = RuntimeError(f"OpenRouter HTTP {exc.code}: {detail}")
@@ -1425,7 +1072,7 @@ def openrouter_chat(
             last_error = exc
         if attempt == max_attempts - 1:
             break
-        delay = min(retry_after, 120.0) if retry_after is not None else min(60, 2**attempt) + random.uniform(0.25, 1.5)
+        delay = retry_delay(attempt, retry_after)
         print(
             f"\nOpenRouter retry {attempt + 1}/{max_attempts} for {model}: {last_error}; sleeping {delay:.1f}s",
             file=sys.stderr,
@@ -1451,6 +1098,91 @@ def response_text(response: dict[str, Any]) -> str:
     return json.dumps(content, ensure_ascii=False)
 
 
+_ACTIVE_OPENROUTER_ASYNC_CLIENT = contextvars.ContextVar("active_openrouter_async_client", default=None)
+
+
+class OpenRouterAsyncClient:
+    def __init__(self, api_key: str, concurrency: int) -> None:
+        self.api_key = api_key
+        self.concurrency = max(1, concurrency)
+        self.semaphore = asyncio.Semaphore(self.concurrency)
+        self.session: Any | None = None
+        self._token: contextvars.Token[Any] | None = None
+
+    async def __aenter__(self) -> "OpenRouterAsyncClient":
+        if aiohttp is None:
+            return self
+        connector = aiohttp.TCPConnector(
+            limit=self.concurrency,
+            limit_per_host=self.concurrency,
+            ttl_dns_cache=60,
+            enable_cleanup_closed=True,
+        )
+        self.session = aiohttp.ClientSession(connector=connector)
+        self._token = _ACTIVE_OPENROUTER_ASYNC_CLIENT.set(self)
+        return self
+
+    async def __aexit__(self, exc_type: Any, exc: Any, traceback: Any) -> None:
+        if self._token is not None:
+            _ACTIVE_OPENROUTER_ASYNC_CLIENT.reset(self._token)
+            self._token = None
+        if self.session is not None:
+            await self.session.close()
+            self.session = None
+
+    async def chat(
+        self,
+        model: str,
+        messages: list[dict[str, str]],
+        request_timeout: int = 180,
+        max_attempts: int = 10,
+        extra_payload: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        if self.session is None:
+            raise RuntimeError("OpenRouter async client is not open")
+        payload = openrouter_payload(model, messages, extra_payload)
+        timeout = aiohttp.ClientTimeout(total=request_timeout)
+        last_error: Exception | None = None
+        async with self.semaphore:
+            for attempt in range(max_attempts):
+                retry_after: float | None = None
+                try:
+                    async with self.session.post(
+                        API_URL,
+                        headers=openrouter_headers(self.api_key),
+                        json=payload,
+                        timeout=timeout,
+                    ) as response:
+                        raw = await response.text(errors="replace")
+                        retry_after = parse_retry_after(response.headers.get("Retry-After"))
+                        if response.status != 200:
+                            if response.status not in {408, 409, 425, 429} and response.status < 500:
+                                raise RuntimeError(f"OpenRouter HTTP {response.status}: {raw}")
+                            last_error = RuntimeError(f"OpenRouter HTTP {response.status}: {raw}")
+                        else:
+                            data = json.loads(raw)
+                            try:
+                                return require_openrouter_message_content(data)
+                            except RuntimeError as exc:
+                                last_error = exc
+                except (
+                    json.JSONDecodeError,
+                    aiohttp.ClientError,
+                    asyncio.TimeoutError,
+                ) as exc:
+                    last_error = exc
+                if attempt == max_attempts - 1:
+                    break
+                delay = retry_delay(attempt, retry_after)
+                print(
+                    f"\nOpenRouter retry {attempt + 1}/{max_attempts} for {model}: {last_error}; sleeping {delay:.1f}s",
+                    file=sys.stderr,
+                    flush=True,
+                )
+                await asyncio.sleep(delay)
+        raise RuntimeError(f"OpenRouter request failed after retries: {last_error}") from last_error
+
+
 async def async_openrouter_chat(
     api_key: str,
     model: str,
@@ -1460,6 +1192,15 @@ async def async_openrouter_chat(
     max_attempts: int = 10,
     extra_payload: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    client = _ACTIVE_OPENROUTER_ASYNC_CLIENT.get()
+    if client is not None:
+        return await client.chat(
+            model,
+            messages,
+            request_timeout,
+            max_attempts,
+            extra_payload,
+        )
     async with semaphore:
         return await asyncio.to_thread(
             openrouter_chat,
@@ -1820,14 +1561,11 @@ def make_trial_context(
 
 
 async def run_eval_async(args: argparse.Namespace, base_dir: Path) -> int:
-    loop = asyncio.get_running_loop()
-    loop.set_default_executor(concurrent.futures.ThreadPoolExecutor(max_workers=max(1, args.concurrency)))
-
     models = args.models or []
     if not models:
         raise SystemExit(
             "Pass --models explicitly, for example: "
-            "--models openai/gpt-5.4-mini deepseek/deepseek-v4-flash qwen/qwen3.6-flash moonshotai/kimi-k2.6"
+            "--models openai/gpt-5.4-mini deepseek/deepseek-v4-flash moonshotai/kimi-k2.6"
         )
     triggers = resolve_triggers(args.triggers)
     trigger_prompt_mode = args.trigger_prompt_mode
@@ -2091,21 +1829,22 @@ async def run_eval_async(args: argparse.Namespace, base_dir: Path) -> int:
                 record = context.get("record", {})
                 print(f"\ntrial failed and will remain resumable: {trial_key(record)}: {exc}", file=sys.stderr, flush=True)
 
-        tasks = []
-        for item, model, trigger, tone in iter_runs(items, models, triggers, args.tones):
-            context = make_trial_context(
-                item,
-                model,
-                trigger,
-                tone,
-                trigger_prompt_mode=trigger_prompt_mode,
-                adaptive_trigger_model=adaptive_trigger_model,
-            )
-            if trial_key(context["record"]) not in completed_trials:
-                tasks.append(asyncio.create_task(guarded_run_trial(context)))
+        async with OpenRouterAsyncClient(api_key, args.concurrency):
+            tasks = []
+            for item, model, trigger, tone in iter_runs(items, models, triggers, args.tones):
+                context = make_trial_context(
+                    item,
+                    model,
+                    trigger,
+                    tone,
+                    trigger_prompt_mode=trigger_prompt_mode,
+                    adaptive_trigger_model=adaptive_trigger_model,
+                )
+                if trial_key(context["record"]) not in completed_trials:
+                    tasks.append(asyncio.create_task(guarded_run_trial(context)))
 
-        if tasks:
-            await asyncio.gather(*tasks)
+            if tasks:
+                await asyncio.gather(*tasks)
 
     print_progress(models, progress, totals, switches, final=True)
     return 0
@@ -2153,14 +1892,11 @@ def planned_first_turn_keys(
 
 
 async def run_first_turn_async(args: argparse.Namespace, base_dir: Path) -> int:
-    loop = asyncio.get_running_loop()
-    loop.set_default_executor(concurrent.futures.ThreadPoolExecutor(max_workers=max(1, args.concurrency)))
-
     models = args.models or []
     if not models:
         raise SystemExit(
             "Pass --models explicitly, for example: "
-            "--models openai/gpt-5.4-mini deepseek/deepseek-v4-flash qwen/qwen3.6-flash moonshotai/kimi-k2.6"
+            "--models openai/gpt-5.4-mini deepseek/deepseek-v4-flash moonshotai/kimi-k2.6"
         )
 
     api_key = os.environ.get("OPENROUTER_API_KEY", "")
@@ -2248,14 +1984,15 @@ async def run_first_turn_async(args: argparse.Namespace, base_dir: Path) -> int:
                 item_id = item.get("id", item.get("_line_number"))
                 print(f"\nfirst-turn failed and will remain resumable: {(item_id, model)}: {exc}", file=sys.stderr, flush=True)
 
-        tasks = []
-        for item in items:
-            for model in models:
-                record = {"item_id": item.get("id", item.get("_line_number")), "model": model}
-                if first_turn_key(record) not in completed_trials:
-                    tasks.append(asyncio.create_task(guarded_first_turn(item, model)))
-        if tasks:
-            await asyncio.gather(*tasks)
+        async with OpenRouterAsyncClient(api_key, args.concurrency):
+            tasks = []
+            for item in items:
+                for model in models:
+                    record = {"item_id": item.get("id", item.get("_line_number")), "model": model}
+                    if first_turn_key(record) not in completed_trials:
+                        tasks.append(asyncio.create_task(guarded_first_turn(item, model)))
+            if tasks:
+                await asyncio.gather(*tasks)
 
     print_first_turn_progress(models, progress, totals, correct, final=True)
     return 0
@@ -2266,14 +2003,11 @@ def run_first_turn(args: argparse.Namespace, base_dir: Path) -> int:
 
 
 async def run_temporal_async(args: argparse.Namespace, base_dir: Path) -> int:
-    loop = asyncio.get_running_loop()
-    loop.set_default_executor(concurrent.futures.ThreadPoolExecutor(max_workers=max(1, args.concurrency)))
-
     models = args.models or []
     if not models:
         raise SystemExit(
             "Pass --models explicitly, for example: "
-            "--models openai/gpt-5.4-mini deepseek/deepseek-v4-flash qwen/qwen3.6-flash moonshotai/kimi-k2.6"
+            "--models openai/gpt-5.4-mini deepseek/deepseek-v4-flash moonshotai/kimi-k2.6"
         )
     trigger_plans = resolve_temporal_trigger_plans(
         args.triggers,
@@ -2662,32 +2396,33 @@ async def run_temporal_async(args: argparse.Namespace, base_dir: Path) -> int:
                 key = (item_id, model, trigger_key, ",".join(args.tone_sequence))
                 print(f"\ntemporal trial failed and will remain resumable: {key}: {exc}", file=sys.stderr, flush=True)
 
-        tasks = []
-        for item in items:
-            for model in models:
-                for trigger_key, trigger_sequence in trigger_plans:
-                    prompt_variant = trigger_prompt_variant_name(
-                        trigger_key,
-                        args.trigger_prompt_mode,
-                        str(args.adaptive_trigger_model),
-                    )
-                    record = {
-                        "item_id": item.get("id", item.get("_line_number")),
-                        "model": model,
-                        "trigger": trigger_key,
-                        "tone_sequence": args.tone_sequence,
-                        "trigger_prompt_mode": args.trigger_prompt_mode,
-                        "trigger_prompt_variant": prompt_variant,
-                    }
-                    if temporal_key(record) not in completed_trials:
-                        tasks.append(
-                            asyncio.create_task(
-                                guarded_temporal_trial(item, model, trigger_key, trigger_sequence)
-                            )
+        async with OpenRouterAsyncClient(api_key, args.concurrency):
+            tasks = []
+            for item in items:
+                for model in models:
+                    for trigger_key, trigger_sequence in trigger_plans:
+                        prompt_variant = trigger_prompt_variant_name(
+                            trigger_key,
+                            args.trigger_prompt_mode,
+                            str(args.adaptive_trigger_model),
                         )
+                        record = {
+                            "item_id": item.get("id", item.get("_line_number")),
+                            "model": model,
+                            "trigger": trigger_key,
+                            "tone_sequence": args.tone_sequence,
+                            "trigger_prompt_mode": args.trigger_prompt_mode,
+                            "trigger_prompt_variant": prompt_variant,
+                        }
+                        if temporal_key(record) not in completed_trials:
+                            tasks.append(
+                                asyncio.create_task(
+                                    guarded_temporal_trial(item, model, trigger_key, trigger_sequence)
+                                )
+                            )
 
-        if tasks:
-            await asyncio.gather(*tasks)
+            if tasks:
+                await asyncio.gather(*tasks)
 
     print_progress(models, progress, totals, switches, final=True)
     return 0
@@ -2703,8 +2438,6 @@ def main() -> int:
     repo_root = Path(__file__).resolve().parents[1]
     load_dotenv(repo_root / ".env")
 
-    if args.command == "prepare":
-        return prepare_panel(args, base_dir)
     if args.command == "first-turn":
         return run_first_turn(args, base_dir)
     if args.command == "eval":

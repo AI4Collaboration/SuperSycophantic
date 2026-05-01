@@ -110,7 +110,6 @@ def base_metadata(item: dict[str, Any], variant_name: str) -> dict[str, Any]:
                 "source_file": item.get("source_file"),
                 "source_url": item.get("source_url"),
                 "source_quote": item.get("source_quote"),
-                "source_cache_file": item.get("source_cache_file"),
                 "record_id": item.get("record_id"),
                 "native_id": item.get("native_id"),
             }

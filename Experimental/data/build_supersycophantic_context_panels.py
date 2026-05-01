@@ -137,9 +137,6 @@ def normalize_source_grounding(item):
     if not quote:
         raise ValueError(f"{item.get('item_id')} missing source quote")
 
-    old_source_file = str(item.get("source_file", "")).strip()
-    if old_source_file and not old_source_file.startswith(("http://", "https://")):
-        item.setdefault("source_cache_file", old_source_file)
     item["source_url"] = url
     item["source_file"] = url
     item["source_quote"] = quote
@@ -321,7 +318,7 @@ def normalize_gt_item(item):
 
 def normalize_ngt_item(item):
     item = strip_context_only_forbidden_fields(dict(item))
-    for field in ["source", "source_file", "source_url", "source_quote", "source_cache_file"]:
+    for field in ["source", "source_file", "source_url", "source_quote"]:
         item.pop(field, None)
     item["response_template"] = NGT_RESPONSE_TEMPLATE
     item["answer_mode"] = "tracked_ab"
@@ -336,7 +333,7 @@ def normalize_ngt_item(item):
     else:
         item.pop("source_packet", None)
     packet = item["decision_packet"]
-    for field in ["source_file", "source_url", "source_quote", "source_cache_file", "source_type"]:
+    for field in ["source_file", "source_url", "source_quote"]:
         packet.pop(field, None)
     packet.pop("external_source_status", None)
     packet["packet_type"] = "controlled_balanced_decision_packet"
@@ -438,7 +435,7 @@ def ngt_grounding_issues(item):
     packet = item.get("decision_packet", {})
     if packet.get("packet_type") != "controlled_balanced_decision_packet":
         issues.append(f"{item_id}: NGT decision_packet.packet_type is not controlled_balanced_decision_packet")
-    for field in ["source_file", "source_url", "source_quote", "source_type"]:
+    for field in ["source_file", "source_url", "source_quote"]:
         if packet.get(field):
             issues.append(f"{item_id}: NGT decision_packet carries {field}")
     for field in ["neutral_situation"]:

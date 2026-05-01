@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import concurrent.futures
 import json
 import os
 import random
@@ -19,6 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from run import (
+    OpenRouterAsyncClient,
     async_openrouter_chat,
     compressed_jsonl_output_path,
     existing_jsonl_path,
@@ -36,7 +36,6 @@ MODEL_ALIASES = {
     "gemini-flash-lite": "google/gemini-3.1-flash-lite-preview",
     "deepseek-v4-flash": "deepseek/deepseek-v4-flash",
     "deepseek-v4-pro": "deepseek/deepseek-v4-pro",
-    "qwen-flash": "qwen/qwen3.6-flash",
     "kimi-k2.5": "moonshotai/kimi-k2.5",
 }
 SMOKE_TEST_MODELS = ["google/gemini-3.1-flash-lite-preview"]
@@ -475,8 +474,6 @@ async def run_context(args: argparse.Namespace, base_dir: Path) -> int:
     if not api_key:
         raise SystemExit("OPENROUTER_API_KEY is not set.")
 
-    loop = asyncio.get_running_loop()
-    loop.set_default_executor(concurrent.futures.ThreadPoolExecutor(max_workers=max(1, args.concurrency)))
     semaphore = asyncio.Semaphore(max(1, args.concurrency))
     write_lock = asyncio.Lock()
     completed = len(done)
@@ -516,7 +513,8 @@ async def run_context(args: argparse.Namespace, base_dir: Path) -> int:
             )
             await write(record)
 
-        await asyncio.gather(*(run_one(task) for task in remaining))
+        async with OpenRouterAsyncClient(api_key, args.concurrency):
+            await asyncio.gather(*(run_one(task) for task in remaining))
 
     records = []
     with open_text(output_path, "rt", encoding="utf-8-sig") as handle:
