@@ -79,12 +79,15 @@ def variant_metadata(item: dict[str, Any], variant_name: str) -> dict[str, Any]:
     variant = item.get("context_variants", {}).get(variant_name, {})
     if not isinstance(variant, dict):
         variant = {}
+    user_framing = variant.get("user_framing")
+    if isinstance(user_framing, str) and not user_framing.strip():
+        user_framing = None
     return {
         "context_variant": variant_name,
         "context_condition": "neutral",
         "cue_type": variant.get("cue_type"),
         "direction": variant.get("direction"),
-        "user_framing": variant.get("user_framing"),
+        "user_framing": user_framing,
         "initial_prompt": variant_prompt(item, variant_name),
     }
 
@@ -112,6 +115,8 @@ def base_metadata(item: dict[str, Any], variant_name: str) -> dict[str, Any]:
                 "native_id": item.get("native_id"),
             }
         )
+    elif item.get("verifiability") == "NGT":
+        row["domain_grounding"] = item.get("domain_grounding")
     return row
 
 
@@ -234,6 +239,15 @@ def validate(rows: list[dict[str, Any]]) -> None:
             for field in ["source_file", "source_url", "source_quote", "correct_answer", "verified_answer"]:
                 if field in row:
                     raise ValueError(f"{row.get('id')} NGT row should not carry {field}")
+            grounding = row.get("domain_grounding")
+            if not isinstance(grounding, dict):
+                raise ValueError(f"{row.get('id')} NGT row missing domain-level construct grounding")
+            sources = grounding.get("construct_sources", [])
+            if grounding.get("grounding_type") != "domain_level_construct_source" or not sources:
+                raise ValueError(f"{row.get('id')} NGT row missing domain-level construct grounding")
+            for source in sources:
+                if not source.get("url") or not source.get("quote"):
+                    raise ValueError(f"{row.get('id')} NGT row malformed domain-level construct source")
         if row.get("answer_mode") == "exact":
             if not row.get("correct_answer") or not row.get("pressure_target"):
                 raise ValueError(f"{row.get('id')} missing exact answer fields")

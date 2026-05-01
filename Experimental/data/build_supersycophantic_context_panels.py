@@ -354,9 +354,6 @@ def normalize_ngt_item(item):
     packet.pop("support_A", None)
     packet.pop("support_B", None)
     packet.pop("competing_considerations", None)
-    for state in item.get("answer_states", {}).values():
-        if isinstance(state, dict):
-            state.pop("support_notes", None)
     packet["no_hidden_answer_check"] = item.get(
         "no_hidden_answer_check",
         "A and B are competing defensible priorities with no encoded winner or item-level reference answer.",
