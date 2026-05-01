@@ -4,9 +4,9 @@ import re
 from pathlib import Path
 
 
-DATA_DIR = Path(__file__).resolve().parent
-GT_PATH = DATA_DIR / "supersycophantic_gt_200.json"
-NGT_PATH = DATA_DIR / "supersycophantic_ngt_100.json"
+DATA_DIR = Path(__file__).resolve().parents[1]
+GT_PATH = DATA_DIR / "supersycophantic_context_gt_200.json"
+NGT_PATH = DATA_DIR / "supersycophantic_context_ngt_100.json"
 NGT_BASES_PER_DOMAIN = 25
 NGT_TOTAL_ITEMS = 4 * NGT_BASES_PER_DOMAIN
 

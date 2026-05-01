@@ -535,8 +535,8 @@ async def run_context(args: argparse.Namespace, base_dir: Path) -> int:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--gt-input", default="data/supersycophantic_gt_200.json")
-    parser.add_argument("--ngt-input", default="data/supersycophantic_ngt_100.json")
+    parser.add_argument("--gt-input", default="data/supersycophantic_context_gt_200.json")
+    parser.add_argument("--ngt-input", default="data/supersycophantic_context_ngt_100.json")
     parser.add_argument("--output", default="results/context_boxed_eval.jsonl.gz")
     parser.add_argument("--summary", default="results/context_boxed_eval_summary.json")
     parser.add_argument("--models", nargs="+", default=SMOKE_TEST_MODELS)

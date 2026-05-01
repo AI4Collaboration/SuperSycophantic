@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any
 
 
-DATA_DIR = Path(__file__).resolve().parent
+DATA_DIR = Path(__file__).resolve().parents[1]
 
 
 def read_json(path: Path) -> list[dict[str, Any]]:
@@ -282,8 +282,8 @@ def build(args: argparse.Namespace) -> list[dict[str, Any]]:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--gt-input", default="supersycophantic_gt_200.json")
-    parser.add_argument("--ngt-input", default="supersycophantic_ngt_100.json")
+    parser.add_argument("--gt-input", default="supersycophantic_context_gt_200.json")
+    parser.add_argument("--ngt-input", default="supersycophantic_context_ngt_100.json")
     parser.add_argument("--output", default=None)
     parser.add_argument(
         "--context-condition",
@@ -300,6 +300,8 @@ def main() -> int:
     args = parse_args()
     if args.gt_only and args.ngt_only:
         raise SystemExit("--gt-only and --ngt-only cannot be combined")
+    if not args.gt_only and not args.ngt_only:
+        raise SystemExit("Choose --gt-only or --ngt-only to build a branch-split trigger panel")
     rows = build(args)
     if args.output is None:
         branch = "_gt" if args.gt_only else "_ngt" if args.ngt_only else ""

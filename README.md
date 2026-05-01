@@ -21,13 +21,11 @@ Current data:
 
 | file | role |
 | --- | --- |
-| `Experimental/data/supersycophantic_gt_200.json` | 200 GT items, neutral + injected-wrong-answer context |
-| `Experimental/data/supersycophantic_ngt_100.json` | 100 NGT items, 25 materially different bases per domain, neutral + belief/identity/stake context |
-| `Experimental/data/supersycophantic_trigger_neutral_300.jsonl` | derived neutral trigger panel for trigger evaluation |
+| `Experimental/data/supersycophantic_context_gt_200.json` | 200 GT items, neutral + injected-wrong-answer context |
+| `Experimental/data/supersycophantic_context_ngt_100.json` | 100 NGT items, 25 materially different bases per domain, neutral + belief/identity/stake context |
 | `Experimental/data/supersycophantic_trigger_gt_neutral_200.jsonl` | branch-split GT neutral trigger panel |
 | `Experimental/data/supersycophantic_trigger_ngt_neutral_100.jsonl` | branch-split NGT neutral trigger panel |
-| `Experimental/data/build_supersycophantic_context_panels.py` | normalizes and validates current GT/NGT context panels |
-| `Experimental/data/build_supersycophantic_trigger_panel.py` | builds branch-split trigger panels for eval |
+| `Experimental/data/helper/` | helper scripts and source extracts used to build or audit the main context and trigger files |
 
 GT domains are `Mathematical Science`, `Physical Science`, `Bio&Chem`, and
 `Health`. Math uses selected HLE-Verified Gold text-only Math items;
@@ -166,17 +164,17 @@ Run from the repo root. Paths passed to runners, such as `data/...` and
 Check context panels:
 
 ```powershell
-python Experimental/data/build_supersycophantic_context_panels.py
+python Experimental/data/helper/build_supersycophantic_context_panels.py
 ```
 
 Run context-only eval, GT and NGT separately. These examples use a single
-fast smoke-test route from the manuscript panel; main paper runs should use the
+fast smoke-test model from the manuscript panel; main paper runs should use the
 full model panel listed in the manuscript:
 
 ```powershell
 python Experimental/run_context.py `
-  --gt-input data/supersycophantic_gt_200.json `
-  --ngt-input data/supersycophantic_ngt_100.json `
+  --gt-input data/supersycophantic_context_gt_200.json `
+  --ngt-input data/supersycophantic_context_ngt_100.json `
   --output results/gt_context_only_boxed_eval.jsonl.gz `
   --summary results/gt_context_only_boxed_eval_summary.json `
   --models google/gemini-3.1-flash-lite-preview `
@@ -184,8 +182,8 @@ python Experimental/run_context.py `
   --max-ngt 0
 
 python Experimental/run_context.py `
-  --gt-input data/supersycophantic_gt_200.json `
-  --ngt-input data/supersycophantic_ngt_100.json `
+  --gt-input data/supersycophantic_context_gt_200.json `
+  --ngt-input data/supersycophantic_context_ngt_100.json `
   --output results/ngt_context_only_boxed_eval.jsonl.gz `
   --summary results/ngt_context_only_boxed_eval_summary.json `
   --models google/gemini-3.1-flash-lite-preview `
@@ -196,11 +194,11 @@ python Experimental/run_context.py `
 Build branch-split trigger panels:
 
 ```powershell
-python Experimental/data/build_supersycophantic_trigger_panel.py `
+python Experimental/data/helper/build_supersycophantic_trigger_panel.py `
   --context-condition neutral --gt-only `
   --output supersycophantic_trigger_gt_neutral_200.jsonl
 
-python Experimental/data/build_supersycophantic_trigger_panel.py `
+python Experimental/data/helper/build_supersycophantic_trigger_panel.py `
   --context-condition neutral --ngt-only `
   --output supersycophantic_trigger_ngt_neutral_100.jsonl
 ```

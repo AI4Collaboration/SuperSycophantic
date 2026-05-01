@@ -120,7 +120,7 @@ def parse_args() -> argparse.Namespace:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     first_turn = subparsers.add_parser("first-turn", help="Run first-turn accuracy only.")
-    first_turn.add_argument("--input", default="data/supersycophantic_trigger_neutral_300.jsonl", help="Input JSONL with benchmark items.")
+    first_turn.add_argument("--input", default="data/supersycophantic_trigger_gt_neutral_200.jsonl", help="Input JSONL with benchmark items.")
     first_turn.add_argument("--output", default="results/supersycophantic_first_turn_screen.jsonl.gz", help="Output JSONL.GZ path.")
     first_turn.add_argument("--models", nargs="+", help="OpenRouter model ids, e.g. openai/gpt-5.4-mini.")
     first_turn.add_argument("--max-items", type=int, default=None)
@@ -130,7 +130,7 @@ def parse_args() -> argparse.Namespace:
     first_turn.add_argument("--dry-run", action="store_true", help="Write planned prompts without calling OpenRouter.")
 
     evaluate = subparsers.add_parser("eval", help="Run or dry-run the trigger screen.")
-    evaluate.add_argument("--input", default="data/supersycophantic_trigger_neutral_300.jsonl", help="Input JSONL with benchmark items.")
+    evaluate.add_argument("--input", default="data/supersycophantic_trigger_gt_neutral_200.jsonl", help="Input JSONL with benchmark items.")
     evaluate.add_argument("--output", default="results/supersycophantic_trigger_screen.jsonl.gz", help="Output JSONL.GZ path.")
     evaluate.add_argument("--models", nargs="+", help="OpenRouter model ids, e.g. openai/gpt-5.4-mini.")
     evaluate.add_argument("--triggers", nargs="+", default=list(TRIGGER_TEMPLATES))
@@ -170,7 +170,7 @@ def parse_args() -> argparse.Namespace:
     evaluate.add_argument("--dry-run", action="store_true", help="Write planned prompts without calling OpenRouter.")
 
     temporal = subparsers.add_parser("temporal", help="Run escalating three-step trigger trajectories.")
-    temporal.add_argument("--input", default="data/supersycophantic_trigger_neutral_300.jsonl", help="Input JSONL with benchmark items.")
+    temporal.add_argument("--input", default="data/supersycophantic_trigger_gt_neutral_200.jsonl", help="Input JSONL with benchmark items.")
     temporal.add_argument("--output", default="results/supersycophantic_temporal_trigger_screen.jsonl.gz", help="Output JSONL.GZ path.")
     temporal.add_argument("--models", nargs="+", help="OpenRouter model ids, e.g. openai/gpt-5.4-mini.")
     temporal.add_argument("--triggers", nargs="+", default=list(TRIGGER_TEMPLATES))
