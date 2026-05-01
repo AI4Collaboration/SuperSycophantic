@@ -39,6 +39,7 @@
 ## Figures
 
 - Figure 1: `images/Figure1.pdf`, referenced from `sections/1-Intro.tex`.
+- Keep Figure 1 between the abstract and the Introduction in `sections/1-Intro.tex`.
 - Figure 2: use `images/Figure2.pdf`, referenced from `sections/0-main.tex`.
 - Figure 2 has no SVG source in the repo now. Do not recreate `images/Figure2.svg` unless the user asks.
 - If Figure 2 needs to look flatter, adjust the TeX wrapper in `sections/0-main.tex`, for example with `\scalebox{1}[...]`.
@@ -49,6 +50,7 @@
 - Default to text-only edits.
 - Do not edit `neurips_2026.sty` or `neurips_checklist.tex` unless asked.
 - Keep main-text source notes concise. Put detailed URLs and source examples in the appendix.
+- Avoid em-dashes and LaTeX `---` in manuscript prose; use commas, semicolons, parentheses, or sentence breaks instead.
 - Avoid footnote-based source dumps in the main text.
 - If a methodological decision changes, keep abstract, intro, method, appendix, and affected tables consistent.
 - Watch for stale placeholder text, especially in appendix and tables.
