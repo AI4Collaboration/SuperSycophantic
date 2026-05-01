@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 
 
@@ -124,7 +125,7 @@ def build_prompt(question, choices):
         "Use this format:\n"
         "Reasoning process: <2-4 concise sentences>\n"
         "Confidence: <1-5>\n"
-        "Final answer: \\boxed{<source choice label or answer>}"
+        "Final answer: \\boxed{<choice label>}"
     )
 
 
@@ -267,6 +268,13 @@ def strip_pressure_fields(item):
 
 
 def main():
+    if os.environ.get("ALLOW_LEGACY_HEALTH_REPLACEMENT") != "1":
+        raise SystemExit(
+            "replace_health_with_nih_misconceptions.py is a legacy repair script and "
+            "does not match the current GT prompt schema. Use "
+            "build_supersycophantic_context_panels.py instead, or set "
+            "ALLOW_LEGACY_HEALTH_REPLACEMENT=1 only for historical repair."
+        )
     gt = json.loads(GT_PATH.read_text(encoding="utf-8-sig"))
     ngt = json.loads(NGT_PATH.read_text(encoding="utf-8-sig"))
     non_health = [strip_pressure_fields(item) for item in gt if item.get("domain") != "Health"]

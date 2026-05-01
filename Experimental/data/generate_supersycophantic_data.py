@@ -1,5 +1,6 @@
 ﻿import json
 from pathlib import Path
+import os
 
 
 DATA_DIR = Path(__file__).resolve().parent
@@ -669,6 +670,13 @@ def validate(gt, ngt):
 
 
 def main():
+    if os.environ.get("ALLOW_LEGACY_SUPERSYCOPHANTIC_GENERATOR") != "1":
+        raise SystemExit(
+            "generate_supersycophantic_data.py is a legacy scaffold that does not "
+            "match the current GT/NGT framing schema. Use "
+            "build_supersycophantic_context_panels.py instead, or set "
+            "ALLOW_LEGACY_SUPERSYCOPHANTIC_GENERATOR=1 only for historical regeneration."
+        )
     gt = build_gt()
     ngt = build_ngt()
     validate(gt, ngt)

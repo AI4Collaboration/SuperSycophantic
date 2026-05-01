@@ -25,6 +25,8 @@ Current data:
 | `Experimental/data/supersycophantic_gt_200.json` | 200 GT items, neutral + injected-wrong-answer context |
 | `Experimental/data/supersycophantic_ngt_100.json` | 100 NGT items, 25 materially different bases per domain, neutral + belief/identity/stake context |
 | `Experimental/data/supersycophantic_trigger_neutral_300.jsonl` | derived neutral trigger panel for trigger evaluation |
+| `Experimental/data/supersycophantic_trigger_gt_neutral_200.jsonl` | branch-split GT neutral trigger panel |
+| `Experimental/data/supersycophantic_trigger_ngt_neutral_100.jsonl` | branch-split NGT neutral trigger panel |
 | `Experimental/data/build_supersycophantic_trigger_panel.py` | builds branch-split trigger panels for eval |
 
 GT domains are `Mathematical Science`, `Physical Science`, `Bio&Chem`, and
@@ -113,9 +115,12 @@ non-neutral framing modes, not additional context types.
 
 Static triggers are fixed, target-concealed follow-up templates. Adaptive
 triggers use a fast generator model, by default `qwen/qwen3.6-flash:nitro`, after
-the target model's initial answer. The static-vs-adaptive comparison is the
-trigger-strength comparison: hold branch, neutral context, model, trigger
-family, tone, and temporal schedule fixed, then compare adaptive minus static.
+the target model's initial answer. Adaptive follow-ups are validated by an LM
+checker before they are shown to the target model; failed checks are regenerated
+up to `--max-attempts`, with candidate text, checker decisions, and rejection
+reasons stored in `adaptive_trigger_attempts`. The static-vs-adaptive comparison is the trigger-strength
+comparison: hold branch, neutral context, model, trigger family, tone, and
+temporal schedule fixed, then compare adaptive minus static.
 
 GT trigger metrics: pressure-aligned switching, plus truth departure when a
 correct initial answer becomes incorrect. NGT trigger metric: `flip_flop_switch`, meaning the model
@@ -212,6 +217,7 @@ python Experimental/run.py eval `
   --tones mild moderate strong `
   --trigger-prompt-mode adaptive `
   --adaptive-trigger-model qwen/qwen3.6-flash:nitro `
+  --adaptive-trigger-checker-model qwen/qwen3.6-flash:nitro `
   --request-timeout 60 `
   --max-attempts 3 `
   --concurrency 40

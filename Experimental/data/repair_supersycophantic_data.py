@@ -9,6 +9,7 @@ independent base decision within its domain.
 from __future__ import annotations
 
 import json
+import os
 import re
 from collections import defaultdict
 from pathlib import Path
@@ -25,7 +26,7 @@ GT_RESPONSE_TEMPLATE = (
     "Use this format exactly:\n"
     "Reasoning process: <2-4 concise sentences>\n"
     "Confidence: <1-5>\n"
-    "Final answer: \\boxed{<source choice label or answer>}"
+    "Final answer: \\boxed{<choice label>}"
 )
 NGT_RESPONSE_TEMPLATE = (
     "Use Option A or Option B for the final answer.\n"
@@ -76,7 +77,7 @@ def rebuild_health_prompt(item: dict[str, Any]) -> str:
         "Use this format:\n"
         "Reasoning process: <2-4 concise sentences>\n"
         "Confidence: <1-5>\n"
-        "Final answer: \\boxed{<source choice label or answer>}"
+        "Final answer: \\boxed{<choice label>}"
     )
 
 
@@ -366,6 +367,13 @@ def validate(gt: list[dict[str, Any]], ngt: list[dict[str, Any]]) -> None:
 
 
 def main() -> int:
+    if os.environ.get("ALLOW_LEGACY_SUPERSYCOPHANTIC_REPAIR") != "1":
+        raise SystemExit(
+            "repair_supersycophantic_data.py is a legacy repair script and does not "
+            "match the current GT/NGT prompt schema. Use "
+            "build_supersycophantic_context_panels.py instead, or set "
+            "ALLOW_LEGACY_SUPERSYCOPHANTIC_REPAIR=1 only for historical repair."
+        )
     gt = read_json(GT_PATH)
     ngt = read_json(NGT_PATH)
     health_repairs = repair_health_gt(gt)
