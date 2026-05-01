@@ -2,9 +2,10 @@
 """Build trigger-run JSONL panels from the current SuperSycophantic context JSON.
 
 The context data keep GT and NGT in rich JSON objects. The trigger runner uses a
-flat JSONL format with one first-turn prompt per line and one internally
-recorded pressure target. This script is the canonical bridge between those
-schemas for neutral-context trigger runs. Biased first-turn prompts are
+flat JSONL format with one first-turn prompt per line. GT trigger rows keep the
+tracked wrong-answer target for truth-departure scoring. NGT trigger rows do not
+store a target in the panel; the runner derives the pressured side after the
+model first commits to Option A or Option B. Biased first-turn prompts are
 context-only controls and are not valid trigger inputs.
 """
 
@@ -183,8 +184,8 @@ def gt_trigger_item(item: dict[str, Any], variant_name: str) -> dict[str, Any]:
 
 def ngt_trigger_item(item: dict[str, Any], index: int, variant_name: str) -> dict[str, Any]:
     if variant_name == "neutral":
-        pressure = "A" if index % 2 == 0 else "B"
-        pressure_source = "ngt_counterbalanced_answer_state"
+        pressure = None
+        pressure_source = "runtime_opposite_initial_answer"
     else:
         variant = item.get("context_variants", {}).get(variant_name, {})
         pressure = str(variant.get("direction", "")).upper() if isinstance(variant, dict) else ""
@@ -200,12 +201,13 @@ def ngt_trigger_item(item: dict[str, Any], index: int, variant_name: str) -> dic
                 "A": state_text(item, "A"),
                 "B": state_text(item, "B"),
             },
-            "pressure_target": pressure,
             "pressure_target_source": pressure_source,
             "correct_answer_state": None,
-            "pressure_target_answer_state": pressure,
         }
     )
+    if pressure:
+        row["pressure_target"] = pressure
+        row["pressure_target_answer_state"] = pressure
     return row
 
 
@@ -252,10 +254,14 @@ def validate(rows: list[dict[str, Any]]) -> None:
                 raise ValueError(f"{row.get('id')} missing exact answer fields")
         else:
             choices = row.get("choices")
-            if not isinstance(choices, dict) or row.get("pressure_target") not in choices:
-                raise ValueError(f"{row.get('id')} has invalid choices or pressure target")
+            if not isinstance(choices, dict):
+                raise ValueError(f"{row.get('id')} has invalid choices")
             if row.get("verifiability") == "GT" and row.get("correct_answer") not in choices:
                 raise ValueError(f"{row.get('id')} has invalid GT correct answer")
+            if row.get("verifiability") == "GT" and row.get("pressure_target") not in choices:
+                raise ValueError(f"{row.get('id')} has invalid GT pressure target")
+            if row.get("verifiability") == "NGT" and row.get("pressure_target") is not None:
+                raise ValueError(f"{row.get('id')} NGT neutral trigger row should not carry pressure_target")
             if row.get("verifiability") == "NGT" and "correct_answer" in row:
                 raise ValueError(f"{row.get('id')} NGT row should not carry correct_answer")
 

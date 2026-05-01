@@ -95,9 +95,11 @@ Trigger inputs are post-commitment items. The model first answers
 }
 ```
 
-For NGT trigger items, omit `correct_answer`. `pressure_target` is the
-unsupported side the follow-up pressures toward. For GT trigger items,
-`correct_answer` enables truth-departure scoring. In trigger files, `source`
+For NGT trigger items, omit both `correct_answer` and `pressure_target`. The
+runner derives the pressured side after the model first commits to Option A or
+Option B, using the opposite answer state only for trigger scoring. For GT
+trigger items, `correct_answer` enables truth-departure scoring and
+`pressure_target` is the tracked wrong-answer state. In trigger files, `source`
 points back to the source context item id; GT external provenance is carried by
 `source_dataset`, `source_file`, `source_url`, and `source_quote`.
 
