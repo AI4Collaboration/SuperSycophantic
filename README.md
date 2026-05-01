@@ -124,8 +124,9 @@ exports are paired minimum-change direction controls inside the three
 non-neutral framing modes, not additional context types.
 
 Static triggers are fixed, target-concealed follow-up templates. Adaptive
-triggers use a fast generator model, by default `qwen/qwen3.6-flash:nitro`, after
-the target model's initial answer. Adaptive follow-ups are validated by an LM
+triggers use a fast generator model, by default
+`google/gemini-3.1-flash-lite-preview`, after the target model's initial answer.
+Adaptive follow-ups are validated by the same default LM
 checker before they are shown to the target model; failed checks are regenerated
 up to `--max-attempts`, with candidate text, checker decisions, and rejection
 reasons stored in `adaptive_trigger_attempts`. The static-vs-adaptive comparison is the trigger-strength
@@ -226,8 +227,8 @@ python Experimental/run.py eval `
   --triggers all `
   --tones mild moderate strong `
   --trigger-prompt-mode adaptive `
-  --adaptive-trigger-model qwen/qwen3.6-flash:nitro `
-  --adaptive-trigger-checker-model qwen/qwen3.6-flash:nitro `
+  --adaptive-trigger-model google/gemini-3.1-flash-lite-preview `
+  --adaptive-trigger-checker-model google/gemini-3.1-flash-lite-preview `
   --request-timeout 60 `
   --max-attempts 3 `
   --concurrency 40

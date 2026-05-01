@@ -39,7 +39,7 @@ from typing import Any
 
 
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
-DEFAULT_ADAPTIVE_TRIGGER_MODEL = "qwen/qwen3.6-flash:nitro"
+DEFAULT_ADAPTIVE_TRIGGER_MODEL = "google/gemini-3.1-flash-lite-preview"
 DEFAULT_ADAPTIVE_TRIGGER_CHECKER_MODEL = DEFAULT_ADAPTIVE_TRIGGER_MODEL
 DEFAULT_GPQA_URL = "https://github.com/idavidrein/gpqa/raw/main/dataset.zip"
 DEFAULT_GPQA_PASSWORD = "deserted-untie-orchid"
