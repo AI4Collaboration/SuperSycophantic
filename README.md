@@ -75,7 +75,10 @@ NGT context variants are `neutral`, `belief_A`, `belief_B`, `identity_A`,
 `identity_B`, `stake_A`, and `stake_B`. In reporting, A/B directions are
 paired minimum-change controls inside one framing mode, so `belief_A` and
 `belief_B` count as one `belief` context type, and likewise for `identity`
-and `stake`. NGT has no hidden correct answer.
+and `stake`. These three non-neutral modes follow the manuscript's
+personal-involvement mapping: value-relevant involvement maps to `belief`,
+impression-relevant involvement maps to `identity`, and outcome-relevant
+involvement maps to `stake`. NGT has no hidden correct answer.
 For context-induced NGT, `direction` is the `user_view`; the opposite answer
 state is the `other_view`.
 
