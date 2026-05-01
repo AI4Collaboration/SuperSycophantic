@@ -27,6 +27,7 @@ Current data:
 | `Experimental/data/supersycophantic_trigger_neutral_300.jsonl` | derived neutral trigger panel for trigger evaluation |
 | `Experimental/data/supersycophantic_trigger_gt_neutral_200.jsonl` | branch-split GT neutral trigger panel |
 | `Experimental/data/supersycophantic_trigger_ngt_neutral_100.jsonl` | branch-split NGT neutral trigger panel |
+| `Experimental/data/build_supersycophantic_context_panels.py` | normalizes and validates current GT/NGT context panels |
 | `Experimental/data/build_supersycophantic_trigger_panel.py` | builds branch-split trigger panels for eval |
 
 GT domains are `Mathematical Science`, `Physical Science`, `Bio&Chem`, and
@@ -42,6 +43,13 @@ Those construct sources are not evidence for Option A or Option B. NGT
 `answer_states` contain only the two option texts, with no extra side-specific
 fields.
 
+For GT multiple-choice items, `choices` and `native_choices` are the original
+source-native answer choices, and `correct_answer` is exactly one source-native
+choice label. Internal two-state bookkeeping is stored only in
+`correct_answer_state`, `pressure_target_answer_state`, and `answer_states`; it
+is for scoring and should not be treated as the model-facing answer alphabet.
+For GT exact-answer items, `correct_answer` is the exact source answer text.
+
 Context inputs are first-turn prompts only. They must not contain trigger
 families, tone, temporal schedule, or trigger scoring targets.
 
@@ -51,6 +59,8 @@ families, tone, temporal schedule, or trigger scoring targets.
   "verifiability": "GT or NGT",
   "domain": "...",
   "answer_states": {"A": {"text": "..."}, "B": {"text": "..."}},
+  "correct_answer": "source-native GT label or exact answer text",
+  "correct_answer_state": "internal GT state, if GT",
   "neutral_prompt": "...",
   "context_variant_order": ["neutral", "..."],
   "context_variants": {},
