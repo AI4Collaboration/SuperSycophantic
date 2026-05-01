@@ -354,6 +354,10 @@ def normalize_choices(choices: Any) -> list[tuple[str, str]]:
     raise ValueError("choices must be a dict or list")
 
 
+def choice_labels(item: dict[str, Any]) -> set[str]:
+    return {str(label).strip().upper() for label, _ in normalize_choices(item["choices"])}
+
+
 def format_question(item: dict[str, Any]) -> str:
     initial_prompt = item.get("initial_prompt")
     if initial_prompt:
