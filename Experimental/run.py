@@ -42,6 +42,11 @@ except ImportError:  # pragma: no cover - fallback keeps older script environmen
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
 DEFAULT_ADAPTIVE_TRIGGER_MODEL = "openai/gpt-5.4-mini"
 DEFAULT_ADAPTIVE_TRIGGER_CHECKER_MODEL = DEFAULT_ADAPTIVE_TRIGGER_MODEL
+DEFAULT_OPENROUTER_CONCURRENCY = 200
+DEFAULT_OPENROUTER_REQUEST_TIMEOUT = 30
+DEFAULT_OPENROUTER_MAX_ATTEMPTS = 8
+TRANSIENT_RETRY_DELAY_CAP_SECONDS = 8.0
+RETRY_AFTER_CAP_SECONDS = 120.0
 
 SYSTEM_PROMPT = (
     "You are answering difficult multiple-choice questions. "
@@ -124,9 +129,9 @@ def parse_args() -> argparse.Namespace:
     first_turn.add_argument("--output", default="results/supersycophantic_first_turn_screen.jsonl.gz", help="Output JSONL.GZ path.")
     first_turn.add_argument("--models", nargs="+", help="OpenRouter model ids, e.g. openai/gpt-5.4-mini.")
     first_turn.add_argument("--max-items", type=int, default=None)
-    first_turn.add_argument("--concurrency", type=int, default=100, help="Maximum concurrent OpenRouter requests.")
-    first_turn.add_argument("--request-timeout", type=int, default=60)
-    first_turn.add_argument("--max-attempts", type=int, default=3)
+    first_turn.add_argument("--concurrency", type=int, default=DEFAULT_OPENROUTER_CONCURRENCY, help="Maximum concurrent OpenRouter requests.")
+    first_turn.add_argument("--request-timeout", type=int, default=DEFAULT_OPENROUTER_REQUEST_TIMEOUT)
+    first_turn.add_argument("--max-attempts", type=int, default=DEFAULT_OPENROUTER_MAX_ATTEMPTS)
     first_turn.add_argument("--dry-run", action="store_true", help="Write planned prompts without calling OpenRouter.")
 
     evaluate = subparsers.add_parser("eval", help="Run or dry-run the trigger screen.")
@@ -136,9 +141,9 @@ def parse_args() -> argparse.Namespace:
     evaluate.add_argument("--triggers", nargs="+", default=list(TRIGGER_TEMPLATES))
     evaluate.add_argument("--tones", nargs="+", default=["moderate"], choices=["mild", "moderate", "strong"])
     evaluate.add_argument("--max-items", type=int, default=None)
-    evaluate.add_argument("--concurrency", type=int, default=100, help="Maximum concurrent OpenRouter requests.")
-    evaluate.add_argument("--request-timeout", type=int, default=60)
-    evaluate.add_argument("--max-attempts", type=int, default=3)
+    evaluate.add_argument("--concurrency", type=int, default=DEFAULT_OPENROUTER_CONCURRENCY, help="Maximum concurrent OpenRouter requests.")
+    evaluate.add_argument("--request-timeout", type=int, default=DEFAULT_OPENROUTER_REQUEST_TIMEOUT)
+    evaluate.add_argument("--max-attempts", type=int, default=DEFAULT_OPENROUTER_MAX_ATTEMPTS)
     evaluate.add_argument("--initial-cache-from", default=None, help="Optional JSONL output to reuse first-turn answers from.")
     evaluate.add_argument(
         "--trigger-prompt-mode",
@@ -185,9 +190,9 @@ def parse_args() -> argparse.Namespace:
     )
     temporal.add_argument("--tone-sequence", nargs="+", default=["mild", "moderate", "strong"], choices=["mild", "moderate", "strong"])
     temporal.add_argument("--max-items", type=int, default=None)
-    temporal.add_argument("--concurrency", type=int, default=100, help="Maximum concurrent OpenRouter requests.")
-    temporal.add_argument("--request-timeout", type=int, default=60)
-    temporal.add_argument("--max-attempts", type=int, default=3)
+    temporal.add_argument("--concurrency", type=int, default=DEFAULT_OPENROUTER_CONCURRENCY, help="Maximum concurrent OpenRouter requests.")
+    temporal.add_argument("--request-timeout", type=int, default=DEFAULT_OPENROUTER_REQUEST_TIMEOUT)
+    temporal.add_argument("--max-attempts", type=int, default=DEFAULT_OPENROUTER_MAX_ATTEMPTS)
     temporal.add_argument(
         "--trigger-prompt-mode",
         choices=["static", "adaptive"],
@@ -1024,8 +1029,8 @@ def parse_retry_after(value: str | None) -> float | None:
 
 def retry_delay(attempt: int, retry_after: float | None) -> float:
     if retry_after is not None:
-        return min(retry_after, 120.0)
-    return min(60, 2**attempt) + random.uniform(0.25, 1.5)
+        return min(retry_after, RETRY_AFTER_CAP_SECONDS)
+    return min(TRANSIENT_RETRY_DELAY_CAP_SECONDS, 2**attempt) + random.uniform(0.1, 0.75)
 
 
 def openrouter_chat(
@@ -1141,7 +1146,13 @@ class OpenRouterAsyncClient:
         if self.session is None:
             raise RuntimeError("OpenRouter async client is not open")
         payload = openrouter_payload(model, messages, extra_payload)
-        timeout = aiohttp.ClientTimeout(total=request_timeout)
+        connect_timeout = min(10, max(1, request_timeout))
+        timeout = aiohttp.ClientTimeout(
+            total=request_timeout,
+            connect=connect_timeout,
+            sock_connect=connect_timeout,
+            sock_read=request_timeout,
+        )
         last_error: Exception | None = None
         async with self.semaphore:
             for attempt in range(max_attempts):

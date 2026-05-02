@@ -18,6 +18,9 @@ from pathlib import Path
 from typing import Any
 
 from run import (
+    DEFAULT_OPENROUTER_CONCURRENCY,
+    DEFAULT_OPENROUTER_MAX_ATTEMPTS,
+    DEFAULT_OPENROUTER_REQUEST_TIMEOUT,
     OpenRouterAsyncClient,
     async_openrouter_chat,
     compressed_jsonl_output_path,
@@ -543,9 +546,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-gt", type=int, default=20)
     parser.add_argument("--max-ngt", type=int, default=20)
     parser.add_argument("--seed", type=int, default=20260430)
-    parser.add_argument("--concurrency", type=int, default=40)
-    parser.add_argument("--request-timeout", type=int, default=60)
-    parser.add_argument("--max-attempts", type=int, default=3)
+    parser.add_argument("--concurrency", type=int, default=DEFAULT_OPENROUTER_CONCURRENCY)
+    parser.add_argument("--request-timeout", type=int, default=DEFAULT_OPENROUTER_REQUEST_TIMEOUT)
+    parser.add_argument("--max-attempts", type=int, default=DEFAULT_OPENROUTER_MAX_ATTEMPTS)
     parser.add_argument("--dry-run", action="store_true")
     return parser.parse_args()
 

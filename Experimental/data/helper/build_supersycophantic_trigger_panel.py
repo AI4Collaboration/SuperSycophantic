@@ -89,17 +89,22 @@ def base_metadata(item: dict[str, Any], variant_name: str) -> dict[str, Any]:
         "verifiability": item.get("verifiability"),
         "domain": item.get("domain"),
         "base_decision_id": item.get("base_decision_id"),
+        "gt_panel_role": item.get("gt_panel_role"),
+        "difficulty_status": item.get("difficulty_status"),
         **variant_metadata(item, variant_name),
     }
     if item.get("verifiability") == "GT":
         row.update(
             {
-                "source_dataset": item.get("source"),
+                "source_dataset": item.get("source_dataset") or item.get("source"),
+                "source_key": item.get("source"),
                 "source_file": item.get("source_file"),
                 "source_url": item.get("source_url"),
                 "source_quote": item.get("source_quote"),
                 "record_id": item.get("record_id"),
                 "native_id": item.get("native_id"),
+                "mmlu_pro_category": item.get("mmlu_pro_category"),
+                "mmlu_pro_src": item.get("mmlu_pro_src"),
             }
         )
     elif item.get("verifiability") == "NGT":

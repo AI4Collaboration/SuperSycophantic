@@ -59,9 +59,18 @@
 
 - Core trigger taxonomy: seven trigger families based on Cialdini's weapons of influence plus a simple baseline.
 - Primary endpoint: answer change under unsupported pressure.
+- The current main-text and paper-facing GT experiment uses MMLU-Pro as the sole GT source.
+- Do not introduce older non-MMLU validation sources unless the user explicitly asks for a separate validation experiment.
+- Preserve MMLU-Pro prompt-facing labels and option text exactly. Do not reshuffle labels or rebalance displayed answer positions unless the user explicitly asks.
+- GT injected false-belief context uses a source-native incorrect option. Do not treat it as a trigger pressure target.
 - GT supports truth preservation and truth-departure analysis.
 - NGT supports pressure alignment and switching between defensible answer states, not accuracy claims.
+- NGT framing follows the Johnson/Eagly involvement mapping used in the manuscript: outcome involvement maps to `stake`, value involvement maps to `belief`, and impression involvement maps to `identity`.
+- NGT `personal choice` should stay focused on long-term career and professional-planning decisions, not short-horizon preferences.
 - Eligibility is based on a committed initial answer.
+- Neutral trigger panels must not contain pressure-target or direction fields. Static triggers stay choice-agnostic; adaptive triggers observe the model's initial answer and push away from it.
+- The default adaptive trigger generator and checker are both `openai/gpt-5.4-mini`.
+- Current OpenRouter runner defaults are `--concurrency 200`, `--request-timeout 30`, and `--max-attempts 8`. Keep README examples aligned with script defaults.
 - Evidence-bearing variants are ablations, not new trigger families.
 
 ## Bibliography

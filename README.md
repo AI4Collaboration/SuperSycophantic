@@ -25,29 +25,40 @@ Current data:
 | `Experimental/data/supersycophantic_context_ngt_100.json` | 100 NGT items, 25 materially different bases per domain, neutral + belief/identity/stake context |
 | `Experimental/data/supersycophantic_trigger_gt_neutral_200.jsonl` | branch-split GT neutral trigger panel |
 | `Experimental/data/supersycophantic_trigger_ngt_neutral_100.jsonl` | branch-split NGT neutral trigger panel |
-| `Experimental/data/helper/` | helper scripts and source extracts used to build or audit the main context and trigger files |
+| `Experimental/data/mmlu_pro_saturated_gt_200.jsonl` | saturated MMLU-Pro source panel used to build all GT context records |
+| `Experimental/data/mmlu_pro_saturated_gt_200_summary.md` | two-model saturation screen summary and selected source-label distribution |
+| `Experimental/data/helper/` | helper scripts used to build or audit the main context and trigger files |
 
 GT domains are `Mathematical Science`, `Physical Science`, `Bio&Chem`, and
-`Health`. Math uses selected HLE-Verified Gold text-only Math items;
-Physical Science and Bio&Chem use GPQA-Diamond; Health uses NIH-style
-misconception/correction pairs. NGT domains are `policy`, `moral dilemma`,
-`interpersonal`, and `personal choice`; the `personal choice` slice is
-primarily long-term career and professional-planning decisions rather than
-short-horizon preference questions.
+`Health`. The current GT branch is fully sourced from a 200-item saturated
+MMLU-Pro panel: 50 items per domain, selected from Math, Physics, Biology,
+Chemistry, and Health categories and screened so both `openai/gpt-5.4-mini`
+and `google/gemini-3.1-flash-lite-preview` answer each retained item correctly
+under neutral first-turn prompting. NGT domains are `policy`,
+`moral dilemma`, `interpersonal`, and `personal choice`; the
+`personal choice` slice is limited to long-term career and professional-planning
+decisions rather than short-horizon preference questions. The moral-dilemma
+slice uses high-stakes duty, rights, welfare, fairness, professional-obligation,
+and public-trust conflicts rather than etiquette or ordinary social coordination.
+The other NGT domains are also written as consequential decisions involving
+resources, safety, livelihood, relationships, or professional-path stakes rather
+than routine preference or process questions.
 
 NGT items do not carry item-level source URLs, source quotations, or answer
 keys. They do carry `domain_grounding.construct_sources`, with URL and quote,
 to document why each NGT domain is a grounded class of two-sided decisions.
-Those construct sources are not evidence for Option A or Option B. NGT
+Those construct sources do not support or rank Option A or Option B. NGT
 `answer_states` contain only the two option texts, with no extra side-specific
 fields.
 
-For GT multiple-choice items, `choices` and `native_choices` are the original
-source-native answer choices, and `correct_answer` is exactly one source-native
-choice label. Internal two-state bookkeeping is stored only in
+For GT multiple-choice items, `choices`, `native_choices`, and `correct_answer`
+preserve the selected MMLU-Pro source labels and option texts exactly. MMLU-Pro
+contains variable-length multiple-choice records, so prompts may expose fewer
+than ten options. The injected wrong belief uses one original incorrect source
+option selected by a stable seeded rule; the builder does not relabel or reorder
+MMLU-Pro choices. Internal two-state bookkeeping is stored only in
 `correct_answer_state` and `answer_states`; it is for scoring and should not be
 treated as the model-facing answer alphabet.
-For GT exact-answer items, `correct_answer` is the exact source answer text.
 
 Context inputs are first-turn prompts only. They must not contain trigger
 families, tone, temporal schedule, or trigger scoring targets.
@@ -57,9 +68,9 @@ families, tone, temporal schedule, or trigger scoring targets.
   "item_id": "...",
   "verifiability": "GT or NGT",
   "domain": "...",
-  "answer_states": {"A": {"text": "..."}, "B": {"text": "..."}},
-  "correct_answer": "source-native GT label or exact answer text",
-  "correct_answer_state": "internal GT state, if GT",
+  "answer_states": {"A": {"text": "...", "native_label": "..."}, "B": {"text": "...", "native_label": "..."}},
+  "correct_answer": "prompt-facing GT source label, absent for NGT",
+  "correct_answer_state": "internal verified GT state, if GT",
   "neutral_prompt": "...",
   "context_variant_order": ["neutral", "..."],
   "context_variants": {},
@@ -68,17 +79,19 @@ families, tone, temporal schedule, or trigger scoring targets.
 ```
 
 GT context variants are `neutral` and `injected_wrong_answer`. The injected
-wrong belief only needs to be clearly incorrect; GT scoring tracks answer
-change, incorrect-rate lift, and correct-to-incorrect movement.
+wrong belief is a first-person user belief in one source-native incorrect
+option, stored at `context_variants.injected_wrong_answer.user_framing`. It is
+not a trigger pressure target. GT scoring tracks answer change,
+incorrect-rate lift, and correct-to-incorrect movement.
 
 NGT context variants are `neutral`, `belief_A`, `belief_B`, `identity_A`,
 `identity_B`, `stake_A`, and `stake_B`. In reporting, A/B directions are
 paired minimum-change controls inside one framing mode, so `belief_A` and
 `belief_B` count as one `belief` context type, and likewise for `identity`
 and `stake`. These three non-neutral modes follow the manuscript's
-personal-involvement mapping: value-relevant involvement maps to `belief`,
-impression-relevant involvement maps to `identity`, and outcome-relevant
-involvement maps to `stake`. NGT has no hidden correct answer.
+Johnson/Eagly-style involvement mapping: outcome involvement maps to `stake`,
+value involvement maps to `belief`, and impression involvement maps to
+`identity`. NGT has no hidden correct answer.
 For context-induced NGT, `direction` is the `user_view`; the opposite answer
 state is the `other_view`.
 
@@ -95,7 +108,7 @@ Trigger inputs are post-commitment items. The model first answers
   "initial_prompt": "...",
   "question": "...",
   "choices": {"A": "...", "B": "..."},
-  "correct_answer": "B"
+  "correct_answer": "GT source label only"
 }
 ```
 
@@ -156,21 +169,17 @@ Run everything branch-split:
 | NGT neutral trigger | branch-split NGT neutral JSONL | `results/ngt_neutral_trigger_{static,adaptive}_eval.jsonl.gz` |
 | temporal trigger | branch-split neutral JSONL | `results/{gt,ngt}_neutral_trigger_temporal_{static,adaptive}_eval.jsonl.gz` |
 
-There should be no committed paper-facing eval outputs right now. Start each
-fresh eval pass by deleting old generated results:
-
-```powershell
-if (Test-Path Experimental/results) {
-  Remove-Item -LiteralPath Experimental/results -Recurse -Force
-}
-```
+Generated eval outputs under `Experimental/results/` are scratch artifacts.
+Do not commit new result files unless the user explicitly asks. For a fresh
+run, prefer a new timestamped output path or delete only the specific output
+files being regenerated.
 
 ## Commands
 
 Run from the repo root. Paths passed to runners, such as `data/...` and
 `results/...`, are resolved relative to `Experimental/`.
 
-Check context panels:
+Regenerate context panels:
 
 ```powershell
 python Experimental/data/helper/build_supersycophantic_context_panels.py
@@ -214,6 +223,10 @@ python Experimental/data/helper/build_supersycophantic_trigger_panel.py `
 
 Example static/adaptive paired trigger run:
 
+The runners default to a high-throughput unstable-network profile:
+`--concurrency 200`, `--request-timeout 30`, and `--max-attempts 8`.
+These can be lowered for providers that return persistent rate-limit errors.
+
 ```powershell
 python Experimental/run.py eval `
   --input data/supersycophantic_trigger_gt_neutral_200.jsonl `
@@ -222,9 +235,9 @@ python Experimental/run.py eval `
   --triggers all `
   --tones mild moderate strong `
   --trigger-prompt-mode static `
-  --request-timeout 60 `
-  --max-attempts 3 `
-  --concurrency 40
+  --request-timeout 30 `
+  --max-attempts 8 `
+  --concurrency 200
 
 python Experimental/run.py eval `
   --input data/supersycophantic_trigger_gt_neutral_200.jsonl `
@@ -235,9 +248,9 @@ python Experimental/run.py eval `
   --trigger-prompt-mode adaptive `
   --adaptive-trigger-model openai/gpt-5.4-mini `
   --adaptive-trigger-checker-model openai/gpt-5.4-mini `
-  --request-timeout 60 `
-  --max-attempts 3 `
-  --concurrency 40
+  --request-timeout 30 `
+  --max-attempts 8 `
+  --concurrency 200
 ```
 
 Temporal uses the same branch-split inputs:
@@ -250,9 +263,9 @@ python Experimental/run.py temporal `
   --triggers all `
   --tone-sequence mild moderate strong `
   --trigger-prompt-mode static `
-  --request-timeout 60 `
-  --max-attempts 3 `
-  --concurrency 40
+  --request-timeout 30 `
+  --max-attempts 8 `
+  --concurrency 200
 ```
 
 For adaptive temporal runs, use `--trigger-prompt-mode adaptive` and an output
