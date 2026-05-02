@@ -5,15 +5,19 @@ Paper-first repo for the SuperSycophantic benchmark. Manuscript files live in
 
 ## Models To Run
 
-Paper-facing runs use two models from each target family:
+Paper-facing runs use the current eight-endpoint panel:
 
 | family | models |
 | --- | --- |
-| OpenAI | `openai/gpt-5.4`, `openai/gpt-5.4-mini` |
-| Claude | `anthropic/claude-opus-4.6`, `anthropic/claude-sonnet-4.6` |
-| Gemini | `google/gemini-3.1-pro-preview`, `google/gemini-3.1-flash-lite-preview` |
-| DeepSeek | `deepseek/deepseek-v4-flash`, `deepseek/deepseek-v4-pro` |
-| Kimi | `moonshotai/kimi-k2.6`, `moonshotai/kimi-k2.5` |
+| OpenAI | `openai/gpt-5.4`, `openai/gpt-5.4-mini`, `openai/gpt-5.4-nano` |
+| Claude | `anthropic/claude-opus-4.7`, `anthropic/claude-haiku-4.5` |
+| Gemini | `google/gemini-3.1-flash-lite-preview` |
+| DeepSeek | `deepseek/deepseek-v4-flash` |
+| xAI | `x-ai/grok-4.1-fast` |
+
+OpenAI is the within-family scale comparison; Claude includes both a strongest
+representative and a fast representative. The other families use one fast,
+stable representative endpoint.
 
 ## Data And Input Templates
 
@@ -25,17 +29,17 @@ Current data:
 | `Experimental/data/supersycophantic_context_ngt_100.json` | 100 NGT items, 25 materially different bases per domain, neutral + belief/identity/stake context |
 | `Experimental/data/supersycophantic_trigger_gt_neutral_200.jsonl` | branch-split GT neutral trigger panel |
 | `Experimental/data/supersycophantic_trigger_ngt_neutral_100.jsonl` | branch-split NGT neutral trigger panel |
-| `Experimental/data/mmlu_pro_saturated_gt_200.jsonl` | MMLU-Pro source panel selected by saturated screening and used to build all GT context records |
+| `Experimental/data/supersycophantic_mixed_gt_200_candidate.jsonl` | mixed GT source panel with 25 MMLU-Pro and 25 HLE-Verified items per domain |
+| `Experimental/data/mmlu_pro_saturated_gt_200.jsonl` | MMLU-Pro source pool used for the MMLU half of the mixed GT panel |
 | `Experimental/data/mmlu_pro_saturated_gt_200_summary.md` | saturated screening summary and selected source-label distribution |
 | `Experimental/data/helper/` | helper scripts used to build or audit the main context and trigger files |
 
-GT domains are `Mathematical Science`, `Physical Science`, `Bio&Chem`, and
-`Health`. The current GT branch is fully sourced from a 200-item MMLU-Pro
-panel selected by saturated screening: 50 items per domain, drawn from
-Math, Physics, Biology, Chemistry, and Health categories and screened so both `openai/gpt-5.4-mini`
-and `google/gemini-3.1-flash-lite-preview` answer each retained item correctly
-under a source-style neutral first-turn screening prompt. Final benchmark-prompt
-Pass@1 is re-estimated separately. NGT domains are `policy`,
+GT domains are `Mathematical Science`, `Physical Science`, `Chemical Science`, and
+`Biomedical Science`. The current GT branch uses a 200-item mixed panel: in each
+domain, 25 items come from MMLU-Pro and 25 come from HLE-Verified. The panel is
+selected by saturated screening so both `openai/gpt-5.4-mini` and
+`google/gemini-3.1-flash-lite-preview` answer each retained item correctly under
+a source-style neutral first-turn screening prompt. Final benchmark-prompt Pass@1 is re-estimated separately. NGT domains are `policy`,
 `moral dilemma`, `interpersonal`, and `personal choice`; the
 `personal choice` slice is limited to long-term career and professional-planning
 decisions rather than short-horizon preference questions. The moral-dilemma
@@ -53,13 +57,10 @@ Those construct sources do not support or rank Option A or Option B. NGT
 fields.
 
 For GT multiple-choice items, `choices`, `native_choices`, and `correct_answer`
-preserve the selected MMLU-Pro source labels and option texts exactly. MMLU-Pro
-contains variable-length multiple-choice records, so prompts may expose fewer
-than ten options. The injected wrong belief uses one original incorrect source
-option selected by a stable seeded rule; the builder does not relabel or reorder
-MMLU-Pro choices. Internal two-state bookkeeping is stored only in
-`correct_answer_state` and `answer_states`; it is for scoring and should not be
-treated as the model-facing answer alphabet.
+carry the prompt-facing answer fields used by the runner. The injected wrong
+belief uses one original incorrect option selected by a stable seeded rule.
+Internal two-state bookkeeping is stored only in `correct_answer_state` and
+`answer_states`; these fields are for scoring rather than prompt construction.
 
 Context inputs are first-turn prompts only. They must not contain trigger
 families, tone, temporal schedule, or trigger scoring targets.
