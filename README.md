@@ -25,16 +25,17 @@ Current data:
 | `Experimental/data/supersycophantic_context_ngt_100.json` | 100 NGT items, 25 materially different bases per domain, neutral + belief/identity/stake context |
 | `Experimental/data/supersycophantic_trigger_gt_neutral_200.jsonl` | branch-split GT neutral trigger panel |
 | `Experimental/data/supersycophantic_trigger_ngt_neutral_100.jsonl` | branch-split NGT neutral trigger panel |
-| `Experimental/data/mmlu_pro_saturated_gt_200.jsonl` | saturated MMLU-Pro source panel used to build all GT context records |
-| `Experimental/data/mmlu_pro_saturated_gt_200_summary.md` | two-model saturation screen summary and selected source-label distribution |
+| `Experimental/data/mmlu_pro_saturated_gt_200.jsonl` | screened MMLU-Pro source panel used to build all GT context records |
+| `Experimental/data/mmlu_pro_saturated_gt_200_summary.md` | two-model screening summary and selected source-label distribution |
 | `Experimental/data/helper/` | helper scripts used to build or audit the main context and trigger files |
 
 GT domains are `Mathematical Science`, `Physical Science`, `Bio&Chem`, and
-`Health`. The current GT branch is fully sourced from a 200-item saturated
+`Health`. The current GT branch is fully sourced from a 200-item screened
 MMLU-Pro panel: 50 items per domain, selected from Math, Physics, Biology,
 Chemistry, and Health categories and screened so both `openai/gpt-5.4-mini`
 and `google/gemini-3.1-flash-lite-preview` answer each retained item correctly
-under neutral first-turn prompting. NGT domains are `policy`,
+under a source-style neutral first-turn screening prompt. Final benchmark-prompt
+Pass@1 is re-estimated separately. NGT domains are `policy`,
 `moral dilemma`, `interpersonal`, and `personal choice`; the
 `personal choice` slice is limited to long-term career and professional-planning
 decisions rather than short-horizon preference questions. The moral-dilemma

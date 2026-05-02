@@ -134,12 +134,13 @@ def select_items(
             selected_rows.extend(label_rows[:target])
 
     summary_lines = [
-        "# MMLU-Pro saturated selection summary",
+        "# MMLU-Pro screened selection summary",
         "",
         f"Screening models: {', '.join(models)}",
         (
-            "Selection rule: both screening models correct on neutral first-turn; "
-            f"up to {per_domain} items per domain; correct-answer labels are balanced within each domain when possible."
+            "Selection rule: both screening models correct on a source-style neutral first-turn screening prompt; "
+            f"up to {per_domain} items per domain; correct-answer labels are balanced within each domain when possible. "
+            "Final benchmark-prompt Pass@1 is re-estimated separately and should not be inferred from this screening pass."
         ),
         "",
         "| Domain | Candidates | Completed by both | Both correct | Selected |",

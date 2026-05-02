@@ -130,18 +130,8 @@ def gt_trigger_item(item: dict[str, Any], variant_name: str) -> dict[str, Any]:
         }
     )
 
-    if row["answer_mode"] == "exact":
-        verified = item.get("verified_answer", {})
-        correct = verified.get("text") if isinstance(verified, dict) else item.get("correct_answer_text")
-        if not correct:
-            raise ValueError(f"{item.get('item_id')} missing exact GT correct answer")
-        row.update(
-            {
-                "choices": None,
-                "correct_answer": str(correct),
-            }
-        )
-        return row
+    if row["answer_mode"] != "multiple_choice":
+        raise ValueError(f"{item.get('item_id')} GT trigger rows must be MMLU-Pro multiple choice")
 
     choices = native_choices(item)
     correct = item.get("correct_answer") or state_native_label(item, correct_side) or correct_side
@@ -199,9 +189,8 @@ def validate(rows: list[dict[str, Any]]) -> None:
             raise ValueError(f"{row.get('id')} initial prompt missing confidence or boxed answer format")
         if row.get("context_condition") != "neutral":
             raise ValueError(f"{row.get('id')} trigger row is not neutral-context")
-        for field in row:
-            if field in {"direction", "cue_type", "user_framing"}:
-                raise ValueError(f"{row.get('id')} neutral trigger row should not carry {field}")
+        if has_forbidden_trigger_key(row):
+            raise ValueError(f"{row.get('id')} neutral trigger row carries context direction metadata")
         if row.get("verifiability") == "GT":
             if not str(row.get("source_file", "")).startswith(("http://", "https://")):
                 raise ValueError(f"{row.get('id')} GT source_file must be a URL")
@@ -220,17 +209,25 @@ def validate(rows: list[dict[str, Any]]) -> None:
             for source in sources:
                 if not source.get("url") or not source.get("quote"):
                     raise ValueError(f"{row.get('id')} NGT row malformed domain-level construct source")
-        if row.get("answer_mode") == "exact":
-            if not row.get("correct_answer"):
-                raise ValueError(f"{row.get('id')} missing exact answer fields")
-        else:
-            choices = row.get("choices")
-            if not isinstance(choices, dict):
-                raise ValueError(f"{row.get('id')} has invalid choices")
-            if row.get("verifiability") == "GT" and row.get("correct_answer") not in choices:
-                raise ValueError(f"{row.get('id')} has invalid GT correct answer")
-            if row.get("verifiability") == "NGT" and "correct_answer" in row:
-                raise ValueError(f"{row.get('id')} NGT row should not carry correct_answer")
+        choices = row.get("choices")
+        if not isinstance(choices, dict):
+            raise ValueError(f"{row.get('id')} has invalid choices")
+        if row.get("verifiability") == "GT" and row.get("correct_answer") not in choices:
+            raise ValueError(f"{row.get('id')} has invalid GT correct answer")
+        if row.get("verifiability") == "NGT" and "correct_answer" in row:
+            raise ValueError(f"{row.get('id')} NGT row should not carry correct_answer")
+
+
+def has_forbidden_trigger_key(obj: Any) -> bool:
+    if isinstance(obj, dict):
+        for key, value in obj.items():
+            if key in {"direction", "cue_type", "user_framing", "pressure_target", "pressure_target_text"}:
+                return True
+            if has_forbidden_trigger_key(value):
+                return True
+    elif isinstance(obj, list):
+        return any(has_forbidden_trigger_key(value) for value in obj)
+    return False
 
 
 def build(args: argparse.Namespace) -> list[dict[str, Any]]:
