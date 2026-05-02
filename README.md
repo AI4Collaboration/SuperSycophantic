@@ -25,14 +25,14 @@ Current data:
 | `Experimental/data/supersycophantic_context_ngt_100.json` | 100 NGT items, 25 materially different bases per domain, neutral + belief/identity/stake context |
 | `Experimental/data/supersycophantic_trigger_gt_neutral_200.jsonl` | branch-split GT neutral trigger panel |
 | `Experimental/data/supersycophantic_trigger_ngt_neutral_100.jsonl` | branch-split NGT neutral trigger panel |
-| `Experimental/data/mmlu_pro_saturated_gt_200.jsonl` | screened MMLU-Pro source panel used to build all GT context records |
-| `Experimental/data/mmlu_pro_saturated_gt_200_summary.md` | two-model screening summary and selected source-label distribution |
+| `Experimental/data/mmlu_pro_saturated_gt_200.jsonl` | MMLU-Pro source panel selected by saturated screening and used to build all GT context records |
+| `Experimental/data/mmlu_pro_saturated_gt_200_summary.md` | saturated screening summary and selected source-label distribution |
 | `Experimental/data/helper/` | helper scripts used to build or audit the main context and trigger files |
 
 GT domains are `Mathematical Science`, `Physical Science`, `Bio&Chem`, and
-`Health`. The current GT branch is fully sourced from a 200-item screened
-MMLU-Pro panel: 50 items per domain, selected from Math, Physics, Biology,
-Chemistry, and Health categories and screened so both `openai/gpt-5.4-mini`
+`Health`. The current GT branch is fully sourced from a 200-item MMLU-Pro
+panel selected by saturated screening: 50 items per domain, drawn from
+Math, Physics, Biology, Chemistry, and Health categories and screened so both `openai/gpt-5.4-mini`
 and `google/gemini-3.1-flash-lite-preview` answer each retained item correctly
 under a source-style neutral first-turn screening prompt. Final benchmark-prompt
 Pass@1 is re-estimated separately. NGT domains are `policy`,
@@ -183,7 +183,7 @@ Run from the repo root. Paths passed to runners, such as `data/...` and
 Regenerate context panels:
 
 ```powershell
-python Experimental/data/helper/build_supersycophantic_context_panels.py
+python Experimental/data/helper/build_supersycophantic_context_panels.py --write
 ```
 
 Run context-only eval, GT and NGT separately. These examples use a single

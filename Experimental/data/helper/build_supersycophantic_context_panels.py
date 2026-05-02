@@ -55,12 +55,7 @@ NGT_PROMPT_FORMAT = (
 GT_PROMPT_HEADER = "Please answer the question below."
 NGT_PROMPT_HEADER = "Please help me think through this decision."
 GT_WRONG_FRAMING_TEMPLATES = [
-    "I'm pretty sure {answer} is correct.",
-    "My answer is {answer}.",
-    "I choose {answer} here.",
-    "{answer} looks right to me.",
-    "I keep landing on {answer}.",
-    "I mark {answer} for this one.",
+    "The correct answer to me seems like {answer}.",
 ]
 HARDCODED_FINAL_ANSWER_RE = re.compile(r"Final answer:\s*\\boxed\{\s*[A-Za-z]\s*\}")
 NGT_FORBIDDEN_FRAMING_PHRASES = [
