@@ -2,80 +2,62 @@
 
 ## Repo
 
-- This is a paper-first LaTeX repository.
-- Most work should be direct manuscript editing.
-- Keep edits narrow and follow the existing LaTeX structure.
-- When the user says to update Overleaf, treat that as updating the local LaTeX source files in this repo, not as requiring a separate Overleaf remote.
+- This is a paper-first LaTeX repository. Default to narrow manuscript edits that follow the existing structure.
+- Treat "update Overleaf" as updating this local repo and then pushing to the Overleaf Git remote.
+- Do not revert or stage unrelated dirty changes. This repo often has uncommitted experiment/data work in progress.
 
-## Git
+## Git And Push
 
-- Remote: `origin` -> `https://github.com/AI4Collaboration/SuperSycophantic.git`
-- Overleaf remote: `overleaf` -> `https://git@git.overleaf.com/695e4c8c6d5ea6c90a2bb506`
-- Default branch: `main`
-- Pull from `origin/main` before new work after a long gap.
-- If the user says `push`, commit and push directly to `origin/main` unless they ask for a branch or partial push, then push the same commit to Overleaf with `git push overleaf main:master`.
-- If Overleaf rejects the first push because its `master` has unrelated history, do not force-push unless the user explicitly confirms replacing the Overleaf remote history.
-- Before committing, check the intended file list. Do not include accidental build outputs or unrelated binary changes.
-- If normal HTTPS push is reset, retry with:
+- GitHub remote: `origin` -> `https://github.com/AI4Collaboration/SuperSycophantic.git`, branch `main`.
+- Overleaf remote: `overleaf` -> `https://git@git.overleaf.com/695e4c8c6d5ea6c90a2bb506`, branch `master`.
+- Pull/fetch `origin/main` before new work after a gap. Fetch `overleaf/master` before publishing if Overleaf may have changed.
+- When the user says `push`, stage only the intended files, commit, then push the same commit to both remotes:
+  - `git push origin main`
+  - `git push overleaf main:master`
+- After pushing, verify local `HEAD`, `origin/main`, and `overleaf/master` resolve to the same commit. Do not force-push unless the user explicitly asks.
+- If GitHub HTTPS push is reset, retry with HTTP/1.1:
   `git -c http.version=HTTP/1.1 -c http.postBuffer=524288000 -c http.lowSpeedLimit=0 -c http.lowSpeedTime=999999 push origin main`
-- If HTTPS still fails, use:
-  `git push git@github.com:AI4Collaboration/SuperSycophantic.git main:main`
 
-## Do Not Compile Locally
+## LaTeX
 
-- Do not run `latexmk`, `pdflatex`, `bibtex`, or any local LaTeX build command unless the user explicitly asks.
-- Do not create, remove, or clean build artifacts unless the user explicitly asks.
-- Verify manuscript edits with text checks, git diff, and file references by default.
+- Do not run `latexmk`, `pdflatex`, `bibtex`, or other local LaTeX builds unless the user explicitly asks.
+- Verify manuscript edits with text checks, targeted diffs, and file references.
+- Do not edit `neurips_2026.sty` or `neurips_checklist.tex` unless asked.
+- Avoid em-dashes and LaTeX `---` in manuscript prose. Avoid footnote-style source dumps in the main text.
 
 ## Main Files
 
-- `main.tex`: top-level entry point
-- `sections/0-main.tex`: main paper assembly and Figure 2
-- `sections/1-Intro.tex`: abstract and introduction
-- `sections/2-RelatedWork.tex`: related work
-- `sections/3-Method.tex`: benchmark design, evaluation, results draft
-- `sections/appendix.tex`: appendix methods, source notes, annotation details
-- `tables/BenchScope.tex`: benchmark comparison table
-- `main.bib`: bibliography
+- `main.tex`: top-level entry point.
+- `sections/0-main.tex`: main paper assembly and Figure 2.
+- `sections/1-Intro.tex`: abstract, Figure 1, and introduction.
+- `sections/2-RelatedWork.tex`, `sections/3-Method.tex`, `sections/appendix.tex`: core manuscript text.
+- `tables/BenchScope.tex`, `main.bib`: benchmark table and bibliography.
+- Figure 1 is `images/Figure1.pdf`; Figure 2 is `images/Figure2.pdf`. Do not recreate Figure 2 SVG or PNG previews unless asked.
 
-## Figures
+## Current Benchmark Contract
 
-- Figure 1: `images/Figure1.pdf`, referenced from `sections/1-Intro.tex`.
-- Keep Figure 1 between the abstract and the Introduction in `sections/1-Intro.tex`.
-- Figure 2: use `images/Figure2.pdf`, referenced from `sections/0-main.tex`.
-- Figure 2 has no SVG source in the repo now. Do not recreate `images/Figure2.svg` unless the user asks.
-- If Figure 2 needs to look flatter, adjust the TeX wrapper in `sections/0-main.tex`, for example with `\scalebox{1}[...]`.
-- Do not keep repo PNG previews for Figure 2 unless the user asks.
+- Keep GT and NGT separate in data, templates, scoring, and claims.
+- GT: 200 base items across Mathematical, Physical, Chemical, and Biomedical Science. Each domain has 25 MMLU-Pro and 25 HLE-Verified items. GT records must keep source URL, source quote, source-native or documented converted choices, verified answer, and a plausible tracked wrong answer.
+- NGT: 100 base decisions, 25 each from policy trade-off, high-stakes moral dilemma, consequential interpersonal relation, and personal choice. Personal choice means long-term career or professional-planning decisions. NGT has two defensible answer states, no hidden correct answer, no item-level source answer, and only domain-level construct grounding.
+- Context-framing accounting is balanced at 400 cells per branch: GT is 200 base items times neutral/injected-wrong-answer; NGT is 100 base decisions times neutral/belief/identity/stake. A/B direction is only a minimum-change balancing control, not an additional framing type.
+- Trigger taxonomy: seven Cialdini families plus a simple baseline, each with mild/moderate/strong tones. Trigger inputs use neutral first-turn context only.
+- Static and adaptive trigger runs are separate modes and should not be pooled. Neutral trigger panels must not contain pressure-target or direction fields. Static triggers are choice-agnostic; adaptive triggers observe the initial answer and are validated by an LM checker before use.
+- GT trigger outcomes support truth-preservation/truth-departure claims. NGT trigger outcomes support Flip-Flop or pressure-accommodation claims, never accuracy claims.
+- Every assistant utterance should include confidence. Follow-up turns should also ask for a change reason, using `N/A` when the answer does not change.
+- Current runner defaults live in `Experimental/run.py`: adaptive generator/checker `openai/gpt-5.4-mini`, concurrency `200`, request timeout `30`, and max attempts `8`. Keep README examples, manuscript wording, and scripts aligned if these change.
 
-## Manuscript Rules
+## Current Data Files
 
-- Default to text-only edits.
-- Do not edit `neurips_2026.sty` or `neurips_checklist.tex` unless asked.
-- Keep main-text source notes concise. Put detailed URLs and source examples in the appendix.
-- Avoid em-dashes and LaTeX `---` in manuscript prose; use commas, semicolons, parentheses, or sentence breaks instead.
-- Avoid footnote-based source dumps in the main text.
-- If a methodological decision changes, keep abstract, intro, method, appendix, and affected tables consistent.
-- Watch for stale placeholder text, especially in appendix and tables.
-
-## Benchmark Conventions
-
-- Core trigger taxonomy: seven trigger families based on Cialdini's weapons of influence plus a simple baseline.
-- Primary endpoint: answer change under unsupported pressure.
-- The current main-text and paper-facing GT experiment uses MMLU-Pro as the sole GT source.
-- Do not introduce older non-MMLU validation sources unless the user explicitly asks for a separate validation experiment.
-- Preserve MMLU-Pro prompt-facing labels and option text exactly. Do not reshuffle labels or rebalance displayed answer positions unless the user explicitly asks.
-- GT injected false-belief context uses a source-native incorrect option. Do not treat it as a trigger pressure target.
-- GT supports truth preservation and truth-departure analysis.
-- NGT supports pressure alignment and switching between defensible answer states, not accuracy claims.
-- NGT framing follows the Johnson/Eagly involvement mapping used in the manuscript: outcome involvement maps to `stake`, value involvement maps to `belief`, and impression involvement maps to `identity`.
-- NGT `personal choice` should stay focused on long-term career and professional-planning decisions, not short-horizon preferences.
-- Eligibility is based on a committed initial answer.
-- Neutral trigger panels must not contain pressure-target or direction fields. Static triggers stay choice-agnostic; adaptive triggers observe the model's initial answer and push away from it.
-- The default adaptive trigger generator and checker are both `openai/gpt-5.4-mini`.
-- Current OpenRouter runner defaults are `--concurrency 200`, `--request-timeout 30`, and `--max-attempts 8`. Keep README examples aligned with script defaults.
-- Evidence-bearing variants are ablations, not new trigger families.
+- `Experimental/data/supersycophantic_context_gt_200.json`
+- `Experimental/data/supersycophantic_context_ngt_100.json`
+- `Experimental/data/supersycophantic_trigger_gt_neutral_200.jsonl`
+- `Experimental/data/supersycophantic_trigger_ngt_neutral_100.jsonl`
+- `Experimental/data/supersycophantic_mixed_gt_200_candidate.jsonl`
+- `Experimental/data/mmlu_pro_saturated_gt_200.jsonl`
+- `Experimental/data/hle_verified/data/Gold_subset.*.parquet`
+- `Experimental/data/hle_verified/data/Revision_subset.*.parquet`
 
 ## Bibliography
 
-- Add new BibTeX entries only from arXiv or DBLP.
-- Verify authors, title, venue or journal, year, identifier, and links before adding a bibliography entry.
+- Add BibTeX entries only from arXiv or DBLP.
+- Verify authors, title, venue or journal, year, identifier, and links before adding bibliography entries.
