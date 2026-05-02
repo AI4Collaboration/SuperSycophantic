@@ -138,8 +138,8 @@ The reviewers of your paper will be asked to use the checklist as one of the fac
 
 \item {\bf Experiments compute resources}
     \item[] Question: For each experiment, does the paper provide sufficient information on the computer resources (type of compute workers, memory, time of execution) needed to reproduce the experiments?
-    \item[] Answer: \answerTODO{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
-    \item[] Justification: \justificationTODO{}
+    \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+    \item[] Justification: All experiments are conducted via API calls through OpenRouter; no local GPU or cluster compute is used. The exact model identifiers, decoding settings, and evaluation dates are logged per run and listed in Appendix~\ref{app:models}.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer \answerNA{} means that the paper does not include experiments.
@@ -221,7 +221,7 @@ The reviewers of your paper will be asked to use the checklist as one of the fac
     Annotators are compensated with mid-authorship on the paper rather than a
     wage; we confirm this exceeds any minimum-wage obligation since it constitutes
     academic credit rather than employment. Annotation guidelines and the consent
-    form are provided in Appendix~\ref{app:annotation}. No screenshots are
+    form are provided in Appendix~\ref{app:irb}. No screenshots are
     applicable as the annotation interface is a standard document review process.
     \item[] Guidelines:
     \begin{itemize}
@@ -237,7 +237,7 @@ The reviewers of your paper will be asked to use the checklist as one of the fac
     constitutes an expert-informant survey with no compensation, no experimental
     manipulation, and no deception. We obtain informed consent via a study consent
     form, ensure GDPR-compliant data handling, and collect no personally identifying
-    information. See the Ethics Statement in Appendix~\ref{app:ethics}.
+    information. See the Ethics Statement in Appendix~\ref{app:irb}.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer \answerNA{} means that the paper does not involve crowdsourcing nor research with human subjects.
@@ -249,8 +249,13 @@ The reviewers of your paper will be asked to use the checklist as one of the fac
 \item {\bf Declaration of LLM usage}
     \item[] Question: Does the paper describe the usage of LLMs if it is an important, original, or non-standard component of the core methods in this research? Note that if the LLM is used only for writing, editing, or formatting purposes and does \emph{not} impact the core methodology, scientific rigor, or originality of the research, declaration is not required.
     %this research? 
-    \item[] Answer: \answerTODO{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
-    \item[] Justification: \justificationTODO{}
+    \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+    \item[] Justification: LLMs are a core methodological component in two respects.
+    First, we employ an LLM-as-a-judge paradigm to evaluate model outputs for
+    sycophantic behavior; the full judge prompt template is provided in
+    Appendix~\ref{app:judge-prompt}. Second, the eight models listed in
+    Appendix~\ref{app:models} serve as evaluation subjects whose responses
+    constitute the primary data.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer \answerNA{} means that the core method development in this research does not involve LLMs as any important, original, or non-standard components.
