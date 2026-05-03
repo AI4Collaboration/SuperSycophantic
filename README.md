@@ -31,7 +31,7 @@ Current data:
 | `Experimental/data/supersycophantic_trigger_ngt_neutral_100.jsonl` | branch-split NGT neutral trigger panel |
 | `Experimental/data/supersycophantic_mixed_gt_200_candidate.jsonl` | mixed GT source panel with 25 MMLU-Pro and 25 HLE-Verified items per domain |
 | `Experimental/data/mmlu_pro_saturated_gt_200.jsonl` | MMLU-Pro source pool used for the MMLU half of the mixed GT panel |
-| `Experimental/data/mmlu_pro_saturated_gt_200_summary.md` | saturated screening summary and selected source-label distribution |
+| `Experimental/data/hle_verified/data/Gold_subset.*.parquet`, `Revision_subset.*.parquet` | local HLE-Verified cache used for the HLE half of the mixed GT panel |
 | `Experimental/data/helper/` | helper scripts used to build or audit the main context and trigger files |
 
 GT domains are `Mathematical Science`, `Physical Science`, `Chemical Science`, and
@@ -49,14 +49,14 @@ The other NGT domains are also written as consequential decisions involving
 resources, safety, livelihood, relationships, or professional-path stakes rather
 than routine preference or process questions.
 
-NGT items do not carry item-level source URLs, source quotations, or answer
-keys. They do carry `domain_grounding.construct_sources`, with URL and quote,
-to document why each NGT domain is a grounded class of two-sided decisions.
-Those construct sources do not support or rank Option A or Option B. NGT
-`answer_states` contain only the two option texts, with no extra side-specific
-fields.
+NGT items do not carry item-level source URLs, source quotations, answer keys,
+or construction-review fields. The public context records store only the
+scenario, the two answer states, and the natural framing variants needed for
+evaluation. Domain-level construct grounding and no-hidden-answer checks are
+documented in the appendix as curation requirements rather than repeated in
+every eval row.
 
-For GT multiple-choice items, `choices`, `native_choices`, and `correct_answer`
+For GT multiple-choice items, `choices` and `correct_answer`
 carry the prompt-facing answer fields used by the runner. The injected wrong
 belief uses one original incorrect option selected by a stable seeded rule.
 Internal two-state bookkeeping is stored only in `correct_answer_state` and
@@ -67,16 +67,14 @@ families, tone, temporal schedule, or trigger scoring targets.
 
 ```json
 {
-  "item_id": "...",
+  "id or item_id": "...",
   "verifiability": "GT or NGT",
   "domain": "...",
   "answer_states": {"A": {"text": "...", "native_label": "..."}, "B": {"text": "...", "native_label": "..."}},
   "correct_answer": "prompt-facing GT source label, absent for NGT",
   "correct_answer_state": "internal verified GT state, if GT",
-  "neutral_prompt": "...",
   "context_variant_order": ["neutral", "..."],
-  "context_variants": {},
-  "response_template": "Reasoning process: ...\nConfidence: <1-5>\nFinal answer: \\boxed{...}"
+  "context_variants": {}
 }
 ```
 
@@ -103,10 +101,7 @@ Trigger inputs are post-commitment items. The model first answers
 ```json
 {
   "id": "...",
-  "source": "source context item id",
   "verifiability": "GT or NGT",
-  "context_condition": "neutral",
-  "context_variant": "neutral",
   "initial_prompt": "...",
   "question": "...",
   "choices": {"A": "...", "B": "..."},
@@ -175,6 +170,25 @@ Generated eval outputs under `Experimental/results/` are scratch artifacts.
 Do not commit new result files unless the user explicitly asks. For a fresh
 run, prefer a new timestamped output path or delete only the specific output
 files being regenerated.
+
+All eval prompts require a visible `Reasoning process`, `Confidence: <1-5>`,
+and boxed final answer. Result rows retain the full visible model trace in
+`response_text` or `first_response_text`/`second_response_text`; trigger
+follow-ups and adaptive generator/checker traces are stored separately. The
+runners keep returned finish reasons, model/provider identifiers, usage,
+logprobs, and any returned reasoning fields in `response_metadata` fields.
+Logprob capture defaults to `OPENROUTER_LOGPROBS=auto`: the runner queries
+OpenRouter's `/api/v1/models` `supported_parameters` list and requests
+`logprobs` only for models that advertise support, with `top_logprobs=5` added
+only when `top_logprobs` is also advertised. When final-answer token logprobs
+are returned, the runner stores a `programmatic_confidence` object with the
+answer-token logprob, probability, observed top-label probabilities, and margin.
+Set `OPENROUTER_LOGPROBS=force` to request logprobs regardless of model-directory
+support, `OPENROUTER_LOGPROBS=0` to disable them, or
+`OPENROUTER_REQUIRE_LOGPROBS=1` when intentionally probing only providers that
+support the requested logprob parameters. If a provider rejects the optional
+logprob parameters during a normal run, the request is retried without logprobs
+and the fallback is recorded in `_request_metadata`.
 
 ## Commands
 

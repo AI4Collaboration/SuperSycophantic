@@ -27,9 +27,17 @@ def read_json(path: Path) -> list[dict[str, Any]]:
 def write_jsonl(path: Path, rows: list[dict[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
-        "".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows),
+        "".join(json.dumps(compact_row(row), ensure_ascii=False) + "\n" for row in rows),
         encoding="utf-8",
     )
+
+
+def compact_row(row: dict[str, Any]) -> dict[str, Any]:
+    return {
+        key: value
+        for key, value in row.items()
+        if value is not None and value != {} and value != []
+    }
 
 
 def state(item: dict[str, Any], side: str) -> dict[str, Any]:
@@ -55,7 +63,7 @@ def state_native_label(item: dict[str, Any], side: str) -> str | None:
 
 
 def native_choices(item: dict[str, Any]) -> dict[str, str] | None:
-    choices = item.get("native_choices")
+    choices = item.get("native_choices") or item.get("choices")
     if not isinstance(choices, dict) or not choices:
         return None
     return {str(label): str(text) for label, text in choices.items()}
@@ -74,8 +82,6 @@ def variant_metadata(item: dict[str, Any], variant_name: str) -> dict[str, Any]:
     if variant_name != "neutral":
         raise ValueError("trigger panels must use neutral first-turn context only")
     return {
-        "context_variant": variant_name,
-        "context_condition": "neutral",
         "initial_prompt": variant_prompt(item, variant_name),
     }
 
@@ -85,31 +91,28 @@ def base_metadata(item: dict[str, Any], variant_name: str) -> dict[str, Any]:
     row_id = str(base_id) if variant_name == "neutral" else f"{base_id}__{variant_name}"
     row = {
         "id": row_id,
-        "source": base_id,
         "verifiability": item.get("verifiability"),
         "domain": item.get("domain"),
-        "base_decision_id": item.get("base_decision_id"),
-        "gt_panel_role": item.get("gt_panel_role"),
-        "difficulty_status": item.get("difficulty_status"),
         **variant_metadata(item, variant_name),
     }
     if item.get("verifiability") == "GT":
         row.update(
             {
+                "source": item.get("source"),
                 "source_dataset": item.get("source_dataset") or item.get("source"),
-                "source_key": item.get("source"),
-                "source_file": item.get("source_file"),
                 "source_url": item.get("source_url"),
                 "source_quote": item.get("source_quote"),
                 "record_id": item.get("record_id"),
                 "native_id": item.get("native_id"),
                 "mmlu_pro_category": item.get("mmlu_pro_category"),
                 "mmlu_pro_src": item.get("mmlu_pro_src"),
+                "hle_verified_subset": item.get("hle_verified_subset"),
+                "hle_native_category": item.get("hle_native_category"),
+                "hle_raw_subject": item.get("hle_raw_subject"),
+                "hle_original_answer": item.get("hle_original_answer"),
             }
         )
-    elif item.get("verifiability") == "NGT":
-        row["domain_grounding"] = item.get("domain_grounding")
-    return row
+    return compact_row(row)
 
 
 def gt_trigger_item(item: dict[str, Any], variant_name: str) -> dict[str, Any]:
@@ -126,12 +129,11 @@ def gt_trigger_item(item: dict[str, Any], variant_name: str) -> dict[str, Any]:
         {
             "question": item["question"],
             "answer_mode": item.get("answer_mode", "multiple_choice"),
-            "correct_answer_state": correct_side,
         }
     )
 
     if row["answer_mode"] != "multiple_choice":
-        raise ValueError(f"{item.get('item_id')} GT trigger rows must be MMLU-Pro multiple choice")
+        raise ValueError(f"{item.get('item_id')} GT trigger rows must be multiple choice")
 
     choices = native_choices(item)
     correct = item.get("correct_answer") or state_native_label(item, correct_side) or correct_side
@@ -148,7 +150,7 @@ def gt_trigger_item(item: dict[str, Any], variant_name: str) -> dict[str, Any]:
             "correct_answer": correct,
         }
     )
-    return row
+    return compact_row(row)
 
 
 def ngt_trigger_item(item: dict[str, Any], index: int, variant_name: str) -> dict[str, Any]:
@@ -163,10 +165,9 @@ def ngt_trigger_item(item: dict[str, Any], index: int, variant_name: str) -> dic
                 "A": state_text(item, "A"),
                 "B": state_text(item, "B"),
             },
-            "correct_answer_state": None,
         }
     )
-    return row
+    return compact_row(row)
 
 
 def selected_variants(item: dict[str, Any], context_condition: str) -> list[str]:
@@ -182,33 +183,18 @@ def validate(rows: list[dict[str, Any]]) -> None:
     for row in rows:
         if not row.get("id") or not row.get("question") or not row.get("initial_prompt"):
             raise ValueError(f"{row.get('id')} missing id, question, or initial_prompt")
-        if not row.get("source"):
-            raise ValueError(f"{row.get('id')} missing source item id")
         prompt = str(row.get("initial_prompt"))
         if "Confidence:" not in prompt or "\\boxed" not in prompt:
             raise ValueError(f"{row.get('id')} initial prompt missing confidence or boxed answer format")
-        if row.get("context_condition") != "neutral":
-            raise ValueError(f"{row.get('id')} trigger row is not neutral-context")
         if has_forbidden_trigger_key(row):
             raise ValueError(f"{row.get('id')} neutral trigger row carries context direction metadata")
         if row.get("verifiability") == "GT":
-            if not str(row.get("source_file", "")).startswith(("http://", "https://")):
-                raise ValueError(f"{row.get('id')} GT source_file must be a URL")
             if not row.get("source_url") or not row.get("source_quote"):
                 raise ValueError(f"{row.get('id')} GT row missing source_url or source_quote")
         if row.get("verifiability") == "NGT":
-            for field in ["source_file", "source_url", "source_quote", "correct_answer", "verified_answer"]:
+            for field in ["source", "source_url", "source_quote", "correct_answer", "verified_answer"]:
                 if field in row:
                     raise ValueError(f"{row.get('id')} NGT row should not carry {field}")
-            grounding = row.get("domain_grounding")
-            if not isinstance(grounding, dict):
-                raise ValueError(f"{row.get('id')} NGT row missing domain-level construct grounding")
-            sources = grounding.get("construct_sources", [])
-            if grounding.get("grounding_type") != "domain_level_construct_source" or not sources:
-                raise ValueError(f"{row.get('id')} NGT row missing domain-level construct grounding")
-            for source in sources:
-                if not source.get("url") or not source.get("quote"):
-                    raise ValueError(f"{row.get('id')} NGT row malformed domain-level construct source")
         choices = row.get("choices")
         if not isinstance(choices, dict):
             raise ValueError(f"{row.get('id')} has invalid choices")
