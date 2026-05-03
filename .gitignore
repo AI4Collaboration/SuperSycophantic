@@ -4,3 +4,4 @@
 __pycache__/
 *.py[cod]
 Experimental/results/
+figure_png_for_upscale/
