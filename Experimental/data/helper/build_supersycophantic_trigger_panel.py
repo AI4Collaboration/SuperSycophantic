@@ -5,14 +5,16 @@ The context data keep GT and NGT in rich JSON objects. The trigger runner uses a
 flat JSONL format with one neutral first-turn prompt per line. Neutral trigger
 rows do not store direction fields. Static trigger prompts are agnostic to
 the model's first choice; adaptive trigger prompts observe the first choice and
-challenge it without naming or quoting any alternative. Biased first-turn prompts
-are context-only controls and are not valid trigger inputs.
+challenge it without directly instructing the model to switch to a replacement
+answer. Biased first-turn prompts are context-only controls and are not valid
+trigger inputs.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -109,7 +111,9 @@ def base_metadata(item: dict[str, Any], variant_name: str) -> dict[str, Any]:
                 "hle_verified_subset": item.get("hle_verified_subset"),
                 "hle_native_category": item.get("hle_native_category"),
                 "hle_raw_subject": item.get("hle_raw_subject"),
+                "hle_choice_source": item.get("hle_choice_source"),
                 "hle_original_answer": item.get("hle_original_answer"),
+                "synthetic_mc_generation_rule": item.get("synthetic_mc_generation_rule"),
             }
         )
     return compact_row(row)
@@ -172,12 +176,19 @@ def validate(rows: list[dict[str, Any]]) -> None:
     ids = [row.get("id") for row in rows]
     if len(ids) != len(set(ids)):
         raise ValueError("trigger panel has duplicate ids")
+    question_buckets: dict[str, list[str]] = {}
     for row in rows:
         if not row.get("id") or not row.get("question") or not row.get("initial_prompt"):
             raise ValueError(f"{row.get('id')} missing id, question, or initial_prompt")
+        question_key = normalize_text(row.get("question")).lower()
+        question_buckets.setdefault(question_key, []).append(str(row.get("id")))
         prompt = str(row.get("initial_prompt"))
-        if "Confidence:" not in prompt or "\\boxed" not in prompt:
-            raise ValueError(f"{row.get('id')} initial prompt missing confidence or boxed answer format")
+        required_markers = ["Reasoning process:", "Confidence:", "Final answer:", "\\boxed"]
+        marker_positions = [prompt.find(marker) for marker in required_markers]
+        if any(position < 0 for position in marker_positions):
+            raise ValueError(f"{row.get('id')} initial prompt missing required answer format")
+        if marker_positions != sorted(marker_positions):
+            raise ValueError(f"{row.get('id')} initial prompt has answer format markers out of order")
         if has_forbidden_trigger_key(row):
             raise ValueError(f"{row.get('id')} neutral trigger row carries context direction metadata")
         if row.get("verifiability") == "GT":
@@ -190,16 +201,40 @@ def validate(rows: list[dict[str, Any]]) -> None:
         choices = row.get("choices")
         if not isinstance(choices, dict):
             raise ValueError(f"{row.get('id')} has invalid choices")
+        choice_texts = [normalize_text(text) for text in choices.values()]
+        if any(not text for text in choice_texts):
+            raise ValueError(f"{row.get('id')} has empty choice text")
+        if len(choice_texts) != len(set(choice_texts)):
+            raise ValueError(f"{row.get('id')} has duplicate choice text")
         if row.get("verifiability") == "GT" and row.get("correct_answer") not in choices:
             raise ValueError(f"{row.get('id')} has invalid GT correct answer")
         if row.get("verifiability") == "NGT" and "correct_answer" in row:
             raise ValueError(f"{row.get('id')} NGT row should not carry correct_answer")
+    duplicates = {key: ids for key, ids in question_buckets.items() if len(ids) > 1}
+    if duplicates:
+        _, first_ids = next(iter(duplicates.items()))
+        raise ValueError(f"trigger panel has duplicate question text: {first_ids}")
+
+
+def normalize_text(text: object) -> str:
+    return re.sub(r"\s+", " ", str(text or "")).strip()
 
 
 def has_forbidden_trigger_key(obj: Any) -> bool:
     if isinstance(obj, dict):
         for key, value in obj.items():
-            if key in {"direction", "cue_type", "user_framing", "pressure_target", "pressure_target_text"}:
+            key_lower = str(key).lower()
+            if key_lower in {
+                "direction",
+                "cue_type",
+                "user_framing",
+                "pressure_target",
+                "pressure_target_text",
+                "target",
+                "target_answer",
+                "target_choice",
+                "target_text",
+            }:
                 return True
             if has_forbidden_trigger_key(value):
                 return True
