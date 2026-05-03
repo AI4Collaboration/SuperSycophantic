@@ -135,6 +135,10 @@ EXCLUDED_SOURCE_RECORD_IDS = {
     "4337",
     "3804",
     "4164",
+    "7801",
+    "9165",
+    "8667",
+    "6200",
     # Mathematical HLE.
     "67352e9911e5510fc618f619",
     "673668e658bad7ba89d4ad54",
@@ -233,6 +237,44 @@ EXCLUDED_SOURCE_RECORD_IDS = {
     "66ea1dd348eb93c2aef1c735",
     "67257fe9be53ed439b973ff9",
     "66ec02c52ec65d6153428744",
+    # Fifth-pass full-panel audit exclusions.
+    "672f4434e9c13daba078d693",
+    "671d6502b996cf9936d1afd0",
+    "66eaa5ddc7a3252f0f3fe53f",
+    "670f289fb671096a201efee4",
+    "670d5ce6d57c80b4d4090cb4",
+    "67383288f2df805520bc86b5",
+    "67253c33ad98e94b47ea3477",
+    "672416e85247738dfbb432fa",
+    "672235a01e36ca7369b8b157",
+}
+
+MMLU_SLOT_REPLACEMENT_RECORD_IDS = {
+    # Keep item ids stable while replacing source rows found non-unique under
+    # trace audit.
+    "7801": "9015",
+    "9165": "9253",
+    "8667": "8173",
+    "6200": "6257",
+}
+
+HLE_SLOT_REPLACEMENT_RECORD_IDS_BY_DOMAIN = {
+    # Keep HLE item ids stable while replacing rows found non-unique,
+    # tolerance-ambiguous, or clinically overbroad in the full-panel audit.
+    "Physical Science": {
+        "672f4434e9c13daba078d693": "66f8cff8469c315e2c9ed2f6",
+        "671d6502b996cf9936d1afd0": "676433a3921b0ce4e14c557f",
+        "66eaa5ddc7a3252f0f3fe53f": "67390213fc9dc4f5102ad835",
+    },
+    "Chemical Science": {
+        "670f289fb671096a201efee4": "67241711454d2eee0ceef767",
+    },
+    "Biomedical Science": {
+        "670d5ce6d57c80b4d4090cb4": "66ee93ba02314f06feb186cf",
+        "67383288f2df805520bc86b5": "66fe596c0eeb4521791d31ef",
+        "67253c33ad98e94b47ea3477": "67018145e8c125b41caa9ee3",
+        "672416e85247738dfbb432fa": "676727c0c393c4ff629cb82b",
+    },
 }
 
 CHEMICAL_EXTRA_HLE_RECORD_IDS = {
@@ -437,9 +479,15 @@ def hle_source_rows() -> list[dict[str, Any]]:
         raise FileNotFoundError(f"No HLE parquet files found under {HLE_DATA_DIR}")
     df = pd.concat(frames, ignore_index=True)
     rows = []
+    slot_replacement_sources = {
+        source
+        for replacements in HLE_SLOT_REPLACEMENT_RECORD_IDS_BY_DOMAIN.values()
+        for source in replacements
+    }
+    hard_exclusions = EXCLUDED_SOURCE_RECORD_IDS - slot_replacement_sources
     for _, row in df.iterrows():
         record_id = str(row["id"])
-        if record_id in EXCLUDED_SOURCE_RECORD_IDS:
+        if record_id in hard_exclusions:
             continue
         if hle_has_image(row):
             continue
@@ -484,10 +532,12 @@ def hle_source_rows() -> list[dict[str, Any]]:
 def select_mmlu_for_domain(domain: str, rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     categories = MMLU_CATEGORY_BY_DOMAIN[domain]
     candidates = []
+    slot_replacement_sources = set(MMLU_SLOT_REPLACEMENT_RECORD_IDS)
+    hard_exclusions = EXCLUDED_SOURCE_RECORD_IDS - slot_replacement_sources
     for row in rows:
         record_id = str(row.get("record_id") or row.get("source") or row.get("id"))
         category = str(row.get("mmlu_pro_category") or "")
-        if record_id in EXCLUDED_SOURCE_RECORD_IDS or category not in categories:
+        if record_id in hard_exclusions or category not in categories:
             continue
         if str(row.get("correct_answer", "")).upper() not in row.get("choices", {}):
             continue
@@ -502,7 +552,28 @@ def select_mmlu_for_domain(domain: str, rows: list[dict[str, Any]]) -> list[dict
     )
     if len(candidates) < 25:
         raise ValueError(f"{domain} has only {len(candidates)} eligible MMLU-Pro candidates")
-    return candidates[:25]
+    by_record_id = {row["_record_id"]: row for row in candidates}
+    selected = []
+    used_record_ids: set[str] = set()
+    for candidate in candidates:
+        record_id = candidate["_record_id"]
+        replacement_id = MMLU_SLOT_REPLACEMENT_RECORD_IDS.get(record_id)
+        if replacement_id:
+            candidate = by_record_id.get(replacement_id)
+            if candidate is None:
+                raise ValueError(
+                    f"{domain} replacement {replacement_id} is not an eligible MMLU-Pro candidate"
+                )
+            record_id = replacement_id
+        if record_id in used_record_ids:
+            continue
+        selected.append(candidate)
+        used_record_ids.add(record_id)
+        if len(selected) == 25:
+            break
+    if len(selected) < 25:
+        raise ValueError(f"{domain} has only {len(selected)} selected MMLU-Pro candidates")
+    return selected
 
 
 def hle_sort_key(domain: str, row: dict[str, Any]) -> tuple[int, int, int, int, str]:
@@ -527,8 +598,16 @@ def select_hle_for_domain(
 ) -> list[dict[str, Any]]:
     subjects = HLE_SUBJECTS_BY_DOMAIN[domain]
     candidates = []
+    slot_replacements = HLE_SLOT_REPLACEMENT_RECORD_IDS_BY_DOMAIN.get(domain, {})
+    all_slot_replacement_sources = {
+        source
+        for replacements in HLE_SLOT_REPLACEMENT_RECORD_IDS_BY_DOMAIN.values()
+        for source in replacements
+    }
     for row in rows:
         if row["record_id"] in used_record_ids:
+            continue
+        if row["record_id"] in all_slot_replacement_sources and row["record_id"] not in slot_replacements:
             continue
         if (
             row.get("hle_choice_source") == "synthetic_numeric_mc_from_exact_answer"
@@ -550,7 +629,27 @@ def select_hle_for_domain(
     candidates.sort(key=lambda row: hle_sort_key(domain, row))
     if len(candidates) < 25:
         raise ValueError(f"{domain} has only {len(candidates)} eligible HLE candidates")
-    selected = candidates[:25]
+    by_record_id = {row["record_id"]: row for row in candidates}
+    selected = []
+    used_selected_record_ids: set[str] = set()
+    for candidate in candidates:
+        record_id = candidate["record_id"]
+        replacement_id = slot_replacements.get(record_id)
+        if replacement_id:
+            candidate = by_record_id.get(replacement_id)
+            if candidate is None:
+                raise ValueError(
+                    f"{domain} replacement {replacement_id} is not an eligible HLE candidate"
+                )
+            record_id = replacement_id
+        if record_id in used_selected_record_ids:
+            continue
+        selected.append(candidate)
+        used_selected_record_ids.add(record_id)
+        if len(selected) == 25:
+            break
+    if len(selected) < 25:
+        raise ValueError(f"{domain} has only {len(selected)} selected HLE candidates")
     used_record_ids.update(row["record_id"] for row in selected)
     return selected
 

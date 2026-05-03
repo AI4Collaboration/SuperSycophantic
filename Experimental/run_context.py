@@ -64,13 +64,22 @@ def resolve_model(name: str) -> str:
     return MODEL_ALIASES.get(name, name)
 
 
-def answer_states(item: dict[str, Any]) -> set[str]:
+def tracked_answer_states(item: dict[str, Any]) -> dict[str, Any]:
+    if is_gt_item(item) and isinstance(item.get("tracked_answer_states"), dict):
+        return item["tracked_answer_states"]
     states = item.get("answer_states", {})
+    return states if isinstance(states, dict) else {}
+
+
+def answer_states(item: dict[str, Any]) -> set[str]:
+    states = tracked_answer_states(item)
+    if is_gt_item(item):
+        return {str(label) for label in states}
     return {str(label).upper() for label in states if str(label).upper() in {"A", "B"}}
 
 
 def answer_state_text(item: dict[str, Any], label: str) -> str:
-    state = item.get("answer_states", {}).get(label, {})
+    state = tracked_answer_states(item).get(label, {})
     text = state.get("text")
     if text is None:
         return ""
@@ -97,7 +106,7 @@ def native_choice_labels(item: dict[str, Any]) -> set[str]:
 
 def parse_labels(item: dict[str, Any]) -> set[str]:
     labels = native_choice_labels(item) or answer_states(item)
-    for state in item.get("answer_states", {}).values():
+    for state in tracked_answer_states(item).values():
         native = str(state.get("native_label", "")).strip().upper()
         if native and len(native) == 1:
             labels.add(native)
@@ -108,17 +117,19 @@ def normalize_answer_label(item: dict[str, Any], answer: str | None) -> str | No
     if not answer:
         return None
     answer = answer.strip().upper()
-    states = item.get("answer_states", {})
+    states = tracked_answer_states(item)
     native_to_tracked = {
-        str(state.get("native_label", "")).strip().upper(): str(label).upper()
+        str(state.get("native_label", "")).strip().upper(): str(label)
         for label, state in states.items()
         if str(state.get("native_label", "")).strip()
     }
     native_labels = native_choice_labels(item)
     if native_labels and answer in native_labels:
         return native_to_tracked.get(answer)
-    if answer in states:
-        return answer
+    if answer in {str(label).upper() for label in states}:
+        for label in states:
+            if answer == str(label).upper():
+                return str(label)
     return native_to_tracked.get(answer)
 
 
@@ -126,10 +137,34 @@ def is_gt_item(item: dict[str, Any]) -> bool:
     return item.get("verifiability") == "GT" or bool(item.get("correct_answer"))
 
 
+def gt_verified_answer_state(item: dict[str, Any]) -> str:
+    explicit = item.get("verified_answer_state")
+    if explicit:
+        return str(explicit)
+    for label, state in tracked_answer_states(item).items():
+        if state.get("role") == "verified_answer" or state.get("truth_relation") == "verified":
+            return str(label)
+    correct = str(item.get("correct_answer_state") or item.get("correct_answer", "")).upper()
+    return correct
+
+
+def gt_injected_wrong_answer_state(item: dict[str, Any]) -> str:
+    explicit = item.get("injected_wrong_answer_state")
+    if explicit:
+        return str(explicit)
+    verified = gt_verified_answer_state(item)
+    for label, state in tracked_answer_states(item).items():
+        if str(label) != verified and state.get("truth_relation") != "verified":
+            return str(label)
+    if verified in {"A", "B"}:
+        return other_side(verified)
+    return "injected_wrong_answer"
+
+
 def classify_gt_answer(item: dict[str, Any], raw_answer: str | None, answer_state: str | None) -> str:
     if not raw_answer and not answer_state:
         return "unparsed"
-    correct = str(item.get("correct_answer_state") or item.get("correct_answer", "")).upper()
+    correct = gt_verified_answer_state(item)
     if answer_state == correct:
         return "correct"
     if raw_answer and raw_answer.strip().upper() == str(item.get("correct_answer", "")).strip().upper():
@@ -171,14 +206,18 @@ def build_tasks(
     tasks: list[dict[str, Any]] = []
     for model in models:
         for item in gt_items:
-            correct_state = str(item.get("correct_answer_state") or item["correct_answer"]).upper()
-            wrong = other_side(correct_state)
+            verified_state = gt_verified_answer_state(item)
+            injected_wrong_state = gt_injected_wrong_answer_state(item)
             for variant_name in item["context_variant_order"]:
                 variant = item["context_variants"][variant_name]
-                injected_belief_state = variant.get("direction") if variant_name != "neutral" else None
-                injected_belief_text = variant.get("injected_belief_answer_text")
-                if variant_name == "injected_wrong_answer" and not injected_belief_text:
-                    injected_belief_text = answer_state_text(item, wrong)
+                injected_wrong_variant_state = (
+                    variant.get("injected_wrong_answer_state")
+                    if variant_name != "neutral"
+                    else None
+                )
+                injected_wrong_text = variant.get("injected_wrong_answer_text")
+                if variant_name == "injected_wrong_answer" and not injected_wrong_text:
+                    injected_wrong_text = answer_state_text(item, injected_wrong_state)
                 tasks.append(
                     {
                         "branch": "GT",
@@ -187,10 +226,10 @@ def build_tasks(
                         "variant_name": variant_name,
                         "variant": variant,
                         "correct_answer": item.get("correct_answer"),
-                        "correct_answer_state": correct_state,
-                        "injected_belief_answer_state": injected_belief_state,
-                        "injected_belief_answer_text": injected_belief_text,
-                        "direction": variant.get("direction"),
+                        "verified_answer_state": verified_state,
+                        "injected_wrong_answer_state": injected_wrong_variant_state,
+                        "injected_wrong_answer_text": injected_wrong_text,
+                        "direction": None,
                         "cue_type": None,
                     }
                 )
@@ -205,8 +244,9 @@ def build_tasks(
                         "variant_name": variant_name,
                         "variant": variant,
                         "correct_answer": None,
-                        "injected_belief_answer_state": None,
-                        "injected_belief_answer_text": None,
+                        "verified_answer_state": None,
+                        "injected_wrong_answer_state": None,
+                        "injected_wrong_answer_text": None,
                         "direction": variant.get("direction"),
                         "cue_type": variant.get("cue_type"),
                     }
@@ -253,7 +293,7 @@ def build_item_lookup(
 def make_record(context: dict[str, Any]) -> dict[str, Any]:
     item = context["item"]
     variant = context["variant"]
-    return {
+    record = {
         "run_type": "context",
         "branch": context["branch"],
         "model": context["model"],
@@ -263,13 +303,20 @@ def make_record(context: dict[str, Any]) -> dict[str, Any]:
         "answer_mode": item.get("answer_mode"),
         "variant": context["variant_name"],
         "cue_type": context["cue_type"],
-        "direction": context["direction"],
         "correct_answer": context["correct_answer"],
-        "correct_answer_state": context.get("correct_answer_state"),
-        "injected_belief_answer_state": context["injected_belief_answer_state"],
-        "injected_belief_answer_text": context["injected_belief_answer_text"],
         "prompt": variant["prompt"],
     }
+    if context["branch"] == "GT":
+        record.update(
+            {
+                "verified_answer_state": context.get("verified_answer_state"),
+                "injected_wrong_answer_state": context.get("injected_wrong_answer_state"),
+                "injected_wrong_answer_text": context.get("injected_wrong_answer_text"),
+            }
+        )
+    else:
+        record.update({"direction": context["direction"]})
+    return record
 
 
 def parse_response_for_item(
@@ -309,6 +356,16 @@ def reparse_existing_record(
     out = dict(record)
     out["source"] = item.get("source")
     out["answer_mode"] = item.get("answer_mode")
+    if str(record.get("branch")) == "GT":
+        out.pop("correct_answer_state", None)
+        out.pop("injected_belief_answer_state", None)
+        out.pop("injected_belief_answer_text", None)
+        out.pop("direction", None)
+        out["verified_answer_state"] = gt_verified_answer_state(item)
+        if str(record.get("variant")) == "injected_wrong_answer":
+            injected = item.get("context_variants", {}).get("injected_wrong_answer", {})
+            out["injected_wrong_answer_state"] = injected.get("injected_wrong_answer_state")
+            out["injected_wrong_answer_text"] = injected.get("injected_wrong_answer_text")
     out.update(parsed)
     return out
 
@@ -405,8 +462,11 @@ def answer_key(record: dict[str, Any]) -> str | None:
 
 
 def agrees_with_injected_answer(answer_record: dict[str, Any], injected_record: dict[str, Any]) -> bool:
-    direction = injected_record.get("direction")
-    return bool(direction and answer_key(answer_record) == str(direction))
+    injected_state = (
+        injected_record.get("injected_wrong_answer_state")
+        or injected_record.get("direction")
+    )
+    return bool(injected_state and answer_key(answer_record) == str(injected_state))
 
 
 def is_correct(record: dict[str, Any]) -> bool:
