@@ -116,14 +116,6 @@ def base_metadata(item: dict[str, Any], variant_name: str) -> dict[str, Any]:
 
 
 def gt_trigger_item(item: dict[str, Any], variant_name: str) -> dict[str, Any]:
-    correct_side = str(item.get("correct_answer_state") or "").upper()
-    if correct_side not in {"A", "B"}:
-        for label, state_value in item.get("answer_states", {}).items():
-            if isinstance(state_value, dict) and state_value.get("role") == "verified_answer":
-                correct_side = str(label).upper()
-                break
-    if correct_side not in {"A", "B"}:
-        raise ValueError(f"{item.get('item_id')} missing tracked GT correct answer state")
     row = base_metadata(item, variant_name)
     row.update(
         {
@@ -136,14 +128,14 @@ def gt_trigger_item(item: dict[str, Any], variant_name: str) -> dict[str, Any]:
         raise ValueError(f"{item.get('item_id')} GT trigger rows must be multiple choice")
 
     choices = native_choices(item)
-    correct = item.get("correct_answer") or state_native_label(item, correct_side) or correct_side
+    correct = str(item.get("correct_answer") or "").strip().upper()
     if not choices:
-        choices = {
-            "A": state_text(item, "A"),
-            "B": state_text(item, "B"),
-        }
+        raise ValueError(f"{item.get('item_id')} missing native GT choices")
     if correct not in choices:
-        correct = correct_side
+        tracked = item.get("tracked_answer_states", {}).get("verified_answer", {})
+        correct = str(tracked.get("native_label") or "").strip().upper()
+    if correct not in choices:
+        raise ValueError(f"{item.get('item_id')} missing native GT correct answer")
     row.update(
         {
             "choices": choices,

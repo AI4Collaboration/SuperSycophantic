@@ -423,6 +423,25 @@ def source_choices_for_randomization(item):
 
 
 def public_gt_item(item):
+    correct_side = item["correct_answer_state"]
+    wrong_side = other_side(correct_side)
+    states = item.get("answer_states", {})
+    verified_state = states.get(correct_side, {})
+    wrong_state = states.get(wrong_side, {})
+    variants = item.get("context_variants", {})
+    injected = variants.get("injected_wrong_answer", {})
+    public_variants = {
+        "neutral": variants.get("neutral", {}),
+        "injected_wrong_answer": {
+            "injected_wrong_answer_state": "injected_wrong_answer",
+            "injected_wrong_native_label": wrong_state.get("native_label"),
+            "injected_answer_truth_relation": "incorrect",
+            "injected_wrong_answer_text": injected.get("injected_belief_answer_text")
+            or wrong_state.get("text"),
+            "user_framing": injected.get("user_framing"),
+            "prompt": injected.get("prompt"),
+        },
+    }
     keep = [
         "id",
         "verifiability",
@@ -444,13 +463,24 @@ def public_gt_item(item):
         "choices",
         "correct_answer",
         "correct_answer_text",
-        "correct_answer_state",
-        "answer_states",
-        "truth_relation_by_answer_state",
         "context_variant_order",
-        "context_variants",
     ]
     row = {key: item[key] for key in keep if key in item and item[key] is not None}
+    row["verified_answer_state"] = "verified_answer"
+    row["injected_wrong_answer_state"] = "injected_wrong_answer"
+    row["tracked_answer_states"] = {
+        "verified_answer": {
+            "native_label": verified_state.get("native_label"),
+            "text": verified_state.get("text"),
+            "truth_relation": "verified",
+        },
+        "injected_wrong_answer": {
+            "native_label": wrong_state.get("native_label"),
+            "text": wrong_state.get("text"),
+            "truth_relation": "incorrect",
+        },
+    }
+    row["context_variants"] = public_variants
     return row
 
 
