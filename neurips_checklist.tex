@@ -44,7 +44,7 @@ The reviewers of your paper will be asked to use the checklist as one of the fac
 \item {\bf Limitations}
     \item[] Question: Does the paper discuss the limitations of the work performed by the authors?
     \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
-    \item[] Justification: We provide a section for limitations and provide a detailed discussion of limitations in the paper. See Section~\ref{sec:limitations}.
+    \item[] Justification: We provide a limitations statement in Appendix~\ref{sec:limitations}, including construct-validity, scope, model-drift, and confidence-measurement limitations.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer \answerNA{} means that the paper has no limitation while the answer \answerNo{} means that the paper has limitations, but those are not discussed in the paper. 
@@ -93,7 +93,7 @@ The reviewers of your paper will be asked to use the checklist as one of the fac
 
 \item {\bf Open access to data and code}
     \item[] Question: Does the paper provide open access to the data and code, with sufficient instructions to faithfully reproduce the main experimental results, as described in supplemental material?
-    \item[] Answer: \answerYes % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+    \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
     \item[] Justification: We release the full benchmark dataset, evaluation scripts, judge prompt templates, and trigger taxonomy on GitHub. The repository includes a \texttt{README} with step-by-step instructions to reproduce all reported results, including environment setup and the exact commands used to run evaluations.
     \item[] Guidelines:
     \begin{itemize}
@@ -111,7 +111,7 @@ The reviewers of your paper will be asked to use the checklist as one of the fac
 \item {\bf Experimental setting/details}
     \item[] Question: Does the paper specify all the training and test details (e.g., data splits, hyperparameters, how they were chosen, type of optimizer) necessary to understand the results?
     \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
-    \item[] Justification: We release our GitHub repository including all judge prompt templates, evaluation scripts, and the full trigger taxonomy with severity rubrics. Evaluation details—model versions, and inference configurations are provided in Appendix~\ref{app:details}.
+    \item[] Justification: We release our GitHub repository including all judge prompt templates, evaluation scripts, and the full trigger taxonomy with severity rubrics. Evaluation details, including model versions and inference configurations, are provided in Appendix~\ref{app:details}.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer \answerNA{} means that the paper does not include experiments.
@@ -151,7 +151,7 @@ The reviewers of your paper will be asked to use the checklist as one of the fac
 \item {\bf Code of ethics}
     \item[] Question: Does the research conducted in the paper conform, in every respect, with the NeurIPS Code of Ethics \url{https://neurips.cc/public/EthicsGuidelines}?
     \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
-    \item[] Justification: \justificationTODO{}
+    \item[] Justification: The work follows the NeurIPS Code of Ethics and discusses dual-use risks, data handling, human annotation, and responsible-release safeguards in Appendix~\ref{sec:ethics}.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer \answerNA{} means that the authors have not reviewed the NeurIPS Code of Ethics.
@@ -163,7 +163,7 @@ The reviewers of your paper will be asked to use the checklist as one of the fac
 \item {\bf Broader impacts}
     \item[] Question: Does the paper discuss both potential positive societal impacts and negative societal impacts of the work performed?
     \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
-    \item[] Justification: The paper discusses both potential positive and negative societal impacts of the work performed. See Section~\ref{sec:ethics}.
+    \item[] Justification: The paper discusses both potential positive and negative societal impacts of the work performed. See Appendix~\ref{sec:ethics}.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer \answerNA{} means that there is no societal impact of the work performed.
@@ -177,7 +177,7 @@ The reviewers of your paper will be asked to use the checklist as one of the fac
 \item {\bf Safeguards}
     \item[] Question: Does the paper describe safeguards that have been put in place for responsible release of data or models that have a high risk for misuse (e.g., pre-trained language models, image generators, or scraped datasets)?
     \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
-    \item[] Justification: The paper describes safeguards that have been put in place for responsible release of data or models that have a high risk for misuse. See Section~\ref{sec:ethics}.
+    \item[] Justification: The paper describes safeguards for responsible release of benchmark data, prompts, and diagnostics. See Appendix~\ref{sec:ethics} and Appendix~\ref{app:assets_safeguards}.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer \answerNA{} means that the paper poses no such risks.
@@ -189,7 +189,7 @@ The reviewers of your paper will be asked to use the checklist as one of the fac
 \item {\bf Licenses for existing assets}
     \item[] Question: Are the creators or original owners of assets (e.g., code, data, models), used in the paper, properly credited and are the license and terms of use explicitly mentioned and properly respected?
     \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
-    \item[] Justification: All assets used in this paper are properly credited with citations, license names, and URLs. The benchmarks we build upon or compare against include: MMLU~\citep{hendrycks2021mmlu} (MIT License), ARC~\citep{clark2018arc} (CC-BY-SA 4.0), and HLE~\citep{phan2025hle} (publicly released by CAIS and Scale AI; redistribution restrictions apply and are respected). Closed-source models used for evaluation (GPT-4o, Claude, Gemini) are accessed via their respective commercial APIs under standard terms of service. Open-source models are used in accordance with their respective licenses.
+    \item[] Justification: Existing benchmark sources, model endpoints, and domain-grounding sources are credited with citations or URLs. Source-traceability and release safeguards are described in Appendix~\ref{app:assets_safeguards}; closed-source models are accessed through OpenRouter and provider APIs under their applicable terms.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer \answerNA{} means that the paper does not use existing assets.
@@ -204,8 +204,8 @@ The reviewers of your paper will be asked to use the checklist as one of the fac
 
 \item {\bf New assets}
     \item[] Question: Are new assets introduced in the paper well documented and is the documentation provided alongside the assets?
-    \item[] Answer: \answerTODO{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
-    \item[] Justification: \justificationTODO{}
+    \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+    \item[] Justification: The paper introduces a new benchmark dataset, prompt templates, evaluation scripts, and annotation rubrics. Documentation, schemas, source fields, scoring outputs, and responsible-release safeguards are summarized in Appendix~\ref{app:assets_safeguards}.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer \answerNA{} means that the paper does not release new assets.
@@ -217,12 +217,7 @@ The reviewers of your paper will be asked to use the checklist as one of the fac
 \item {\bf Crowdsourcing and research with human subjects}
     \item[] Question: For crowdsourcing experiments and research with human subjects, does the paper include the full text of instructions given to participants and screenshots, if applicable, as well as details about compensation (if any)? 
     \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
-    \item[] Justification: This work involves expert annotation but not crowdsourcing.
-    Annotators are compensated with mid-authorship on the paper rather than a
-    wage; we confirm this exceeds any minimum-wage obligation since it constitutes
-    academic credit rather than employment. Annotation guidelines and the consent
-    form are provided in Appendix~\ref{app:irb}. No screenshots are
-    applicable as the annotation interface is a standard document review process.
+    \item[] Justification: This work involves expert annotation but not crowdsourcing. Annotation guidelines, consent, voluntary participation, and the document-review workflow are described in Appendix~\ref{app:human_annotation} and Appendix~\ref{app:irb}; screenshots are not applicable.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer \answerNA{} means that the paper does not involve crowdsourcing nor research with human subjects.
@@ -237,7 +232,7 @@ The reviewers of your paper will be asked to use the checklist as one of the fac
     constitutes an expert-informant survey with no compensation, no experimental
     manipulation, and no deception. We obtain informed consent via a study consent
     form, ensure GDPR-compliant data handling, and collect no personally identifying
-    information. See the Ethics Statement in Appendix~\ref{app:irb}.
+    information. See the IRB statement in Appendix~\ref{app:irb}.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer \answerNA{} means that the paper does not involve crowdsourcing nor research with human subjects.
@@ -250,12 +245,7 @@ The reviewers of your paper will be asked to use the checklist as one of the fac
     \item[] Question: Does the paper describe the usage of LLMs if it is an important, original, or non-standard component of the core methods in this research? Note that if the LLM is used only for writing, editing, or formatting purposes and does \emph{not} impact the core methodology, scientific rigor, or originality of the research, declaration is not required.
     %this research? 
     \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
-    \item[] Justification: LLMs are a core methodological component in two respects.
-    First, we employ an LLM-as-a-judge paradigm to evaluate model outputs for
-    sycophantic behavior; the full judge prompt template is provided in
-    Appendix~\ref{app:judge-prompt}. Second, the eight models listed in
-    Appendix~\ref{app:models} serve as evaluation subjects whose responses
-    constitute the primary data.
+    \item[] Justification: LLMs are a core methodological component: evaluated models are the subjects, adaptive triggers use an LLM generator and checker, and LLM-based adjudication is used as a screening and scoring aid. The AI usage statement, model list, and judge template are provided in Appendix~\ref{app:ai_usage}, Appendix~\ref{app:models}, and Appendix~\ref{app:judge_template}.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer \answerNA{} means that the core method development in this research does not involve LLMs as any important, original, or non-standard components.
