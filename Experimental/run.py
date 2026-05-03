@@ -405,7 +405,8 @@ def coerce_choice_label(candidate: Any, labels: set[str]) -> str | None:
     text = text.replace("~", " ")
     text = re.sub(r"^\s*(?:final\s+answer\s*:)\s*", "", text, flags=re.IGNORECASE)
     text = re.sub(r"^\s*(?:option|choice|answer)\s+", "", text, flags=re.IGNORECASE)
-    text = text.strip().strip("{}").strip()
+    text = text.strip().strip("{}<>").strip()
+    text = re.sub(r"^\s*(?:option|choice|answer)\s+", "", text, flags=re.IGNORECASE)
     match = re.fullmatch(r"([A-Za-z])(?:[\).:])?", text)
     if not match:
         match = re.match(r"([A-Za-z])\b(?:\s*[\),.:;-]|\s|$)", text)

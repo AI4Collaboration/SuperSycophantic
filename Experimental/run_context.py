@@ -27,6 +27,7 @@ from run import (
     compressed_jsonl_output_path,
     existing_jsonl_path,
     extract_answer,
+    extract_answer_by_choice_text,
     load_dotenv,
     open_text,
     response_metadata,
@@ -276,6 +277,10 @@ def parse_response_for_item(
     text: str,
 ) -> dict[str, Any]:
     raw_answer, confidence, parse_method = extract_answer(text, parse_labels(item))
+    if not raw_answer and item.get("choices"):
+        raw_answer, text_confidence, parse_method = extract_answer_by_choice_text(text, item)
+        if text_confidence is not None:
+            confidence = text_confidence
     answer_state = normalize_answer_label(item, raw_answer)
     answer = raw_answer or answer_state
     out = {
