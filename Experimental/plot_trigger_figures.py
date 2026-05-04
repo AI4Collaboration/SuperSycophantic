@@ -242,6 +242,30 @@ def draw_header(draw, title, subtitle, width):
     draw.line((65, line_y, width - 65, line_y), fill=LIGHT_GRID, width=3)
 
 
+def save_tight(im, path, padding=34):
+    if Path(path).suffix.lower() != ".png":
+        im.save(path)
+        return
+    rgb = im.convert("RGB")
+    pix = rgb.load()
+    width, height = rgb.size
+
+    def nonwhite_pixel(x, y):
+        return pix[x, y] != (255, 255, 255)
+
+    top = next((y for y in range(height) if any(nonwhite_pixel(x, y) for x in range(width))), 0)
+    bottom = next((y for y in range(height - 1, -1, -1) if any(nonwhite_pixel(x, y) for x in range(width))), height - 1)
+    left = next((x for x in range(width) if any(nonwhite_pixel(x, y) for y in range(height))), 0)
+    right = next((x for x in range(width - 1, -1, -1) if any(nonwhite_pixel(x, y) for y in range(height))), width - 1)
+    crop = (
+        max(0, left - padding),
+        max(0, top - padding),
+        min(width, right + padding + 1),
+        min(height, bottom + padding + 1),
+    )
+    im.crop(crop).save(path)
+
+
 def draw_axis(draw, x0, y0, width, height, max_rate, ticks=None):
     ticks = ticks or [0, 0.25, 0.5, 0.75, 1.0]
     for t in ticks:
@@ -731,7 +755,7 @@ def figure_headline(path, headline):
     ]
     for args in panels:
         panel(*args)
-    im.save(path)
+    save_tight(im, path)
 
 
 def figure_tone_gradient(path, tone_rows):
@@ -784,7 +808,7 @@ def figure_tone_gradient(path, tone_rows):
         y_label = y_label.rotate(90, expand=True)
         im.paste(y_label, (x + 20, y + 245), y_label)
         draw = ImageDraw.Draw(im)
-    im.save(path)
+    save_tight(im, path)
 
 
 def heat_color(value, max_value):
@@ -833,7 +857,7 @@ def figure_family_heatmap(path, family_rows):
         draw_text(draw, (avg_x + avg_w + 14, y + cell_h / 2), fmt_pct(averages[trigger]), FONT_AXIS_BOLD, INK, anchor="lm")
     draw_text(draw, (left + len(ordered_models) * cell_w + 18, top - 54), "Mean", FONT_AXIS_BOLD, INK, anchor="lm")
     draw_text(draw, (left + (len(ordered_models) * cell_w) / 2, height - 55), "Darker cells indicate more NGT decision shifts", FONT_SMALL, MUTED, anchor="ma")
-    im.save(path)
+    save_tight(im, path)
 
 
 def sequence_label(sequence):
@@ -884,7 +908,7 @@ def figure_temporal_sequences(path, sequence_rows):
         draw.ellipse((xa - 11, y - 11, xa + 11, y + 11), fill=ADAPTIVE)
         draw_text(draw, (x0 + plot_w + 18, y), fmt_pct(adapt), FONT_AXIS_BOLD, ADAPTIVE, anchor="lm")
     draw_text(draw, (x0 + plot_w / 2, height - 58), "NGT answer-switch rate (%)", FONT_SMALL, MUTED, anchor="ma")
-    im.save(path)
+    save_tight(im, path)
 
 
 def figure_scatter(path, headline):
@@ -970,51 +994,50 @@ def figure_scatter(path, headline):
     yd.text((0, 0), "Decision shifts (%)", font=FONT_AXIS_BOLD, fill=INK)
     y_label = y_label.rotate(90, expand=True)
     im.paste(y_label, (72, top + 170), y_label)
-    im.save(path)
+    save_tight(im, path)
 
 
 def figure_model_comparison(path, rows):
-    width, height = 3900, 1500
-    im = Image.new("RGBA", (width, height), PAPER_BG)
+    width, height = 1780, 1036
+    im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
-    draw_text(draw, (width / 2, 58), "Trigger Branch Comparison by Model", load_font(66, True), INK, anchor="ma")
-    draw.line((70, 145, width - 70, 145), fill=LIGHT_GRID, width=4)
+    draw_header(draw, "Model comparison", "", width)
 
     def panel(x, y, title, rate_key, max_rate, color, ticks):
-        w, h = 1760, 1110
-        draw.rounded_rectangle((x, y, x + w, y + h), radius=26, fill="#F8FAFC", outline="#D9E0E8", width=2)
-        draw_text(draw, (x + w / 2, y + 36), title, load_font(42, True), INK, anchor="ma")
-        label_x = x + 62
-        bar_x = x + 470
-        bar_w = w - 610
-        top = y + 130
-        row_h = 94
-        bar_h = 52
+        w, h = 700, 760
+        draw.rectangle((x, y, x + w, y + h), fill="white", outline="#D9E0E8", width=2)
+        draw_text(draw, (x + 24, y + 24), title, FONT_PANEL, INK)
+        label_x = x + 26
+        bar_x = x + 235
+        bar_w = w - 305
+        top = y + 118
+        row_h = 66
+        bar_h = 38
         for tick in ticks:
             xx = bar_x + bar_w * tick / max_rate
-            draw.line((xx, top - 18, xx, top + row_h * len(MODELS) - 20), fill="#E6ECF3", width=1)
-            draw_text(draw, (xx, top + row_h * len(MODELS) - 2), f"{int(round(tick * 100))}", FONT_SMALL, MUTED, anchor="ma")
+            draw.line((xx, top - 14, xx, top + row_h * len(MODELS) - 8), fill="#E6ECF3", width=1)
+            draw_text(draw, (xx, top + row_h * len(MODELS) + 8), f"{int(round(tick * 100))}", FONT_TINY, MUTED, anchor="ma")
         for ri, model in enumerate(MODELS):
             row = row_lookup(rows, model=model)
             value = row[rate_key]
             yy = top + ri * row_h
             model_color = MODEL_COLORS[model]
-            draw.line((label_x, yy + bar_h / 2, label_x + 46, yy + bar_h / 2), fill=model_color, width=7)
-            draw.ellipse((label_x + 17, yy + bar_h / 2 - 8, label_x + 33, yy + bar_h / 2 + 8), fill=model_color, outline="white", width=2)
-            draw_text(draw, (label_x + 62, yy + bar_h / 2), model_display(model), load_font(28), INK, anchor="lm")
-            draw.rounded_rectangle((bar_x, yy, bar_x + bar_w, yy + bar_h), radius=10, fill="#EEF2F6")
+            draw.line((label_x, yy + bar_h / 2, label_x + 32, yy + bar_h / 2), fill=model_color, width=5)
+            draw.ellipse((label_x + 11, yy + bar_h / 2 - 6, label_x + 23, yy + bar_h / 2 + 6), fill=model_color, outline="white", width=2)
+            draw_text(draw, (label_x + 44, yy + bar_h / 2), model_display(model), FONT_SMALL, INK, anchor="lm")
+            draw.rounded_rectangle((bar_x, yy, bar_x + bar_w, yy + bar_h), radius=8, fill="#EEF2F6")
             fill_w = bar_w * min(value, max_rate) / max_rate
-            draw.rounded_rectangle((bar_x, yy, bar_x + fill_w, yy + bar_h), radius=10, fill=blend_color(color, 0.38 + 0.52 * value / max_rate))
+            draw.rounded_rectangle((bar_x, yy, bar_x + fill_w, yy + bar_h), radius=8, fill=blend_color(color, 0.36 + 0.52 * value / max_rate))
             label = fmt_pct(value, 0)
-            if fill_w > 110:
-                draw_text(draw, (bar_x + fill_w - 20, yy + bar_h / 2), label, load_font(28, True), "white", anchor="rm")
+            if fill_w > 72:
+                draw_text(draw, (bar_x + fill_w - 10, yy + bar_h / 2), label, FONT_SMALL, "white", anchor="rm")
             else:
-                draw_text(draw, (bar_x + fill_w + 18, yy + bar_h / 2), label, load_font(28, True), INK, anchor="lm")
-        draw_text(draw, (bar_x + bar_w / 2, y + h - 38), "Rate (%)", load_font(27, True), MUTED, anchor="ma")
+                draw_text(draw, (bar_x + fill_w + 8, yy + bar_h / 2), label, FONT_SMALL, INK, anchor="lm")
+        draw_text(draw, (bar_x + bar_w / 2, y + h - 32), "Rate (%)", FONT_AXIS_BOLD, MUTED, anchor="ma")
 
-    panel(120, 220, "GT correct-to-wrong", "gt_rate", 0.55, STATIC, [0.0, 0.15, 0.30, 0.45, 0.55])
-    panel(2020, 220, "NGT flip", "ngt_rate", 0.90, ADAPTIVE, [0.0, 0.30, 0.60, 0.90])
-    im.convert("RGB").save(path)
+    panel(100, 195, "GT correct-to-wrong", "gt_rate", 0.55, STATIC, [0.0, 0.15, 0.30, 0.45, 0.55])
+    panel(960, 195, "NGT flip", "ngt_rate", 0.90, ADAPTIVE, [0.0, 0.30, 0.60, 0.90])
+    save_tight(im, path)
 
 
 def blend_color(hex_color, t, low=(248, 250, 252)):
@@ -1117,7 +1140,7 @@ def figure_tone_opus(path, rows):
         draw.line((x, y, x + 52, y), fill=color, width=width_line)
         draw.ellipse((x + 24, y - 7, x + 38, y + 7), fill=color, outline="white", width=2)
         draw_text(draw, (x + 68, y), model_display(model), FONT_SMALL, INK, anchor="lm")
-    im.save(path)
+    save_tight(im, path)
 
 
 def figure_trigger_dynamics(path, tone_rows, temporal_rows, confidence_rows):
@@ -1239,7 +1262,7 @@ def figure_trigger_dynamics(path, tone_rows, temporal_rows, confidence_rows):
     for spec in panel_specs:
         scatter_panel(*spec)
 
-    im.convert("RGB").save(path)
+    save_tight(im.convert("RGB"), path)
 
 
 def figure_tone_temporal(path, tone_rows, temporal_rows):
@@ -1316,7 +1339,7 @@ def figure_tone_temporal(path, tone_rows, temporal_rows):
 
     temporal_panel("GT", 2010, 210, "GT final correct-to-wrong", 0.55, STATIC)
     temporal_panel("NGT", 2910, 210, "NGT final flip", 0.90, ADAPTIVE)
-    im.save(path)
+    save_tight(im, path)
 
 
 def figure_static_vs_adaptive(path, rows):
@@ -1351,7 +1374,7 @@ def figure_static_vs_adaptive(path, rows):
             delta_x = cell_x + 2 * (cell_w + gap) + 8
             sign = "+" if delta >= 0 else ""
             draw_text(draw, (delta_x + 35, yy + 23), f"{sign}{pct(delta):.1f}", FONT_SMALL, ADAPTIVE if delta >= 0 else ACCENT, anchor="mm")
-    im.save(path)
+    save_tight(im, path)
 
 
 def figure_temporal_pressure(path, rows):
@@ -1390,7 +1413,7 @@ def figure_temporal_pressure(path, rows):
                 xx = cell_x + ci * (cell_w + gap)
                 draw_rate_cell(draw, (xx, yy, xx + cell_w, yy + 46), value, max_rate, color, FONT_AXIS_BOLD)
             draw_delta_cell(draw, (delta_x, yy, delta_x + 122, yy + 46), values[-1] - values[0], max_delta, FONT_AXIS_BOLD)
-    im.save(path)
+    save_tight(im, path)
 
 
 def figure_confidence_trajectory(path, rows):
@@ -1433,7 +1456,7 @@ def figure_confidence_trajectory(path, rows):
                 draw.rounded_rectangle((xx, yy, xx + cell_w, yy + 23), radius=6, fill=fill)
                 draw_text(draw, (xx + cell_w / 2, yy + 11), f"{value:.1f}", FONT_TINY, "white" if t > 0.62 else INK, anchor="mm")
             draw_delta_cell(draw, (delta_x, yy, delta_x + 100, yy + 23), values[-1] - values[0], 1.2, FONT_TINY, confidence=True)
-    im.save(path)
+    save_tight(im, path)
 
 
 def clean_outputs(report_dir, figure_dir):
