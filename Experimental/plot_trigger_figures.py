@@ -75,6 +75,17 @@ FAMILY_COLORS = {
     "mistralai": "#E65F2B",
     "cohere": "#35685A",
 }
+MODEL_COLORS = {
+    "openai/gpt-5.4": "#5E4ACF",
+    "openai/gpt-5.4-mini": "#8B6FE8",
+    "openai/gpt-5.4-nano": "#B19AF4",
+    "anthropic/claude-opus-4.5": "#C85F39",
+    "anthropic/claude-sonnet-4.5": "#E08A57",
+    "anthropic/claude-haiku-4.5": "#F0B37E",
+    "google/gemini-3.1-flash-lite-preview": "#2F80ED",
+    "mistralai/mistral-medium-3.1": "#E84D2A",
+    "cohere/command-r-08-2024": "#2D6A5A",
+}
 
 TRIGGER_LABELS = {
     "simple_baseline": "Baseline",
@@ -492,24 +503,22 @@ def build_trigger_figure_tables(records):
 
     tone = []
     for branch in ["GT", "NGT"]:
-        for group, label, group_predicate in [
-            ("all", "All models", lambda r: True),
-            ("opus", "Opus 4.5", lambda r: r["model"] == "anthropic/claude-opus-4.5"),
-        ]:
+        for model_id in MODELS:
             for tone_name in TONES:
                 rate, denom, events = aggregate_rate(
                     single,
                     branch,
-                    lambda r, branch=branch, group_predicate=group_predicate, tone_name=tone_name: r["_branch"] == branch
+                    lambda r, branch=branch, model_id=model_id, tone_name=tone_name: r["_branch"] == branch
+                    and r["model"] == model_id
                     and cialdini_single(r)
-                    and r.get("tone") == tone_name
-                    and group_predicate(r),
+                    and r.get("tone") == tone_name,
                 )
                 tone.append(
                     {
                         "branch": branch,
-                        "group": group,
-                        "group_label": label,
+                        "model": model_id,
+                        "model_label": MODEL_LABELS[model_id],
+                        "model_short_label": MODEL_SHORT_LABELS[model_id].replace("\n", " "),
                         "tone": tone_name,
                         "rate": rate,
                         "denom": denom,
@@ -519,101 +528,119 @@ def build_trigger_figure_tables(records):
 
     static_adaptive = []
     for branch in ["GT", "NGT"]:
-        for mode in ["static", "adaptive"]:
-            rate, denom, events = aggregate_rate(
-                single,
-                branch,
-                lambda r, branch=branch, mode=mode: r["_branch"] == branch
-                and r["_mode"] == mode
-                and cialdini_single(r),
-            )
-            static_adaptive.append(
-                {
-                    "branch": branch,
-                    "mode": mode,
-                    "rate": rate,
-                    "denom": denom,
-                    "events": events,
-                }
-            )
-
-    temporal_pressure = []
-    for branch in ["GT", "NGT"]:
-        for mode in ["static", "adaptive"]:
-            single_rate, single_denom, single_events = aggregate_rate(
-                single,
-                branch,
-                lambda r, branch=branch, mode=mode: r["_branch"] == branch
-                and r["_mode"] == mode
-                and cialdini_single(r),
-            )
-            temporal_pressure.append(
-                {
-                    "branch": branch,
-                    "mode": mode,
-                    "stage": "single",
-                    "stage_label": "Single",
-                    "rate": single_rate,
-                    "denom": single_denom,
-                    "events": single_events,
-                }
-            )
-            for stage, stage_label in [
-                ("same_family", "Same-family x3"),
-                ("heterogeneous", "Mixed x3"),
-            ]:
+        for model_id in MODELS:
+            for mode in ["static", "adaptive"]:
                 rate, denom, events = aggregate_rate(
-                    temporal,
+                    single,
                     branch,
-                    lambda r, branch=branch, mode=mode, stage=stage: r["_branch"] == branch
+                    lambda r, branch=branch, model_id=model_id, mode=mode: r["_branch"] == branch
+                    and r["model"] == model_id
                     and r["_mode"] == mode
-                    and temporal_stage(r) == stage,
-                    temporal=True,
+                    and cialdini_single(r),
                 )
-                temporal_pressure.append(
+                static_adaptive.append(
                     {
                         "branch": branch,
+                        "model": model_id,
+                        "model_label": MODEL_LABELS[model_id],
+                        "model_short_label": MODEL_SHORT_LABELS[model_id].replace("\n", " "),
                         "mode": mode,
-                        "stage": stage,
-                        "stage_label": stage_label,
                         "rate": rate,
                         "denom": denom,
                         "events": events,
                     }
                 )
 
-    confidence = []
+    temporal_pressure = []
     for branch in ["GT", "NGT"]:
-        for category in (["preserved", "departed"] if branch == "GT" else ["held", "switched"]):
-            by_turn = {turn: [] for turn in range(4)}
-            for record in temporal:
-                if record["_branch"] != branch or not denom_ok(record, branch):
-                    continue
-                event = metric(record, branch, temporal=True)
-                if branch == "GT":
-                    wanted = event if category == "departed" else not event
-                else:
-                    wanted = event if category == "switched" else not event
-                if not wanted:
-                    continue
-                values = [record.get("initial_confidence")]
-                values.extend(round_record.get("confidence") for round_record in record.get("rounds") or [])
-                if len(values) != 4:
-                    continue
-                for turn, value in enumerate(values):
-                    if isinstance(value, (int, float)):
-                        by_turn[turn].append(float(value))
-            for turn, values in by_turn.items():
-                confidence.append(
+        for model_id in MODELS:
+            for mode in ["static", "adaptive"]:
+                single_rate, single_denom, single_events = aggregate_rate(
+                    single,
+                    branch,
+                    lambda r, branch=branch, model_id=model_id, mode=mode: r["_branch"] == branch
+                    and r["model"] == model_id
+                    and r["_mode"] == mode
+                    and cialdini_single(r),
+                )
+                temporal_pressure.append(
                     {
                         "branch": branch,
-                        "category": category,
-                        "turn": turn,
-                        "turn_label": ["Initial", "Turn 1", "Turn 2", "Turn 3"][turn],
-                        "mean_confidence": sum(values) / len(values) if values else 0.0,
-                        "n": len(values),
+                        "model": model_id,
+                        "model_label": MODEL_LABELS[model_id],
+                        "model_short_label": MODEL_SHORT_LABELS[model_id].replace("\n", " "),
+                        "mode": mode,
+                        "stage": "single",
+                        "stage_label": "Single",
+                        "rate": single_rate,
+                        "denom": single_denom,
+                        "events": single_events,
                     }
                 )
+                for stage, stage_label in [
+                    ("same_family", "Same-family x3"),
+                    ("heterogeneous", "Mixed x3"),
+                ]:
+                    rate, denom, events = aggregate_rate(
+                        temporal,
+                        branch,
+                        lambda r, branch=branch, model_id=model_id, mode=mode, stage=stage: r["_branch"] == branch
+                        and r["model"] == model_id
+                        and r["_mode"] == mode
+                        and temporal_stage(r) == stage,
+                        temporal=True,
+                    )
+                    temporal_pressure.append(
+                        {
+                            "branch": branch,
+                            "model": model_id,
+                            "model_label": MODEL_LABELS[model_id],
+                            "model_short_label": MODEL_SHORT_LABELS[model_id].replace("\n", " "),
+                            "mode": mode,
+                            "stage": stage,
+                            "stage_label": stage_label,
+                            "rate": rate,
+                            "denom": denom,
+                            "events": events,
+                        }
+                    )
+
+    confidence = []
+    for branch in ["GT", "NGT"]:
+        for model_id in MODELS:
+            for category in (["preserved", "departed"] if branch == "GT" else ["held", "switched"]):
+                by_turn = {turn: [] for turn in range(4)}
+                for record in temporal:
+                    if record["_branch"] != branch or record["model"] != model_id or not denom_ok(record, branch):
+                        continue
+                    event = metric(record, branch, temporal=True)
+                    if branch == "GT":
+                        wanted = event if category == "departed" else not event
+                    else:
+                        wanted = event if category == "switched" else not event
+                    if not wanted:
+                        continue
+                    values = [record.get("initial_confidence")]
+                    values.extend(round_record.get("confidence") for round_record in record.get("rounds") or [])
+                    if len(values) != 4:
+                        continue
+                    for turn, value in enumerate(values):
+                        if isinstance(value, (int, float)):
+                            by_turn[turn].append(float(value))
+                for turn, values in by_turn.items():
+                    confidence.append(
+                        {
+                            "branch": branch,
+                            "model": model_id,
+                            "model_label": MODEL_LABELS[model_id],
+                            "model_short_label": MODEL_SHORT_LABELS[model_id].replace("\n", " "),
+                            "category": category,
+                            "turn": turn,
+                            "turn_label": ["Initial", "Turn 1", "Turn 2", "Turn 3"][turn],
+                            "mean_confidence": sum(values) / len(values) if values else 0.0,
+                            "n": len(values),
+                        }
+                    )
     return {
         "model_comparison": model,
         "tone_gradient_opus": tone,
@@ -1024,30 +1051,54 @@ def figure_model_comparison(path, rows):
     im.convert("RGB").save(path)
 
 
+def blend_color(hex_color, t, low=(248, 250, 252)):
+    hi = ImageColor.getrgb(hex_color)
+    t = max(0.0, min(1.0, t))
+    return tuple(int(low[i] + (hi[i] - low[i]) * t) for i in range(3))
+
+
+def branch_rate_scale(branch):
+    return 0.55 if branch == "GT" else 0.90
+
+
+def model_display(model):
+    return MODEL_SHORT_LABELS[model].replace("\n", " ")
+
+
+def draw_rate_cell(draw, rect, value, max_rate, color, font=FONT_SMALL):
+    t = 0 if max_rate <= 0 else min(1.0, value / max_rate)
+    fill = blend_color(color, 0.18 + 0.72 * t)
+    draw.rounded_rectangle(rect, radius=8, fill=fill)
+    text_fill = "white" if t > 0.63 else INK
+    draw_text(draw, ((rect[0] + rect[2]) / 2, (rect[1] + rect[3]) / 2), fmt_pct(value, 0), font, text_fill, anchor="mm")
+
+
 def figure_tone_opus(path, rows):
-    width, height = 1780, 980
+    width, height = 1780, 1036
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
-    draw_header(draw, "Tone gradient + Opus special", "", width)
+    draw_header(draw, "Tone gradient by model", "", width)
     panels = [
-        ("GT", 130, 205, "GT correct-to-wrong", 0.35, [0, 0.1, 0.2, 0.3]),
+        ("GT", 130, 205, "GT correct-to-wrong", 0.55, [0, 0.15, 0.30, 0.45]),
         ("NGT", 950, 205, "NGT flip", 0.9, [0, 0.3, 0.6, 0.9]),
     ]
     for branch, x, y, title, max_rate, ticks in panels:
-        w, h = 700, 590
+        w, h = 700, 610
         draw.rectangle((x, y, x + w, y + h), fill="white", outline="#D9E0E8", width=2)
         draw_text(draw, (x + 26, y + 24), title, FONT_PANEL, INK)
-        px0, py0 = x + 108, y + 102
-        pw, ph = w - 178, h - 210
+        px0, py0 = x + 108, y + 112
+        pw, ph = w - 178, h - 225
         for tick in ticks:
             yy = py0 + ph - ph * tick / max_rate
             draw.line((px0, yy, px0 + pw, yy), fill="#E7EDF3", width=1)
             draw_text(draw, (px0 - 16, yy), f"{int(tick * 100)}", FONT_SMALL, MUTED, anchor="rm")
-        specs = [("all", "All models", "#263A5E", 8, 14), ("opus", "Opus 4.5", "#D96C42", 8, 20)]
-        for group, label, color, line_w, dot_r in specs:
+        for model in MODELS:
+            color = MODEL_COLORS[model]
+            line_w = 8 if model == "anthropic/claude-opus-4.5" else 5
+            dot_r = 13 if model == "anthropic/claude-opus-4.5" else 9
             pts = []
             for i, tone in enumerate(TONES):
-                value = row_lookup(rows, branch=branch, group=group, tone=tone)["rate"]
+                value = row_lookup(rows, branch=branch, model=model, tone=tone)["rate"]
                 xx = px0 + i * pw / 2
                 yy = py0 + ph - ph * value / max_rate
                 pts.append((xx, yy))
@@ -1057,127 +1108,125 @@ def figure_tone_opus(path, rows):
         for i, tone in enumerate(TONES):
             xx = px0 + i * pw / 2
             draw_text(draw, (xx, py0 + ph + 36), TONE_LABELS[tone], FONT_AXIS_BOLD, INK, anchor="ma")
-        legend_x, legend_y = x + w - 235, y + 52
-        for i, (_, label, color, _, _) in enumerate(specs):
-            yy = legend_y + i * 34
-            draw.line((legend_x, yy, legend_x + 44, yy), fill=color, width=8)
-            draw_text(draw, (legend_x + 56, yy), label, FONT_SMALL, color, anchor="lm")
         draw_text(draw, (px0 + pw / 2, y + h - 34), "Tone", FONT_AXIS_BOLD, INK, anchor="ma")
+    legend_x, legend_y = 150, 875
+    col_w, row_h = 520, 38
+    for i, model in enumerate(MODELS):
+        col, row = i % 3, i // 3
+        x = legend_x + col * col_w
+        y = legend_y + row * row_h
+        color = MODEL_COLORS[model]
+        width_line = 8 if model == "anthropic/claude-opus-4.5" else 5
+        draw.line((x, y, x + 52, y), fill=color, width=width_line)
+        draw.ellipse((x + 24, y - 7, x + 38, y + 7), fill=color, outline="white", width=2)
+        draw_text(draw, (x + 68, y), model_display(model), FONT_SMALL, INK, anchor="lm")
     im.save(path)
 
 
 def figure_static_vs_adaptive(path, rows):
-    width, height = 1500, 760
+    width, height = 1780, 1100
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
-    draw_header(draw, "Static vs. adaptive", "", width)
-    panels = [("GT", 130, 190, "GT correct-to-wrong", 0.26), ("NGT", 800, 190, "NGT flip", 0.75)]
-    for branch, x, y, title, max_rate in panels:
-        w, h = 560, 410
+    draw_header(draw, "Static vs. adaptive by model", "", width)
+    panels = [("GT", 110, 195, "GT correct-to-wrong", 0.55, STATIC), ("NGT", 935, 195, "NGT flip", 0.90, ADAPTIVE)]
+    for branch, x, y, title, max_rate, _ in panels:
+        w, h = 735, 780
         draw.rectangle((x, y, x + w, y + h), fill="white", outline="#D9E0E8", width=2)
         draw_text(draw, (x + 26, y + 26), title, FONT_PANEL, INK)
-        axis_x, axis_y = x + 138, y + 118
-        axis_w = w - 206
-        bar_h, gap = 56, 86
-        for tick in [0, 0.25, 0.5, 0.75, 1.0]:
-            xx = axis_x + axis_w * tick
-            draw.line((xx, axis_y - 14, xx, axis_y + gap + bar_h + 15), fill="#E8EEF4", width=1)
-            draw_text(draw, (xx, axis_y + gap + bar_h + 32), f"{int(tick * max_rate * 100)}", FONT_TINY, MUTED, anchor="ma")
-        for i, (mode, label, color) in enumerate([("static", "Static", STATIC), ("adaptive", "Adaptive", ADAPTIVE)]):
-            row = row_lookup(rows, branch=branch, mode=mode)
-            yy = axis_y + i * gap
-            draw_text(draw, (x + 28, yy + bar_h / 2), label, FONT_AXIS_BOLD, INK, anchor="lm")
-            draw.rectangle((axis_x, yy, axis_x + axis_w, yy + bar_h), fill="#EEF2F6")
-            fill = axis_w * row["rate"] / max_rate
-            draw.rectangle((axis_x, yy, axis_x + fill, yy + bar_h), fill=color)
-            draw_text(draw, (axis_x + fill + 10, yy + bar_h / 2), fmt_pct(row["rate"]), FONT_AXIS_BOLD, INK, anchor="lm")
-        draw_text(draw, (axis_x + axis_w / 2, y + h - 32), "Rate (%)", FONT_SMALL, MUTED, anchor="ma")
+        label_x = x + 26
+        cell_x = x + 285
+        top = y + 110
+        row_h = 60
+        cell_w = 155
+        gap = 10
+        for ci, mode in enumerate(["static", "adaptive"]):
+            draw_text(draw, (cell_x + ci * (cell_w + gap) + cell_w / 2, top - 34), mode.capitalize(), FONT_AXIS_BOLD, INK, anchor="ma")
+        draw_text(draw, (cell_x + 2 * (cell_w + gap) + 35, top - 34), "Delta", FONT_AXIS_BOLD, INK, anchor="ma")
+        for ri, model in enumerate(MODELS):
+            yy = top + ri * row_h
+            draw_text(draw, (label_x, yy + 23), model_display(model), FONT_SMALL, INK, anchor="lm")
+            static = row_lookup(rows, branch=branch, model=model, mode="static")["rate"]
+            adaptive = row_lookup(rows, branch=branch, model=model, mode="adaptive")["rate"]
+            for ci, (mode, value) in enumerate([("static", static), ("adaptive", adaptive)]):
+                xx = cell_x + ci * (cell_w + gap)
+                color = STATIC if mode == "static" else ADAPTIVE
+                draw_rate_cell(draw, (xx, yy, xx + cell_w, yy + 46), value, max_rate, color, FONT_AXIS_BOLD)
+            delta = adaptive - static
+            delta_x = cell_x + 2 * (cell_w + gap) + 8
+            sign = "+" if delta >= 0 else ""
+            draw_text(draw, (delta_x + 35, yy + 23), f"{sign}{pct(delta):.1f}", FONT_SMALL, ADAPTIVE if delta >= 0 else ACCENT, anchor="mm")
     im.save(path)
 
 
 def figure_temporal_pressure(path, rows):
-    width, height = 1780, 930
+    width, height = 1780, 1100
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
-    draw_header(draw, "Temporal pressure", "", width)
+    draw_header(draw, "Temporal pressure by model", "", width)
     panels = [
-        ("GT", 125, 205, "GT final correct-to-wrong", 0.32, [0, 0.1, 0.2, 0.3]),
-        ("NGT", 940, 205, "NGT final flip", 0.75, [0, 0.25, 0.5, 0.75]),
+        ("GT", 110, 195, "GT final correct-to-wrong", 0.55, STATIC),
+        ("NGT", 935, 195, "NGT final flip", 0.90, ADAPTIVE),
     ]
     stages = ["single", "same_family", "heterogeneous"]
-    mode_specs = [("static", "Static", STATIC), ("adaptive", "Adaptive", ADAPTIVE)]
-    for branch, x, y, title, max_rate, ticks in panels:
-        w, h = 720, 560
+    for branch, x, y, title, max_rate, color in panels:
+        w, h = 735, 780
         draw.rectangle((x, y, x + w, y + h), fill="white", outline="#D9E0E8", width=2)
         draw_text(draw, (x + 26, y + 24), title, FONT_PANEL, INK)
-        px0, py0 = x + 105, y + 102
-        pw, ph = w - 175, h - 200
-        for tick in ticks:
-            yy = py0 + ph - ph * tick / max_rate
-            draw.line((px0, yy, px0 + pw, yy), fill="#E7EDF3", width=1)
-            draw_text(draw, (px0 - 16, yy), f"{int(tick * 100)}", FONT_SMALL, MUTED, anchor="rm")
-        for mode, label, color in mode_specs:
-            pts = []
-            for i, stage in enumerate(stages):
-                value = row_lookup(rows, branch=branch, mode=mode, stage=stage)["rate"]
-                xx = px0 + i * pw / 2
-                yy = py0 + ph - ph * value / max_rate
-                pts.append((xx, yy))
-            draw.line(pts, fill=color, width=7)
-            for xx, yy in pts:
-                draw.ellipse((xx - 12, yy - 12, xx + 12, yy + 12), fill=color)
-        for i, stage in enumerate(stages):
-            xx = px0 + i * pw / 2
-            label = row_lookup(rows, branch=branch, mode="static", stage=stage)["stage_label"]
-            draw_wrapped(draw, label, xx - 82, py0 + ph + 32, 164, FONT_SMALL, INK, anchor_center=True)
-        legend_x, legend_y = x + w - 225, y + 52
-        for i, (_, label, color) in enumerate(mode_specs):
-            yy = legend_y + i * 34
-            draw.line((legend_x, yy, legend_x + 44, yy), fill=color, width=7)
-            draw_text(draw, (legend_x + 56, yy), label, FONT_SMALL, color, anchor="lm")
+        draw_text(draw, (x + w - 26, y + 36), "Adaptive", FONT_SMALL, MUTED, anchor="rm")
+        label_x = x + 26
+        cell_x = x + 250
+        top = y + 110
+        row_h = 60
+        cell_w = 145
+        gap = 10
+        for ci, stage in enumerate(stages):
+            label = row_lookup(rows, branch=branch, model=MODELS[0], mode="adaptive", stage=stage)["stage_label"]
+            draw_wrapped(draw, label, cell_x + ci * (cell_w + gap) - 8, top - 52, cell_w + 16, FONT_TINY, INK, anchor_center=True)
+        for ri, model in enumerate(MODELS):
+            yy = top + ri * row_h
+            draw_text(draw, (label_x, yy + 23), model_display(model), FONT_SMALL, INK, anchor="lm")
+            for ci, stage in enumerate(stages):
+                value = row_lookup(rows, branch=branch, model=model, mode="adaptive", stage=stage)["rate"]
+                xx = cell_x + ci * (cell_w + gap)
+                draw_rate_cell(draw, (xx, yy, xx + cell_w, yy + 46), value, max_rate, color, FONT_AXIS_BOLD)
     im.save(path)
 
 
 def figure_confidence_trajectory(path, rows):
-    width, height = 1780, 900
+    width, height = 1780, 1100
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
-    draw_header(draw, "Confidence trajectory", "", width)
+    draw_header(draw, "Confidence trajectory by model", "", width)
     panels = [
-        ("GT", 130, 200, [("preserved", "Preserved", GT), ("departed", "Departed", ACCENT)]),
-        ("NGT", 950, 200, [("held", "Held", GT), ("switched", "Switched", ACCENT)]),
+        ("GT", "preserved", "GT preserved", 90, 190, GT),
+        ("GT", "departed", "GT departed", 925, 190, ACCENT),
+        ("NGT", "held", "NGT held", 90, 610, GT),
+        ("NGT", "switched", "NGT switched", 925, 610, ACCENT),
     ]
     turns = [0, 1, 2, 3]
-    for branch, x, y, specs in panels:
-        w, h = 700, 540
+    for branch, category, title, x, y, color in panels:
+        w, h = 765, 355
         draw.rectangle((x, y, x + w, y + h), fill="white", outline="#D9E0E8", width=2)
-        draw_text(draw, (x + 26, y + 24), "GT confidence" if branch == "GT" else "NGT confidence", FONT_PANEL, INK)
-        px0, py0 = x + 105, y + 95
-        pw, ph = w - 175, h - 190
-        min_c, max_c = 2.8, 5.0
-        for tick in [3, 4, 5]:
-            yy = py0 + ph - ph * (tick - min_c) / (max_c - min_c)
-            draw.line((px0, yy, px0 + pw, yy), fill="#E7EDF3", width=1)
-            draw_text(draw, (px0 - 16, yy), f"{tick}", FONT_SMALL, MUTED, anchor="rm")
-        for category, label, color in specs:
-            pts = []
-            for i, turn in enumerate(turns):
-                value = row_lookup(rows, branch=branch, category=category, turn=turn)["mean_confidence"]
-                xx = px0 + i * pw / 3
-                yy = py0 + ph - ph * (value - min_c) / (max_c - min_c)
-                pts.append((xx, yy))
-            draw.line(pts, fill=color, width=7)
-            for xx, yy in pts:
-                draw.ellipse((xx - 11, yy - 11, xx + 11, yy + 11), fill=color)
-        for i, turn in enumerate(turns):
-            xx = px0 + i * pw / 3
-            draw_text(draw, (xx, py0 + ph + 32), ["Initial", "T1", "T2", "T3"][turn], FONT_AXIS_BOLD, INK, anchor="ma")
-        legend_x, legend_y = x + w - 225, y + 52
-        for i, (_, label, color) in enumerate(specs):
-            yy = legend_y + i * 34
-            draw.line((legend_x, yy, legend_x + 44, yy), fill=color, width=7)
-            draw_text(draw, (legend_x + 56, yy), label, FONT_SMALL, color, anchor="lm")
-        draw_text(draw, (px0 + pw / 2, y + h - 32), "Turn", FONT_SMALL, MUTED, anchor="ma")
+        draw_text(draw, (x + 24, y + 18), title, FONT_PANEL, INK)
+        label_x = x + 24
+        cell_x = x + 250
+        top = y + 70
+        row_h = 29
+        cell_w = 105
+        gap = 8
+        for ci, turn in enumerate(turns):
+            draw_text(draw, (cell_x + ci * (cell_w + gap) + cell_w / 2, top - 20), ["Initial", "T1", "T2", "T3"][turn], FONT_TINY, INK, anchor="ma")
+        for ri, model in enumerate(MODELS):
+            yy = top + ri * row_h
+            draw_text(draw, (label_x, yy + 11), model_display(model), FONT_TINY, INK, anchor="lm")
+            for ci, turn in enumerate(turns):
+                row = row_lookup(rows, branch=branch, model=model, category=category, turn=turn)
+                value = row["mean_confidence"]
+                t = 0 if value <= 0 else (value - 2.8) / 2.2
+                fill = blend_color(color, 0.18 + 0.70 * t)
+                xx = cell_x + ci * (cell_w + gap)
+                draw.rounded_rectangle((xx, yy, xx + cell_w, yy + 23), radius=6, fill=fill)
+                draw_text(draw, (xx + cell_w / 2, yy + 11), f"{value:.1f}", FONT_TINY, "white" if t > 0.62 else INK, anchor="mm")
     im.save(path)
 
 
@@ -1242,10 +1291,10 @@ def main():
                 "All figures are Python-generated PNG charts from the official pass@1-clean result files.",
                 "",
                 "- `trigger_model_comparison.png`: model-level GT correct-to-wrong versus NGT flip as a logo scatter.",
-                "- `trigger_tone_gradient_opus.png`: mild/moderate/strong tone gradients with Opus 4.5 highlighted.",
-                "- `trigger_static_vs_adaptive.png`: static vs adaptive GT and NGT rates.",
-                "- `trigger_temporal_pressure.png`: single, same-family escalation, and heterogeneous temporal pressure.",
-                "- `trigger_confidence_trajectory.png`: confidence over turns for preserved/departed GT and held/switched NGT trajectories.",
+                "- `trigger_tone_gradient_opus.png`: model-separated mild/moderate/strong tone gradients with Opus 4.5 highlighted.",
+                "- `trigger_static_vs_adaptive.png`: per-model static vs adaptive GT and NGT rates.",
+                "- `trigger_temporal_pressure.png`: per-model adaptive single, same-family escalation, and heterogeneous temporal pressure.",
+                "- `trigger_confidence_trajectory.png`: per-model confidence over turns for preserved/departed GT and held/switched NGT trajectories.",
                 "",
                 "The CSV files in this directory contain the exact plotted aggregates.",
                 "",
