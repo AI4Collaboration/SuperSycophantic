@@ -222,9 +222,9 @@ def draw_wrapped(draw, text, x, y, max_width, font, fill=INK, line_gap=3, anchor
 
 
 def draw_header(draw, title, subtitle, width):
-    draw_text(draw, (65, 38), title, FONT_TITLE)
+    draw_text(draw, (width / 2, 38), title, FONT_TITLE, anchor="ma")
     if subtitle:
-        draw_text(draw, (65, 94), subtitle, FONT_SUBTITLE, MUTED)
+        draw_text(draw, (width / 2, 94), subtitle, FONT_SUBTITLE, MUTED, anchor="ma")
         line_y = 145
     else:
         line_y = 122
@@ -1241,7 +1241,7 @@ def main():
                 "This directory is the single canonical location for trigger figure candidates.",
                 "All figures are Python-generated PNG charts from the official pass@1-clean result files.",
                 "",
-                "- `trigger_model_comparison.png`: model-level GT answer change vs GT correct-to-wrong, with NGT flip encoded by marker size.",
+                "- `trigger_model_comparison.png`: model-level GT correct-to-wrong versus NGT flip as a logo scatter.",
                 "- `trigger_tone_gradient_opus.png`: mild/moderate/strong tone gradients with Opus 4.5 highlighted.",
                 "- `trigger_static_vs_adaptive.png`: static vs adaptive GT and NGT rates.",
                 "- `trigger_temporal_pressure.png`: single, same-family escalation, and heterogeneous temporal pressure.",
