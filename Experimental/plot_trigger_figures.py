@@ -1039,6 +1039,29 @@ def draw_rate_cell(draw, rect, value, max_rate, color, font=FONT_SMALL):
     draw_text(draw, ((rect[0] + rect[2]) / 2, (rect[1] + rect[3]) / 2), fmt_pct(value, 0), font, text_fill, anchor="mm")
 
 
+def fmt_score_delta(value, digits=1):
+    if abs(value) < 0.5 * (10 ** -digits):
+        value = 0.0
+    return f"{value:+.{digits}f}"
+
+
+def draw_delta_cell(draw, rect, value, max_abs, font=FONT_SMALL, confidence=False):
+    if abs(value) < 0.002:
+        fill = "#F2F4F7"
+        t = 0.0
+    else:
+        if confidence:
+            color = GT if value > 0 else ACCENT
+        else:
+            color = ACCENT if value > 0 else "#3D7EA6"
+        t = min(1.0, abs(value) / max_abs)
+        fill = blend_color(color, 0.16 + 0.78 * t)
+    draw.rounded_rectangle(rect, radius=8, fill=fill)
+    text_fill = "white" if t > 0.58 else INK
+    label = fmt_score_delta(value) if confidence else f"{pct(value):+.1f}"
+    draw_text(draw, ((rect[0] + rect[2]) / 2, (rect[1] + rect[3]) / 2), label, font, text_fill, anchor="mm")
+
+
 def draw_confidence_cell(draw, rect, value, font=FONT_SMALL):
     t = max(0.0, min(1.0, (value - 1.0) / 4.0))
     fill = blend_color("#6F55D9", 0.12 + 0.68 * t)
@@ -1337,12 +1360,12 @@ def figure_temporal_pressure(path, rows):
     draw = ImageDraw.Draw(im)
     draw_header(draw, "Temporal pressure by model", "", width)
     panels = [
-        ("GT", 110, 195, "GT final correct-to-wrong", 0.55, STATIC),
-        ("NGT", 935, 195, "NGT final flip", 0.90, ADAPTIVE),
+        ("GT", 105, 195, "GT final correct-to-wrong", 0.55, STATIC, 0.14),
+        ("NGT", 920, 195, "NGT final flip", 0.90, ADAPTIVE, 0.40),
     ]
     stages = ["single", "same_family", "heterogeneous"]
-    for branch, x, y, title, max_rate, color in panels:
-        w, h = 735, 780
+    for branch, x, y, title, max_rate, color, max_delta in panels:
+        w, h = 755, 780
         draw.rectangle((x, y, x + w, y + h), fill="white", outline="#D9E0E8", width=2)
         draw_text(draw, (x + 26, y + 24), title, FONT_PANEL, INK)
         draw_text(draw, (x + w - 26, y + 36), "Adaptive", FONT_SMALL, MUTED, anchor="rm")
@@ -1350,18 +1373,23 @@ def figure_temporal_pressure(path, rows):
         cell_x = x + 250
         top = y + 110
         row_h = 60
-        cell_w = 145
+        cell_w = 108
         gap = 10
         for ci, stage in enumerate(stages):
             label = row_lookup(rows, branch=branch, model=MODELS[0], mode="adaptive", stage=stage)["stage_label"]
             draw_wrapped(draw, label, cell_x + ci * (cell_w + gap) - 8, top - 52, cell_w + 16, FONT_TINY, INK, anchor_center=True)
+        delta_x = cell_x + 3 * (cell_w + gap) + 10
+        draw_text(draw, (delta_x + 61, top - 34), "Delta pp", FONT_AXIS_BOLD, INK, anchor="ma")
         for ri, model in enumerate(MODELS):
             yy = top + ri * row_h
             draw_text(draw, (label_x, yy + 23), model_display(model), FONT_SMALL, INK, anchor="lm")
+            values = []
             for ci, stage in enumerate(stages):
                 value = row_lookup(rows, branch=branch, model=model, mode="adaptive", stage=stage)["rate"]
+                values.append(value)
                 xx = cell_x + ci * (cell_w + gap)
                 draw_rate_cell(draw, (xx, yy, xx + cell_w, yy + 46), value, max_rate, color, FONT_AXIS_BOLD)
+            draw_delta_cell(draw, (delta_x, yy, delta_x + 122, yy + 46), values[-1] - values[0], max_delta, FONT_AXIS_BOLD)
     im.save(path)
 
 
@@ -1385,21 +1413,26 @@ def figure_confidence_trajectory(path, rows):
         cell_x = x + 250
         top = y + 70
         row_h = 29
-        cell_w = 105
+        cell_w = 82
         gap = 8
         for ci, turn in enumerate(turns):
             draw_text(draw, (cell_x + ci * (cell_w + gap) + cell_w / 2, top - 20), ["Initial", "T1", "T2", "T3"][turn], FONT_TINY, INK, anchor="ma")
+        delta_x = cell_x + 4 * (cell_w + gap) + 14
+        draw_text(draw, (delta_x + 50, top - 20), "Delta", FONT_TINY, INK, anchor="ma")
         for ri, model in enumerate(MODELS):
             yy = top + ri * row_h
             draw_text(draw, (label_x, yy + 11), model_display(model), FONT_TINY, INK, anchor="lm")
+            values = []
             for ci, turn in enumerate(turns):
                 row = row_lookup(rows, branch=branch, model=model, category=category, turn=turn)
                 value = row["mean_confidence"]
+                values.append(value)
                 t = 0 if value <= 0 else (value - 2.8) / 2.2
                 fill = blend_color(color, 0.18 + 0.70 * t)
                 xx = cell_x + ci * (cell_w + gap)
                 draw.rounded_rectangle((xx, yy, xx + cell_w, yy + 23), radius=6, fill=fill)
                 draw_text(draw, (xx + cell_w / 2, yy + 11), f"{value:.1f}", FONT_TINY, "white" if t > 0.62 else INK, anchor="mm")
+            draw_delta_cell(draw, (delta_x, yy, delta_x + 100, yy + 23), values[-1] - values[0], 1.2, FONT_TINY, confidence=True)
     im.save(path)
 
 
@@ -1479,10 +1512,10 @@ def main():
                 "- `trigger_model_comparison.png`: side-by-side GT correct-to-wrong and NGT flip rates by model.",
                 "- `trigger_tone_gradient_opus.png`: model-separated mild/moderate/strong tone gradients with Opus 4.5 highlighted.",
                 "- `trigger_static_vs_adaptive.png`: per-model static vs adaptive GT and NGT rates.",
-                "- `trigger_temporal_pressure.png`: per-model adaptive single, same-family escalation, and heterogeneous temporal pressure.",
+                "- `trigger_temporal_pressure.png`: per-model adaptive single, same-family escalation, heterogeneous temporal pressure, and mixed-minus-single deltas.",
                 "- `trigger_tone_temporal.png`: compact main-text composite of per-model tone gradients and adaptive temporal pressure.",
                 "- `trigger_dynamics_summary.png`: 1x2 main-text scatter comparing single-follow-up and mixed three-turn movement by model for GT and NGT.",
-                "- `trigger_confidence_trajectory.png`: per-model confidence over turns for preserved/departed GT and held/switched NGT trajectories.",
+                "- `trigger_confidence_trajectory.png`: per-model confidence over turns for preserved/departed GT and held/switched NGT trajectories, with T3-minus-initial deltas.",
                 "",
                 "The CSV files in this directory contain the exact plotted aggregates.",
                 "",
