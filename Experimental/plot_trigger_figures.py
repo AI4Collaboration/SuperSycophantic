@@ -1064,7 +1064,8 @@ def figure_model_comparison(path, rows):
         color = MODEL_COLORS[model]
         fill = blend_color(color, 0.28 + 0.42 * row["ngt_rate"] / max_ngt)
         draw.ellipse((x - radius, y - radius, x + radius, y + radius), fill=fill, outline=color, width=5)
-        badge = load_model_badge(model, 48)
+        badge = make_badge(model)
+        badge.thumbnail((62, 62), RESAMPLE_LANCZOS)
         im.paste(badge, (int(x - badge.width / 2), int(y - badge.height / 2)), badge)
         draw = ImageDraw.Draw(im)
 

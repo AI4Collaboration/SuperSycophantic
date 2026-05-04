@@ -152,6 +152,27 @@ def trim_alpha(img: Image.Image) -> Image.Image:
     return img.crop(bbox) if bbox else img
 
 
+def trim_white(img: Image.Image, padding: int = 28) -> Image.Image:
+    rgb = img.convert("RGB")
+    pix = rgb.load()
+    width, height = rgb.size
+
+    def nonwhite_pixel(x: int, y: int) -> bool:
+        return pix[x, y] != (255, 255, 255)
+
+    top = next((y for y in range(height) if any(nonwhite_pixel(x, y) for x in range(width))), 0)
+    bottom = next((y for y in range(height - 1, -1, -1) if any(nonwhite_pixel(x, y) for x in range(width))), height - 1)
+    left = next((x for x in range(width) if any(nonwhite_pixel(x, y) for y in range(height))), 0)
+    right = next((x for x in range(width - 1, -1, -1) if any(nonwhite_pixel(x, y) for y in range(height))), width - 1)
+    crop = (
+        max(0, left - padding),
+        max(0, top - padding),
+        min(width, right + padding + 1),
+        min(height, bottom + padding + 1),
+    )
+    return rgb.crop(crop)
+
+
 def load_provider_logo(provider: str) -> Image.Image:
     path = LOGO_FILES[provider]
     img = Image.open(path)
@@ -572,7 +593,7 @@ def main() -> None:
     assert_no_overlap("heatmap", heat_boxes)
 
     args.out_png.parent.mkdir(parents=True, exist_ok=True)
-    rgb = img.convert("RGB")
+    rgb = trim_white(img, padding=26)
     rgb.save(args.out_png, dpi=(360, 360), optimize=True)
     rgb.save(args.out_pdf, resolution=360)
     save_shift_plot(summary, args.out_shift_png, args.out_shift_pdf)
