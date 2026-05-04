@@ -68,31 +68,27 @@ def boost_arrow(draw, x, y_from, y_to):
     draw.polygon(head, fill=BOOST)
 
 
-def aggregate_temporal(results_dir, run_id, mode):
-    path = results_dir / f"{run_id}_ngt_trigger_temporal_{mode}.jsonl.gz"
-    grouped = defaultdict(lambda: {"denom": 0, "first": 0, "final": 0})
+def aggregate_tone(results_dir, run_id, mode):
+    path = results_dir / f"{run_id}_ngt_trigger_{mode}.jsonl.gz"
+    grouped = defaultdict(lambda: defaultdict(lambda: {"denom": 0, "events": 0}))
     for record in trigger_plot.read_jsonl_gz(path):
         family = record.get("trigger")
-        sequence = record.get("trigger_sequence") or []
-        if (
-            record.get("eligible")
-            and family in FAMILIES
-            and sequence
-            and len(set(sequence)) == 1
-            and sequence[0] == family
-        ):
-            cell = grouped[(record["model"], family)]
+        tone = record.get("tone")
+        if record.get("eligible") and family in FAMILIES and tone in {"mild", "strong"}:
+            cell = grouped[(record["model"], family)][tone]
             cell["denom"] += 1
-            cell["first"] += int(bool(record.get("single_trigger_answer_switch")))
-            cell["final"] += int(bool(record.get("three_repetition_answer_switch")))
+            cell["events"] += int(bool(record.get("single_trigger_answer_switch")))
     out = {}
-    for key, value in grouped.items():
-        denom = value["denom"]
+    for key, by_tone in grouped.items():
+        mild = by_tone["mild"]
+        strong = by_tone["strong"]
+        mild_rate = mild["events"] / mild["denom"] if mild["denom"] else 0.0
+        strong_rate = strong["events"] / strong["denom"] if strong["denom"] else 0.0
         out[key] = {
-            "first": value["first"] / denom if denom else 0.0,
-            "final": value["final"] / denom if denom else 0.0,
-            "delta": (value["final"] - value["first"]) / denom if denom else 0.0,
-            "denom": denom,
+            "mild": mild_rate,
+            "strong": strong_rate,
+            "delta": strong_rate - mild_rate,
+            "denom": min(mild["denom"], strong["denom"]),
         }
     return out
 
@@ -123,11 +119,11 @@ def draw_figure(rows, out_path):
     im = Image.new("RGB", (width, height), PAPER)
     draw = ImageDraw.Draw(im)
 
-    draw_text(draw, (width / 2, 38), "Trigger Escalation Moves Models Unevenly", 66, bold=True, anchor="ma")
+    draw_text(draw, (width / 2, 38), "Tone Strength Moves Models Unevenly", 66, bold=True, anchor="ma")
     draw_text(
         draw,
         (width / 2, 112),
-        "Bars show first follow-up NGT flip; yellow arrows show added three-turn escalation boost",
+        "Bars show mild-tone NGT flip; yellow arrows show added strong-tone boost",
         34,
         MUTED,
         anchor="ma",
@@ -137,7 +133,7 @@ def draw_figure(rows, out_path):
 
     x0, y0 = 190, 295
     plot_w, plot_h = width - 330, 720
-    max_rate = 1.0
+    max_rate = 1.08
     bottom = y0 + plot_h
 
     for tick in [0, 0.25, 0.50, 0.75, 1.0]:
@@ -148,8 +144,8 @@ def draw_figure(rows, out_path):
     draw_text(draw, (x0, y0 - 36), "NGT flip rate (%)", 31, INK, bold=True, anchor="la")
 
     cluster_w = plot_w / len(trigger_plot.MODELS)
-    bar_w = 37
-    bar_gap = 9
+    bar_w = 34
+    bar_gap = 13
     group_w = len(FAMILIES) * bar_w + (len(FAMILIES) - 1) * bar_gap
 
     for mi, model in enumerate(trigger_plot.MODELS):
@@ -159,19 +155,19 @@ def draw_figure(rows, out_path):
             xx = x0 + mi * cluster_w
             draw.line((xx, y0 + 18, xx, bottom + 18), fill="#F0F3F7", width=2)
         for fi, family in enumerate(FAMILIES):
-            value = rows.get((model, family), {"first": 0, "final": 0, "delta": 0, "denom": 0})
+            value = rows.get((model, family), {"mild": 0, "strong": 0, "delta": 0, "denom": 0})
             x = gx + fi * (bar_w + bar_gap)
-            y_first = y_at(value["first"], y0, plot_h, max_rate)
-            y_final = y_at(value["final"], y0, plot_h, max_rate)
+            y_mild = y_at(value["mild"], y0, plot_h, max_rate)
+            y_strong = y_at(value["strong"], y0, plot_h, max_rate)
             fill = FAMILY_COLORS[family]
-            draw.rounded_rectangle((x, y_first, x + bar_w, bottom), radius=5, fill=fill)
+            draw.rounded_rectangle((x, y_mild, x + bar_w, bottom), radius=5, fill=fill)
             draw.line((x, bottom, x + bar_w, bottom), fill="#9DA8B5", width=2)
             delta = value["delta"]
             if delta > 0.025:
-                boost_arrow(draw, x + bar_w / 2, y_first, y_final)
-            if abs(delta) >= 0.08:
+                boost_arrow(draw, x + bar_w / 2, y_mild, y_strong)
+            if abs(delta) >= 0.15:
                 label = f"{delta * 100:+.0f}"
-                label_y = (y_final - 18) if delta >= 0 else max(y0 + 18, y_first - 18)
+                label_y = (y_strong - 18) if delta >= 0 else max(y0 + 18, y_mild - 18)
                 label_fill = BOOST_TEXT if delta >= 0 else DROP
                 draw_text(draw, (x + bar_w / 2, label_y), label, 18, label_fill, bold=True, anchor="mm")
         draw_model_label(im, draw, model, cx, bottom + 54)
@@ -185,11 +181,11 @@ def main():
     parser.add_argument("--run-id", default="trigger_20260504_070840")
     parser.add_argument("--results-dir", type=Path, default=REPO_ROOT / "Experimental" / "results")
     parser.add_argument("--mode", choices=["static", "adaptive"], default="static")
-    parser.add_argument("--out-png", type=Path, default=REPO_ROOT / "images" / "results" / "trigger_family_escalation.png")
-    parser.add_argument("--out-pdf", type=Path, default=REPO_ROOT / "images" / "results" / "trigger_family_escalation.pdf")
+    parser.add_argument("--out-png", type=Path, default=REPO_ROOT / "images" / "results" / "trigger_family_tone_boost.png")
+    parser.add_argument("--out-pdf", type=Path, default=REPO_ROOT / "images" / "results" / "trigger_family_tone_boost.pdf")
     args = parser.parse_args()
 
-    rows = aggregate_temporal(args.results_dir, args.run_id, args.mode)
+    rows = aggregate_tone(args.results_dir, args.run_id, args.mode)
     draw_figure(rows, args.out_png)
     Image.open(args.out_png).convert("RGB").save(args.out_pdf)
 
