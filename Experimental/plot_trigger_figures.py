@@ -3,6 +3,7 @@ import csv
 import gzip
 import json
 import math
+import shutil
 from collections import defaultdict
 from pathlib import Path
 
@@ -160,6 +161,7 @@ def parse_args():
     parser.add_argument("--run-id", required=True)
     parser.add_argument("--results-dir", type=Path, default=Path("Experimental/results"))
     parser.add_argument("--report-dir", type=Path, default=None)
+    parser.add_argument("--publish-dir", type=Path, default=None, help="Optional manuscript image directory to update.")
     parser.add_argument("--clean", action="store_true", help="Remove stale trigger figures before writing new ones.")
     return parser.parse_args()
 
@@ -1003,40 +1005,99 @@ def figure_model_comparison(path, rows):
     draw = ImageDraw.Draw(im)
     draw_header(draw, "Model comparison", "", width)
 
-    def panel(x, y, title, rate_key, max_rate, color, ticks):
-        w, h = 700, 760
-        draw.rectangle((x, y, x + w, y + h), fill="white", outline="#D9E0E8", width=2)
-        draw_text(draw, (x + 24, y + 24), title, FONT_PANEL, INK)
-        label_x = x + 26
-        bar_x = x + 235
-        bar_w = w - 305
-        top = y + 118
-        row_h = 66
-        bar_h = 38
-        for tick in ticks:
-            xx = bar_x + bar_w * tick / max_rate
-            draw.line((xx, top - 14, xx, top + row_h * len(MODELS) - 8), fill="#E6ECF3", width=1)
-            draw_text(draw, (xx, top + row_h * len(MODELS) + 8), f"{int(round(tick * 100))}", FONT_TINY, MUTED, anchor="ma")
-        for ri, model in enumerate(MODELS):
-            row = row_lookup(rows, model=model)
-            value = row[rate_key]
-            yy = top + ri * row_h
-            model_color = MODEL_COLORS[model]
-            draw.line((label_x, yy + bar_h / 2, label_x + 32, yy + bar_h / 2), fill=model_color, width=5)
-            draw.ellipse((label_x + 11, yy + bar_h / 2 - 6, label_x + 23, yy + bar_h / 2 + 6), fill=model_color, outline="white", width=2)
-            draw_text(draw, (label_x + 44, yy + bar_h / 2), model_display(model), FONT_SMALL, INK, anchor="lm")
-            draw.rounded_rectangle((bar_x, yy, bar_x + bar_w, yy + bar_h), radius=8, fill="#EEF2F6")
-            fill_w = bar_w * min(value, max_rate) / max_rate
-            draw.rounded_rectangle((bar_x, yy, bar_x + fill_w, yy + bar_h), radius=8, fill=blend_color(color, 0.36 + 0.52 * value / max_rate))
-            label = fmt_pct(value, 0)
-            if fill_w > 72:
-                draw_text(draw, (bar_x + fill_w - 10, yy + bar_h / 2), label, FONT_SMALL, "white", anchor="rm")
-            else:
-                draw_text(draw, (bar_x + fill_w + 8, yy + bar_h / 2), label, FONT_SMALL, INK, anchor="lm")
-        draw_text(draw, (bar_x + bar_w / 2, y + h - 32), "Rate (%)", FONT_AXIS_BOLD, MUTED, anchor="ma")
+    left, top = 185, 190
+    plot_w, plot_h = 1280, 680
+    min_x, max_x = 0.10, 0.55
+    min_y, max_y = 0.00, 0.36
 
-    panel(100, 195, "GT correct-to-wrong", "gt_rate", 0.55, STATIC, [0.0, 0.15, 0.30, 0.45, 0.55])
-    panel(960, 195, "NGT flip", "ngt_rate", 0.90, ADAPTIVE, [0.0, 0.30, 0.60, 0.90])
+    def x_pos(value):
+        return left + plot_w * (value - min_x) / (max_x - min_x)
+
+    def y_pos(value):
+        return top + plot_h - plot_h * (value - min_y) / (max_y - min_y)
+
+    draw.rectangle((left, top, left + plot_w, top + plot_h), fill="#FBFCFE", outline="#18212B", width=2)
+    for tick in [0.10, 0.20, 0.30, 0.40, 0.50]:
+        xx = x_pos(tick)
+        draw.line((xx, top, xx, top + plot_h), fill="#DDE5EE", width=1)
+        draw_text(draw, (xx, top + plot_h + 20), f"{int(tick * 100)}%", FONT_SMALL, MUTED, anchor="ma")
+    for tick in [0.00, 0.10, 0.20, 0.30]:
+        yy = y_pos(tick)
+        draw.line((left, yy, left + plot_w, yy), fill="#DDE5EE", width=1)
+        draw_text(draw, (left - 16, yy), f"{int(tick * 100)}%", FONT_SMALL, MUTED, anchor="rm")
+    draw.line((left, top + plot_h, left + plot_w, top + plot_h), fill="#18212B", width=3)
+    draw.line((left, top, left, top + plot_h), fill="#18212B", width=3)
+
+    # Correct-to-wrong turns are a stricter subset of answer movement.
+    diag_start, diag_end = max(min_x, min_y), min(max_x, max_y)
+    draw.line((x_pos(diag_start), y_pos(diag_start), x_pos(diag_end), y_pos(diag_end)), fill="#AEB8C6", width=3)
+    draw_text(draw, (x_pos(0.36) - 18, y_pos(0.36) + 22), "y = x", FONT_TINY, MUTED, anchor="rm")
+
+    draw_text(draw, (left + 28, top + 30), "GT: movement vs. truth loss", FONT_PANEL, INK)
+    draw_text(draw, (left + 28, top + 67), "Bubble size encodes NGT flip rate", FONT_SMALL, MUTED)
+
+    ngt_values = [row["ngt_rate"] for row in rows]
+    min_ngt, max_ngt = min(ngt_values), max(ngt_values)
+
+    def bubble_radius(value):
+        if max_ngt <= min_ngt:
+            return 42
+        return 30 + 24 * (value - min_ngt) / (max_ngt - min_ngt)
+
+    label_specs = {
+        "openai/gpt-5.4": (30, -54, "lm"),
+        "openai/gpt-5.4-mini": (-36, -72, "ma"),
+        "openai/gpt-5.4-nano": (28, -40, "lm"),
+        "anthropic/claude-opus-4.5": (-34, 58, "ma"),
+        "anthropic/claude-sonnet-4.5": (30, -38, "lm"),
+        "anthropic/claude-haiku-4.5": (-98, -32, "rm"),
+        "google/gemini-3.1-flash-lite-preview": (28, 22, "lm"),
+        "mistralai/mistral-medium-3.1": (32, 38, "lm"),
+        "cohere/command-r-08-2024": (-34, 58, "ma"),
+    }
+
+    for row in sorted(rows, key=lambda item: item["ngt_rate"], reverse=True):
+        model = row["model"]
+        x = x_pos(row["gt_change_rate"])
+        y = y_pos(row["gt_rate"])
+        radius = bubble_radius(row["ngt_rate"])
+        color = MODEL_COLORS[model]
+        fill = blend_color(color, 0.28 + 0.42 * row["ngt_rate"] / max_ngt)
+        draw.ellipse((x - radius, y - radius, x + radius, y + radius), fill=fill, outline=color, width=5)
+        badge = load_model_badge(model, 48)
+        im.paste(badge, (int(x - badge.width / 2), int(y - badge.height / 2)), badge)
+        draw = ImageDraw.Draw(im)
+
+    for row in rows:
+        model = row["model"]
+        x = x_pos(row["gt_change_rate"])
+        y = y_pos(row["gt_rate"])
+        dx, dy, anchor = label_specs.get(model, (24, 20, "lm"))
+        draw.multiline_text(
+            (x + dx, y + dy),
+            MODEL_SHORT_LABELS[model],
+            font=FONT_SMALL,
+            fill=INK,
+            anchor=anchor,
+            spacing=2,
+            align="center",
+        )
+
+    legend_x, legend_y = left + plot_w - 250, top + plot_h - 122
+    draw_text(draw, (legend_x, legend_y - 28), "Bubble = NGT flip", FONT_TINY, MUTED)
+    for i, value in enumerate([0.40, 0.80]):
+        rr = bubble_radius(value)
+        cx = legend_x + 45 + i * 120
+        cy = legend_y + 36
+        draw.ellipse((cx - rr, cy - rr, cx + rr, cy + rr), fill="#EEF2F6", outline="#8FA0B5", width=3)
+        draw_text(draw, (cx, cy + rr + 16), f"{int(value * 100)}%", FONT_TINY, MUTED, anchor="ma")
+
+    draw_text(draw, (left + plot_w / 2, top + plot_h + 82), "GT answer change (%)", FONT_AXIS_BOLD, INK, anchor="ma")
+    y_label = Image.new("RGBA", (520, 40), (255, 255, 255, 0))
+    yd = ImageDraw.Draw(y_label)
+    yd.text((0, 0), "GT correct-to-wrong (%)", font=FONT_AXIS_BOLD, fill=INK)
+    y_label = y_label.rotate(90, expand=True)
+    im.paste(y_label, (68, top + 155), y_label)
     save_tight(im, path)
 
 
@@ -1112,34 +1173,49 @@ def figure_tone_opus(path, rows):
             yy = py0 + ph - ph * tick / max_rate
             draw.line((px0, yy, px0 + pw, yy), fill="#E7EDF3", width=1)
             draw_text(draw, (px0 - 16, yy), f"{int(tick * 100)}", FONT_SMALL, MUTED, anchor="rm")
-        for model in MODELS:
-            color = MODEL_COLORS[model]
-            line_w = 8 if model == "anthropic/claude-opus-4.5" else 5
-            dot_r = 13 if model == "anthropic/claude-opus-4.5" else 9
-            pts = []
-            for i, tone in enumerate(TONES):
-                value = row_lookup(rows, branch=branch, model=model, tone=tone)["rate"]
-                xx = px0 + i * pw / 2
-                yy = py0 + ph - ph * value / max_rate
-                pts.append((xx, yy))
-            draw.line(pts, fill=color, width=line_w)
-            for xx, yy in pts:
-                draw.ellipse((xx - dot_r, yy - dot_r, xx + dot_r, yy + dot_r), fill=color, outline="white", width=3)
+        for pass_is_claude in [False, True]:
+            for model in MODELS:
+                is_claude = model.startswith("anthropic/")
+                if is_claude != pass_is_claude:
+                    continue
+                color = MODEL_COLORS[model] if is_claude else "#B9C3D0"
+                line_w = 9 if model == "anthropic/claude-opus-4.5" else 6 if is_claude else 3
+                dot_r = 13 if model == "anthropic/claude-opus-4.5" else 10 if is_claude else 6
+                pts = []
+                for i, tone in enumerate(TONES):
+                    value = row_lookup(rows, branch=branch, model=model, tone=tone)["rate"]
+                    xx = px0 + i * pw / 2
+                    yy = py0 + ph - ph * value / max_rate
+                    pts.append((xx, yy))
+                draw.line(pts, fill=color, width=line_w)
+                for xx, yy in pts:
+                    draw.ellipse((xx - dot_r, yy - dot_r, xx + dot_r, yy + dot_r), fill=color, outline="white", width=3)
+        if branch == "NGT":
+            draw_text(
+                draw,
+                (x + w - 28, y + 78),
+                "Claude-family reversal",
+                FONT_SMALL,
+                MODEL_COLORS["anthropic/claude-opus-4.5"],
+                anchor="ra",
+            )
         for i, tone in enumerate(TONES):
             xx = px0 + i * pw / 2
             draw_text(draw, (xx, py0 + ph + 36), TONE_LABELS[tone], FONT_AXIS_BOLD, INK, anchor="ma")
         draw_text(draw, (px0 + pw / 2, y + h - 34), "Tone", FONT_AXIS_BOLD, INK, anchor="ma")
-    legend_x, legend_y = 150, 875
-    col_w, row_h = 520, 38
-    for i, model in enumerate(MODELS):
-        col, row = i % 3, i // 3
-        x = legend_x + col * col_w
-        y = legend_y + row * row_h
-        color = MODEL_COLORS[model]
-        width_line = 8 if model == "anthropic/claude-opus-4.5" else 5
-        draw.line((x, y, x + 52, y), fill=color, width=width_line)
-        draw.ellipse((x + 24, y - 7, x + 38, y + 7), fill=color, outline="white", width=2)
-        draw_text(draw, (x + 68, y), model_display(model), FONT_SMALL, INK, anchor="lm")
+    legend_x, legend_y = 220, 875
+    legend_items = [
+        ("anthropic/claude-opus-4.5", "Opus 4.5", 9),
+        ("anthropic/claude-sonnet-4.5", "Sonnet 4.5", 6),
+        ("anthropic/claude-haiku-4.5", "Haiku 4.5", 6),
+        (None, "Other models", 3),
+    ]
+    for i, (model, label, width_line) in enumerate(legend_items):
+        x = legend_x + i * 380
+        color = MODEL_COLORS[model] if model else "#B9C3D0"
+        draw.line((x, legend_y, x + 58, legend_y), fill=color, width=width_line)
+        draw.ellipse((x + 27, legend_y - 7, x + 41, legend_y + 7), fill=color, outline="white", width=2)
+        draw_text(draw, (x + 76, legend_y), label, FONT_SMALL, INK, anchor="lm")
     save_tight(im, path)
 
 
@@ -1348,6 +1424,13 @@ def figure_static_vs_adaptive(path, rows):
     draw = ImageDraw.Draw(im)
     draw_header(draw, "Static vs. adaptive by model", "", width)
     panels = [("GT", 110, 195, "GT correct-to-wrong", 0.55, STATIC), ("NGT", 935, 195, "NGT flip", 0.90, ADAPTIVE)]
+
+    def pooled_rate(branch, mode):
+        subset = [row for row in rows if row["branch"] == branch and row["mode"] == mode]
+        denom = sum(row["denom"] for row in subset)
+        events = sum(row["events"] for row in subset)
+        return events / denom if denom else 0.0
+
     for branch, x, y, title, max_rate, _ in panels:
         w, h = 735, 780
         draw.rectangle((x, y, x + w, y + h), fill="white", outline="#D9E0E8", width=2)
@@ -1355,25 +1438,35 @@ def figure_static_vs_adaptive(path, rows):
         label_x = x + 26
         cell_x = x + 285
         top = y + 110
-        row_h = 60
-        cell_w = 155
+        row_h = 56
+        cell_w = 148
         gap = 10
         for ci, mode in enumerate(["static", "adaptive"]):
             draw_text(draw, (cell_x + ci * (cell_w + gap) + cell_w / 2, top - 34), mode.capitalize(), FONT_AXIS_BOLD, INK, anchor="ma")
-        draw_text(draw, (cell_x + 2 * (cell_w + gap) + 35, top - 34), "Delta", FONT_AXIS_BOLD, INK, anchor="ma")
-        for ri, model in enumerate(MODELS):
+        delta_x = cell_x + 2 * (cell_w + gap) + 8
+        draw_text(draw, (delta_x + 56, top - 34), "Delta pp", FONT_AXIS_BOLD, INK, anchor="ma")
+        display_rows = [{"model": model, "label": model_display(model), "aggregate": False} for model in MODELS]
+        display_rows.append({"model": None, "label": "All models", "aggregate": True})
+        max_delta = 0.08 if branch == "GT" else 0.22
+        for ri, item in enumerate(display_rows):
+            model = item["model"]
             yy = top + ri * row_h
-            draw_text(draw, (label_x, yy + 23), model_display(model), FONT_SMALL, INK, anchor="lm")
-            static = row_lookup(rows, branch=branch, model=model, mode="static")["rate"]
-            adaptive = row_lookup(rows, branch=branch, model=model, mode="adaptive")["rate"]
+            if item["aggregate"]:
+                draw.line((label_x, yy - 8, x + w - 26, yy - 8), fill="#C9D2DE", width=2)
+                font = FONT_AXIS_BOLD
+                static = pooled_rate(branch, "static")
+                adaptive = pooled_rate(branch, "adaptive")
+            else:
+                font = FONT_SMALL
+                static = row_lookup(rows, branch=branch, model=model, mode="static")["rate"]
+                adaptive = row_lookup(rows, branch=branch, model=model, mode="adaptive")["rate"]
+            draw_text(draw, (label_x, yy + 23), item["label"], font, INK, anchor="lm")
             for ci, (mode, value) in enumerate([("static", static), ("adaptive", adaptive)]):
                 xx = cell_x + ci * (cell_w + gap)
                 color = STATIC if mode == "static" else ADAPTIVE
                 draw_rate_cell(draw, (xx, yy, xx + cell_w, yy + 46), value, max_rate, color, FONT_AXIS_BOLD)
             delta = adaptive - static
-            delta_x = cell_x + 2 * (cell_w + gap) + 8
-            sign = "+" if delta >= 0 else ""
-            draw_text(draw, (delta_x + 35, yy + 23), f"{sign}{pct(delta):.1f}", FONT_SMALL, ADAPTIVE if delta >= 0 else ACCENT, anchor="mm")
+            draw_delta_cell(draw, (delta_x, yy, delta_x + 112, yy + 46), delta, max_delta, FONT_AXIS_BOLD)
     save_tight(im, path)
 
 
@@ -1402,7 +1495,7 @@ def figure_temporal_pressure(path, rows):
             label = row_lookup(rows, branch=branch, model=MODELS[0], mode="adaptive", stage=stage)["stage_label"]
             draw_wrapped(draw, label, cell_x + ci * (cell_w + gap) - 8, top - 52, cell_w + 16, FONT_TINY, INK, anchor_center=True)
         delta_x = cell_x + 3 * (cell_w + gap) + 10
-        draw_text(draw, (delta_x + 61, top - 34), "Delta pp", FONT_AXIS_BOLD, INK, anchor="ma")
+        draw_wrapped(draw, "Mixed - single", delta_x, top - 57, 122, FONT_TINY, INK, anchor_center=True)
         for ri, model in enumerate(MODELS):
             yy = top + ri * row_h
             draw_text(draw, (label_x, yy + 23), model_display(model), FONT_SMALL, INK, anchor="lm")
@@ -1413,6 +1506,7 @@ def figure_temporal_pressure(path, rows):
                 xx = cell_x + ci * (cell_w + gap)
                 draw_rate_cell(draw, (xx, yy, xx + cell_w, yy + 46), value, max_rate, color, FONT_AXIS_BOLD)
             draw_delta_cell(draw, (delta_x, yy, delta_x + 122, yy + 46), values[-1] - values[0], max_delta, FONT_AXIS_BOLD)
+        draw_text(draw, (x + w - 26, y + h - 28), "red = more final movement; blue = recovery", FONT_TINY, MUTED, anchor="rm")
     save_tight(im, path)
 
 
@@ -1500,12 +1594,6 @@ def main():
         path = figure_dir / filename
         fn(path, rows)
         written.append(filename)
-    figure_tone_temporal(
-        figure_dir / "trigger_tone_temporal.png",
-        tables["tone_gradient_opus"],
-        tables["temporal_pressure"],
-    )
-    written.append("trigger_tone_temporal.png")
     figure_trigger_dynamics(
         figure_dir / "trigger_dynamics_summary.png",
         tables["tone_gradient_opus"],
@@ -1514,12 +1602,23 @@ def main():
     )
     written.append("trigger_dynamics_summary.png")
 
+    published = []
+    if args.publish_dir:
+        args.publish_dir.mkdir(parents=True, exist_ok=True)
+        for filename in written:
+            source = figure_dir / filename
+            if source.exists():
+                shutil.copy2(source, args.publish_dir / filename)
+                published.append(filename)
+
     summary = {
         "run_id": args.run_id,
         "source": "official pass@1-clean trigger result files",
         "figure_dir": str(figure_dir.resolve()),
         "figures": written,
         "tables": table_names,
+        "published_to": str(args.publish_dir.resolve()) if args.publish_dir else None,
+        "published_figures": published,
     }
     (figure_dir / "figure_generation_summary.json").write_text(
         json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8"
@@ -1532,11 +1631,10 @@ def main():
                 "This directory is the single canonical location for trigger figure candidates.",
                 "All figures are Python-generated PNG charts from the official pass@1-clean result files.",
                 "",
-                "- `trigger_model_comparison.png`: side-by-side GT correct-to-wrong and NGT flip rates by model.",
-                "- `trigger_tone_gradient_opus.png`: model-separated mild/moderate/strong tone gradients with Opus 4.5 highlighted.",
+                "- `trigger_model_comparison.png`: GT answer change versus GT correct-to-wrong by model, with NGT flip encoded by bubble size.",
+                "- `trigger_tone_gradient_opus.png`: model-separated mild/moderate/strong tone gradients with Claude-family reversals highlighted.",
                 "- `trigger_static_vs_adaptive.png`: per-model static vs adaptive GT and NGT rates.",
                 "- `trigger_temporal_pressure.png`: per-model adaptive single, same-family escalation, heterogeneous temporal pressure, and mixed-minus-single deltas.",
-                "- `trigger_tone_temporal.png`: compact main-text composite of per-model tone gradients and adaptive temporal pressure.",
                 "- `trigger_dynamics_summary.png`: 1x2 main-text scatter comparing single-follow-up and mixed three-turn movement by model for GT and NGT.",
                 "- `trigger_confidence_trajectory.png`: per-model confidence over turns for preserved/departed GT and held/switched NGT trajectories, with T3-minus-initial deltas.",
                 "",
