@@ -2,7 +2,7 @@ import argparse
 from collections import defaultdict
 from pathlib import Path
 
-from PIL import Image, ImageColor, ImageDraw
+from PIL import Image, ImageDraw
 
 try:
     import plot_trigger_figures as trigger_plot
@@ -42,8 +42,8 @@ INK = "#17202A"
 MUTED = "#637083"
 GRID = "#E4E9F0"
 PAPER = "#FFFFFF"
-BOOST = "#FFD84D"
-BOOST_TEXT = "#08751B"
+BOOST_MODERATE = "#FFD84D"
+BOOST_STRONG = "#F7A63B"
 DROP = "#D23B35"
 
 
@@ -59,13 +59,28 @@ def y_at(rate, y0, h, max_rate):
     return y0 + h - h * min(max(rate, 0.0), max_rate) / max_rate
 
 
-def boost_arrow(draw, x, y_from, y_to):
-    if y_to >= y_from - 8:
+def tone_arrow(draw, x, y_from, y_to, color):
+    if abs(y_to - y_from) < 8:
         return
-    shaft_end = y_to + 24
-    draw.line((x, y_from, x, shaft_end), fill=BOOST, width=13)
-    head = [(x, y_to), (x - 24, y_to + 38), (x + 24, y_to + 38)]
-    draw.polygon(head, fill=BOOST)
+    if y_to < y_from:
+        shaft_end = y_to + 18
+        draw.line((x, y_from, x, shaft_end), fill=color, width=7)
+        head = [(x, y_to), (x - 14, y_to + 25), (x + 14, y_to + 25)]
+        draw.polygon(head, fill=color)
+    else:
+        shaft_end = y_to - 18
+        draw.line((x, y_from, x, shaft_end), fill=DROP, width=7)
+        head = [(x, y_to), (x - 14, y_to - 25), (x + 14, y_to - 25)]
+        draw.polygon(head, fill=DROP)
+
+
+def tone_step(draw, x, y_mild, y_moderate, y_strong):
+    x_mid = x - 6
+    x_strong = x + 8
+    tone_arrow(draw, x_mid, y_mild, y_moderate, BOOST_MODERATE)
+    if abs(y_strong - y_moderate) >= 8:
+        draw.line((x_mid, y_moderate, x_strong, y_moderate), fill="#CBD3DE", width=3)
+    tone_arrow(draw, x_strong, y_moderate, y_strong, BOOST_STRONG)
 
 
 def aggregate_tone(results_dir, run_id, mode):
@@ -74,21 +89,26 @@ def aggregate_tone(results_dir, run_id, mode):
     for record in trigger_plot.read_jsonl_gz(path):
         family = record.get("trigger")
         tone = record.get("tone")
-        if record.get("eligible") and family in FAMILIES and tone in {"mild", "strong"}:
+        if record.get("eligible") and family in FAMILIES and tone in {"mild", "moderate", "strong"}:
             cell = grouped[(record["model"], family)][tone]
             cell["denom"] += 1
             cell["events"] += int(bool(record.get("single_trigger_answer_switch")))
     out = {}
     for key, by_tone in grouped.items():
         mild = by_tone["mild"]
+        moderate = by_tone["moderate"]
         strong = by_tone["strong"]
         mild_rate = mild["events"] / mild["denom"] if mild["denom"] else 0.0
+        moderate_rate = moderate["events"] / moderate["denom"] if moderate["denom"] else 0.0
         strong_rate = strong["events"] / strong["denom"] if strong["denom"] else 0.0
         out[key] = {
             "mild": mild_rate,
+            "moderate": moderate_rate,
             "strong": strong_rate,
-            "delta": strong_rate - mild_rate,
-            "denom": min(mild["denom"], strong["denom"]),
+            "delta_moderate": moderate_rate - mild_rate,
+            "delta_strong": strong_rate - moderate_rate,
+            "delta_total": strong_rate - mild_rate,
+            "denom": min(mild["denom"], moderate["denom"], strong["denom"]),
         }
     return out
 
@@ -147,21 +167,18 @@ def draw_figure(rows, out_path):
             xx = x0 + mi * cluster_w
             draw.line((xx, y0 + 18, xx, bottom + 18), fill="#F0F3F7", width=2)
         for fi, family in enumerate(FAMILIES):
-            value = rows.get((model, family), {"mild": 0, "strong": 0, "delta": 0, "denom": 0})
+            value = rows.get(
+                (model, family),
+                {"mild": 0, "moderate": 0, "strong": 0, "delta_moderate": 0, "delta_strong": 0, "delta_total": 0, "denom": 0},
+            )
             x = gx + fi * (bar_w + bar_gap)
             y_mild = y_at(value["mild"], y0, plot_h, max_rate)
+            y_moderate = y_at(value["moderate"], y0, plot_h, max_rate)
             y_strong = y_at(value["strong"], y0, plot_h, max_rate)
             fill = FAMILY_COLORS[family]
             draw.rounded_rectangle((x, y_mild, x + bar_w, bottom), radius=5, fill=fill)
             draw.line((x, bottom, x + bar_w, bottom), fill="#9DA8B5", width=2)
-            delta = value["delta"]
-            if delta > 0.025:
-                boost_arrow(draw, x + bar_w / 2, y_mild, y_strong)
-            if abs(delta) >= 0.15:
-                label = f"{delta * 100:+.0f}"
-                label_y = (y_strong - 18) if delta >= 0 else max(y0 + 18, y_mild - 18)
-                label_fill = BOOST_TEXT if delta >= 0 else DROP
-                draw_text(draw, (x + bar_w / 2, label_y), label, 18, label_fill, bold=True, anchor="mm")
+            tone_step(draw, x + bar_w / 2, y_mild, y_moderate, y_strong)
         draw_model_label(im, draw, model, cx, bottom + 54)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
