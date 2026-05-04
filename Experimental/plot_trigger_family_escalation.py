@@ -127,7 +127,7 @@ def draw_figure(rows, out_path):
     draw_text(
         draw,
         (width / 2, 112),
-        "NGT flip under same-family mild to moderate to strong pressure; yellow arrows mark escalation boost",
+        "Bars show first follow-up NGT flip; yellow arrows show added three-turn escalation boost",
         34,
         MUTED,
         anchor="ma",
@@ -161,17 +161,17 @@ def draw_figure(rows, out_path):
         for fi, family in enumerate(FAMILIES):
             value = rows.get((model, family), {"first": 0, "final": 0, "delta": 0, "denom": 0})
             x = gx + fi * (bar_w + bar_gap)
-            y_final = y_at(value["final"], y0, plot_h, max_rate)
             y_first = y_at(value["first"], y0, plot_h, max_rate)
+            y_final = y_at(value["final"], y0, plot_h, max_rate)
             fill = FAMILY_COLORS[family]
-            draw.rounded_rectangle((x, y_final, x + bar_w, bottom), radius=5, fill=fill)
+            draw.rounded_rectangle((x, y_first, x + bar_w, bottom), radius=5, fill=fill)
             draw.line((x, bottom, x + bar_w, bottom), fill="#9DA8B5", width=2)
             delta = value["delta"]
             if delta > 0.025:
                 boost_arrow(draw, x + bar_w / 2, y_first, y_final)
             if abs(delta) >= 0.08:
                 label = f"{delta * 100:+.0f}"
-                label_y = y_final - 18 if delta >= 0 else max(y0 + 18, y_final - 18)
+                label_y = (y_final - 18) if delta >= 0 else max(y0 + 18, y_first - 18)
                 label_fill = BOOST_TEXT if delta >= 0 else DROP
                 draw_text(draw, (x + bar_w / 2, label_y), label, 18, label_fill, bold=True, anchor="mm")
         draw_model_label(im, draw, model, cx, bottom + 54)
