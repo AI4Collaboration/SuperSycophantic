@@ -978,8 +978,7 @@ def figure_model_comparison(path, rows):
     im = Image.new("RGBA", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
     draw_text(draw, (width / 2, 58), "Trigger Branch Comparison by Model", load_font(66, True), INK, anchor="ma")
-    draw_text(draw, (width / 2, 123), "Single-follow-up Cialdini triggers, pass@1-clean", load_font(34), MUTED, anchor="ma")
-    draw.line((70, 168, width - 70, 168), fill=LIGHT_GRID, width=4)
+    draw.line((70, 145, width - 70, 145), fill=LIGHT_GRID, width=4)
 
     def panel(x, y, title, rate_key, max_rate, color, ticks):
         w, h = 1760, 1110
@@ -1013,8 +1012,8 @@ def figure_model_comparison(path, rows):
                 draw_text(draw, (bar_x + fill_w + 18, yy + bar_h / 2), label, load_font(28, True), INK, anchor="lm")
         draw_text(draw, (bar_x + bar_w / 2, y + h - 38), "Rate (%)", load_font(27, True), MUTED, anchor="ma")
 
-    panel(120, 240, "GT correct-to-wrong", "gt_rate", 0.55, STATIC, [0.0, 0.15, 0.30, 0.45, 0.55])
-    panel(2020, 240, "NGT flip", "ngt_rate", 0.90, ADAPTIVE, [0.0, 0.30, 0.60, 0.90])
+    panel(120, 220, "GT correct-to-wrong", "gt_rate", 0.55, STATIC, [0.0, 0.15, 0.30, 0.45, 0.55])
+    panel(2020, 220, "NGT flip", "ngt_rate", 0.90, ADAPTIVE, [0.0, 0.30, 0.60, 0.90])
     im.convert("RGB").save(path)
 
 
@@ -1114,18 +1113,17 @@ def figure_trigger_dynamics(path, tone_rows, temporal_rows, confidence_rows):
     panel_y = 80
     panel_h = 1235
 
-    def panel_frame(idx, title, subtitle):
+    def panel_frame(idx, title):
         x = margin + idx * (panel_w + gap)
         draw.rounded_rectangle((x, panel_y, x + panel_w, panel_y + panel_h), radius=18, fill="#F8FAFC", outline="#D9E0E8", width=2)
         draw_text(draw, (x + panel_w / 2, panel_y + 34), title, title_font, INK, anchor="ma")
-        draw_text(draw, (x + panel_w / 2, panel_y + 82), subtitle, small_font, MUTED, anchor="ma")
         return x
 
     def heat_cell(rect, value, max_rate, color):
         draw_rate_cell(draw, rect, value, max_rate, color, cell_font)
 
-    def draw_two_branch_rate_table(idx, title, subtitle, rows, columns, max_rates, colors, value_fn):
-        x = panel_frame(idx, title, subtitle)
+    def draw_two_branch_rate_table(idx, title, rows, columns, max_rates, colors, value_fn):
+        x = panel_frame(idx, title)
         label_x = x + 26
         table_x = x + 260
         table_y = panel_y + 225
@@ -1156,7 +1154,6 @@ def figure_trigger_dynamics(path, tone_rows, temporal_rows, confidence_rows):
     draw_two_branch_rate_table(
         0,
         "Tone",
-        "Mild, moderate, and strong follow-up pressure",
         tone_rows,
         ["Mild", "Mod.", "Strong"],
         {"GT": 0.55, "NGT": 0.90},
@@ -1172,7 +1169,6 @@ def figure_trigger_dynamics(path, tone_rows, temporal_rows, confidence_rows):
     draw_two_branch_rate_table(
         1,
         "Temporal",
-        "Adaptive single-turn and three-turn pressure",
         temporal_rows,
         ["Single", "Same", "Mixed"],
         {"GT": 0.55, "NGT": 0.90},
@@ -1186,7 +1182,7 @@ def figure_trigger_dynamics(path, tone_rows, temporal_rows, confidence_rows):
         )["rate"],
     )
 
-    x = panel_frame(2, "Confidence", "Final temporal self-report by outcome")
+    x = panel_frame(2, "Confidence")
     label_x = x + 26
     table_x = x + 285
     table_y = panel_y + 225
@@ -1210,8 +1206,6 @@ def figure_trigger_dynamics(path, tone_rows, temporal_rows, confidence_rows):
             row = row_lookup(confidence_rows, branch=branch, model=model, category=category, turn=3)
             xx = table_x + ci * (cell_w + col_gap)
             draw_confidence_cell(draw, (xx, yy, xx + cell_w, yy + cell_h), row["mean_confidence"], cell_font)
-    draw_text(draw, (table_x + 2 * (cell_w + col_gap), panel_y + panel_h - 44), "1 = low confidence, 5 = high confidence", small_font, MUTED, anchor="ma")
-
     im.save(path)
 
 

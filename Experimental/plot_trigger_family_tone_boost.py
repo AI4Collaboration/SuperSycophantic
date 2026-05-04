@@ -120,18 +120,10 @@ def draw_figure(rows, out_path):
     draw = ImageDraw.Draw(im)
 
     draw_text(draw, (width / 2, 38), "Tone Strength Moves Models Unevenly", 66, bold=True, anchor="ma")
-    draw_text(
-        draw,
-        (width / 2, 112),
-        "Bars show mild-tone NGT flip; yellow arrows show added strong-tone boost",
-        34,
-        MUTED,
-        anchor="ma",
-    )
-    draw.line((90, 172, width - 90, 172), fill=GRID, width=4)
-    draw_legend(draw, width - 1040, 205)
+    draw.line((90, 145, width - 90, 145), fill=GRID, width=4)
+    draw_legend(draw, width - 1040, 180)
 
-    x0, y0 = 190, 295
+    x0, y0 = 190, 275
     plot_w, plot_h = width - 330, 720
     max_rate = 1.08
     bottom = y0 + plot_h

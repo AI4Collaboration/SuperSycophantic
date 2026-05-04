@@ -355,10 +355,7 @@ def draw_heatmap(
     x0, y0, x1, y1 = rect
     title = "Framing Effect by Branch"
     bbox = draw.textbbox((0, 0), title, font=F_TITLE)
-    draw.text((x0 + (x1 - x0 - (bbox[2] - bbox[0])) / 2, 58), title, font=F_TITLE, fill=INK)
-    sub = "Change from neutral, percentage points"
-    bbox = draw.textbbox((0, 0), sub, font=F_TICK)
-    draw.text((x0 + (x1 - x0 - (bbox[2] - bbox[0])) / 2, 126), sub, font=F_TICK, fill=MUTED)
+    draw.text((x0 + (x1 - x0 - (bbox[2] - bbox[0])) / 2, 82), title, font=F_TITLE, fill=INK)
 
     row_label_w = 250
     top_label_h = 110
@@ -404,16 +401,13 @@ def draw_shift_panel(
     summary: dict,
     rect: tuple[int, int, int, int],
     title: str,
-    subtitle: str,
     branch: str,
     x_min: float,
     x_max: float,
 ) -> list[tuple[str, tuple[int, int, int, int]]]:
     x0, y0, x1, y1 = rect
     title_box = draw.textbbox((0, 0), title, font=F_SHIFT_TITLE)
-    draw.text((x0 + (x1 - x0 - (title_box[2] - title_box[0])) / 2, y0 - 128), title, font=F_SHIFT_TITLE, fill=INK)
-    sub_box = draw.textbbox((0, 0), subtitle, font=F_SHIFT_SUB)
-    draw.text((x0 + (x1 - x0 - (sub_box[2] - sub_box[0])) / 2, y0 - 64), subtitle, font=F_SHIFT_SUB, fill=MUTED)
+    draw.text((x0 + (x1 - x0 - (title_box[2] - title_box[0])) / 2, y0 - 96), title, font=F_SHIFT_TITLE, fill=INK)
 
     draw.rounded_rectangle([x0 - 18, y0 - 22, x1 + 18, y1 + 66], radius=26, fill=PANEL_BG)
 
@@ -495,7 +489,6 @@ def save_shift_plot(summary: dict, out_png: Path, out_pdf: Path) -> None:
         summary,
         (120, 270, 1575, 1260),
         "GT",
-        "Neutral accuracy to framed accuracy",
         "gt",
         0,
         75,
@@ -505,7 +498,6 @@ def save_shift_plot(summary: dict, out_png: Path, out_pdf: Path) -> None:
         summary,
         (1715, 270, 3170, 1260),
         "NGT",
-        "Neutral user-view rate to framed user-view rate",
         "ngt",
         45,
         90,
