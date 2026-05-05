@@ -739,7 +739,7 @@ def figure_strong_recheck_boundary(records, judge_rows, judge_meta, out_path):
 
 
 def figure_tone_recheck_combo(records, judge_rows, judge_meta, out_path):
-    width, height = 3150, 820
+    width, height = 2240, 820
     im = Image.new("RGB", (width, height), WHITE)
     draw = ImageDraw.Draw(im, "RGBA")
     claude_color = "#D96C42"
@@ -749,7 +749,6 @@ def figure_tone_recheck_combo(records, judge_rows, judge_meta, out_path):
     panel_font = font(32, True)
     axis_font = font(24)
     axis_bold = font(27, True)
-    value_font = font(21, True)
     legend_font = font(25, True)
     family_font = font(21, True)
 
@@ -800,44 +799,6 @@ def figure_tone_recheck_combo(records, judge_rows, judge_meta, out_path):
         lows = [min(values[i] for values in model_values) for i in range(len(TONES))]
         highs = [max(values[i] for values in model_values) for i in range(len(TONES))]
         return means, lows, highs
-
-    adaptive_outcome = defaultdict(lambda: [0, 0])
-    for row in records["single"]:
-        if row["_mode"] != "adaptive" or not is_cialdini(row) or not denom_ok(row, row["_branch"]):
-            continue
-        key = (group(row["model"]), row["_branch"], row.get("tone"))
-        adaptive_outcome[key][0] += 1
-        adaptive_outcome[key][1] += int(single_event(row, row["_branch"]))
-
-    redo = defaultdict(lambda: [0.0, 0])
-    for row in judge_rows:
-        meta = judge_meta.get(row["transcript_key"])
-        if not meta or meta["source_kind"] != "single" or meta.get("trigger") not in CIALDINI:
-            continue
-        value = judge_mean(row, "redo_question_by_reasoning_or_calculation")
-        if value is None:
-            continue
-        key = (group(meta["model"]), meta.get("tone"))
-        redo[key][0] += value
-        redo[key][1] += 1
-
-    def outcome_series(grp):
-        values = []
-        for tone in TONES:
-            setting_rates = []
-            for branch in ["GT", "NGT"]:
-                denom, events = adaptive_outcome[(grp, branch, tone)]
-                if denom:
-                    setting_rates.append(events / denom)
-            values.append(sum(setting_rates) / len(setting_rates) if setting_rates else 0.0)
-        return values
-
-    def redo_series(grp):
-        values = []
-        for tone in TONES:
-            total, n = redo[(grp, tone)]
-            values.append(total / n if n else 0.0)
-        return values
 
     def draw_panel_shell(x, y, w, h, title):
         draw.rounded_rectangle((x, y, x + w, y + h), radius=16, fill=WHITE, outline="#D8E0EA", width=2)
@@ -943,56 +904,18 @@ def figure_tone_recheck_combo(records, judge_rows, judge_meta, out_path):
         for i, tone in enumerate(TONES):
             draw_text(draw, (x_at(i), py1 + 38), tone.title(), axis_bold, INK, anchor="ma")
 
-    def draw_boundary_panel(x, y, w, h):
-        draw_panel_shell(x, y, w, h, "Outcome vs. recheck")
-        px0, px1 = x + 112, x + w - 52
-        py0, py1 = y + 105, y + h - 136
-        max_rate = 0.70
-
-        def x_at(i):
-            return px0 + (px1 - px0) * i / 2
-
-        def y_at(value):
-            return py1 - (py1 - py0) * min(value, max_rate) / max_rate
-
-        for tick in [0.0, 0.35, 0.70]:
-            yy = y_at(tick)
-            draw.line((px0, yy, px1, yy), fill=LIGHT, width=1)
-            draw_text(draw, (px0 - 16, yy), str(int(tick * 100)), axis_font, MUTED, anchor="rm")
-        draw.line((px0, py1, px1, py1), fill=GRID, width=2)
-
-        for grp, color in [("Claude", claude_color), ("Other", other_color)]:
-            out_values = outcome_series(grp)
-            redo_values = redo_series(grp)
-            out_pts = [(x_at(i), y_at(value)) for i, value in enumerate(out_values)]
-            redo_pts = [(x_at(i), y_at(value)) for i, value in enumerate(redo_values)]
-            draw_line(out_pts, color, 8, dashed=False)
-            draw_line(redo_pts, color, 6, dashed=True)
-            for xx, yy in out_pts:
-                draw.ellipse((xx - 13, yy - 13, xx + 13, yy + 13), fill=color, outline=WHITE, width=4)
-            for xx, yy in redo_pts:
-                draw.rounded_rectangle((xx - 12, yy - 12, xx + 12, yy + 12), radius=4, fill=color, outline=WHITE, width=4)
-            draw_text(draw, (out_pts[-1][0] + 15, out_pts[-1][1]), f"{out_values[-1] * 100:.1f}", value_font, color, anchor="lm")
-            draw_text(draw, (redo_pts[-1][0] + 15, redo_pts[-1][1]), f"{redo_values[-1] * 100:.1f}", value_font, color, anchor="lm")
-
-        for i, tone in enumerate(TONES):
-            draw_text(draw, (x_at(i), py1 + 38), tone.title(), axis_bold, INK, anchor="ma")
-
     margin, gap = 38, 34
-    panel_w = int((width - 2 * margin - 2 * gap) / 3)
+    panel_w = int((width - 2 * margin - gap) / 2)
     panel_h = 650
     panel_y = 30
     draw_family_panel(margin, panel_y, panel_w, panel_h)
     draw_claude_answer_panel(margin + panel_w + gap, panel_y, panel_w, panel_h)
-    draw_boundary_panel(margin + 2 * (panel_w + gap), panel_y, panel_w, panel_h)
 
     legend_entries = [
         ("mild to moderate", arrow_mid, "arrow"),
         ("moderate to strong", arrow_strong, "arrow"),
         ("Claude family mean", claude_color, "line"),
         ("Other models mean", other_color, "line"),
-        ("sycophantic outcome", INK, "solid"),
-        ("redo/recheck label", INK, "dashed"),
     ]
     total = 0
     widths = []
