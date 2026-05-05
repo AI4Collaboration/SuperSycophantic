@@ -2,7 +2,6 @@ import argparse
 import csv
 import gzip
 import json
-import math
 from collections import Counter, defaultdict
 from pathlib import Path
 
@@ -991,28 +990,8 @@ def figure_judge_reliability_triage(trigger_summary, context_summary, out_path):
     save(im, out_path)
 
 
-def build_contact_sheet(paths, out_path):
-    thumb_w, thumb_h = 520, 300
-    cols = 3
-    rows = math.ceil(len(paths) / cols)
-    width = cols * 620 + 80
-    height = rows * 400 + 150
-    im = Image.new("RGB", (width, height), WHITE)
-    draw = ImageDraw.Draw(im)
-    draw_header(draw, "Review candidate figures", width)
-    for i, path in enumerate(paths):
-        img = Image.open(path).convert("RGB")
-        img.thumbnail((thumb_w, thumb_h), Image.Resampling.LANCZOS)
-        x = 55 + (i % cols) * 620
-        y = 140 + (i // cols) * 400
-        draw.rounded_rectangle((x - 10, y - 10, x + thumb_w + 10, y + thumb_h + 52), radius=15, fill=PANEL, outline="#D8E0EA")
-        im.paste(img, (x + (thumb_w - img.width) // 2, y))
-        draw_text(draw, (x + thumb_w / 2, y + thumb_h + 22), path.name.replace(".png", ""), FONT_SMALL, anchor="mm")
-    save(im, out_path, padding=8)
-
-
 def main():
-    parser = argparse.ArgumentParser(description="Generate extra review candidate figures from official results.")
+    parser = argparse.ArgumentParser(description="Generate extra appendix diagnostic figures from official results.")
     parser.add_argument("--run-id", default="trigger_20260504_070840")
     parser.add_argument("--results-dir", type=Path, required=True)
     parser.add_argument("--context-summary", type=Path, required=True)
@@ -1021,7 +1000,7 @@ def main():
     parser.add_argument("--judge-context-summary", type=Path, required=True)
     parser.add_argument("--judge-trigger-csv", type=Path, required=True)
     parser.add_argument("--judge-trigger-inputs", type=Path, required=True)
-    parser.add_argument("--out-dir", type=Path, default=Path("images/results/appendix/review_candidates"))
+    parser.add_argument("--out-dir", type=Path, default=Path("images/results/appendix"))
     args = parser.parse_args()
 
     records = collect_trigger(args.results_dir, args.run_id)
@@ -1049,15 +1028,10 @@ def main():
         ("context_confidence_outcome.png", lambda p: figure_context_confidence_outcome(gt_pairs, ngt_pairs, p)),
         ("judge_reliability_triage.png", lambda p: figure_judge_reliability_triage(trigger_judge_summary, context_judge_summary, p)),
     ]
-    paths = []
     for filename, fn in outputs:
         path = args.out_dir / filename
         fn(path)
-        paths.append(path)
         print(f"Wrote {path}")
-    contact = args.out_dir / "contact_sheet.png"
-    build_contact_sheet(paths, contact)
-    print(f"Wrote {contact}")
 
 
 if __name__ == "__main__":
