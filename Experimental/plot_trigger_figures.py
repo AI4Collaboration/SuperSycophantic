@@ -933,7 +933,7 @@ def figure_temporal_sequences(path, sequence_rows):
 
 
 def figure_scatter(path, headline):
-    width, height = 1800, 1120
+    width, height = 2440, 1120
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
     draw_header(
@@ -942,75 +942,127 @@ def figure_scatter(path, headline):
         "",
         width,
     )
-    rows = []
-    for model in MODELS:
-        gt_rate = row_lookup(headline, model=model, branch="GT", mode="adaptive", source="single")["rate"]
-        ngt_rate = row_lookup(headline, model=model, branch="NGT", mode="adaptive", source="single")["rate"]
-        rows.append(
-            {
-                "model": model,
-                "label": MODEL_SHORT_LABELS[model],
-                "family": model.split("/")[0],
-                "gt": gt_rate,
-                "ngt": ngt_rate,
-            }
-        )
-    left, top = 210, 185
-    plot_w, plot_h = 1360, 760
+
+    top = 182
+    panel_w, panel_h = 1025, 790
+    panel_gap = 115
+    panel_lefts = [145, 145 + panel_w + panel_gap]
+    plot_pad_left, plot_pad_top = 116, 92
+    plot_pad_right, plot_pad_bottom = 58, 112
+    plot_w = panel_w - plot_pad_left - plot_pad_right
+    plot_h = panel_h - plot_pad_top - plot_pad_bottom
     min_x, max_x = 0.05, 0.38
-    min_y, max_y = 0.32, 0.95
+    min_y, max_y = 0.25, 0.95
     x_cut, y_cut = 0.20, 0.60
 
-    def x_pos(value):
-        return left + plot_w * (value - min_x) / (max_x - min_x)
-
-    def y_pos(value):
-        return top + plot_h - plot_h * (value - min_y) / (max_y - min_y)
-
-    # Soft quadrant fields, deliberately more visual than a plain scatter background.
-    overlay = Image.new("RGBA", (width, height), (255, 255, 255, 0))
-    od = ImageDraw.Draw(overlay)
-    x_mid, y_mid = x_pos(x_cut), y_pos(y_cut)
-    od.rectangle((left, top, x_mid, y_mid), fill=(*ImageColor.getrgb("#EAF4EF"), 150))
-    od.rectangle((x_mid, top, left + plot_w, y_mid), fill=(*ImageColor.getrgb("#FFF3E8"), 150))
-    od.rectangle((left, y_mid, x_mid, top + plot_h), fill=(*ImageColor.getrgb("#EEF5FB"), 150))
-    od.rectangle((x_mid, y_mid, left + plot_w, top + plot_h), fill=(*ImageColor.getrgb("#F9EEF1"), 135))
-    im = Image.alpha_composite(im.convert("RGBA"), overlay).convert("RGB")
-    draw = ImageDraw.Draw(im)
-
-    for value in [0.10, 0.20, 0.30]:
-        xx = x_pos(value)
-        draw.line((xx, top, xx, top + plot_h), fill="#DCE3EC", width=1)
-        draw_text(draw, (xx, top + plot_h + 18), f"{int(value * 100)}%", FONT_SMALL, MUTED, anchor="ma")
-    for value in [0.40, 0.60, 0.80]:
-        yy = y_pos(value)
-        draw.line((left, yy, left + plot_w, yy), fill="#DCE3EC", width=1)
-        draw_text(draw, (left - 16, yy), f"{int(value * 100)}%", FONT_SMALL, MUTED, anchor="rm")
-    draw.line((x_mid, top, x_mid, top + plot_h), fill="#586474", width=2)
-    draw.line((left, y_mid, left + plot_w, y_mid), fill="#586474", width=2)
-    draw.rectangle((left, top, left + plot_w, top + plot_h), outline="#1A2028", width=2)
-
     label_specs = {
-        "openai/gpt-5.4": (-18, -42, "rm"),
-        "openai/gpt-5.4-mini": (24, 16, "lm"),
-        "openai/gpt-5.4-nano": (24, 14, "lm"),
-        "anthropic/claude-sonnet-4.5": (22, 18, "lm"),
-        "anthropic/claude-haiku-4.5": (22, -42, "lm"),
-        "google/gemini-3.1-flash-lite-preview": (22, 18, "lm"),
-        "mistralai/mistral-medium-3.1": (24, -38, "lm"),
-        "cohere/command-r-08-2024": (24, 16, "lm"),
+        "static": {
+            "openai/gpt-5.4": (-46, -54, "rm"),
+            "openai/gpt-5.4-mini": (-16, 58, "ma"),
+            "openai/gpt-5.4-nano": (34, -4, "lm"),
+            "anthropic/claude-opus-4.5": (-40, -50, "rm"),
+            "anthropic/claude-sonnet-4.5": (34, -44, "lm"),
+            "anthropic/claude-haiku-4.5": (36, 24, "lm"),
+            "google/gemini-3.1-flash-lite-preview": (32, -44, "lm"),
+            "mistralai/mistral-medium-3.1": (36, -10, "lm"),
+            "cohere/command-r-08-2024": (34, 18, "lm"),
+        },
+        "adaptive": {
+            "openai/gpt-5.4": (0, -70, "ma"),
+            "openai/gpt-5.4-mini": (-46, 50, "rm"),
+            "openai/gpt-5.4-nano": (30, 50, "lm"),
+            "anthropic/claude-opus-4.5": (-42, 18, "rm"),
+            "anthropic/claude-sonnet-4.5": (36, -46, "lm"),
+            "anthropic/claude-haiku-4.5": (36, 18, "lm"),
+            "google/gemini-3.1-flash-lite-preview": (34, -44, "lm"),
+            "mistralai/mistral-medium-3.1": (38, 20, "lm"),
+            "cohere/command-r-08-2024": (36, 18, "lm"),
+        },
     }
-    for row in rows:
-        x = x_pos(row["gt"])
-        y = y_pos(row["ngt"])
-        badge = make_logo_badge(row["family"], 64)
-        im.paste(badge, (int(x - badge.width / 2), int(y - badge.height / 2)), badge)
-        draw = ImageDraw.Draw(im)
-        dx, dy, anchor = label_specs.get(row["model"], (12, 8, "lm"))
-        draw.multiline_text((x + dx, y + dy), row["label"], font=FONT_SMALL, fill=INK, anchor=anchor, spacing=2, align="center")
 
-    draw_text(draw, (left + plot_w / 2, top + plot_h + 80), "Wrong turns on factual questions (%)", FONT_AXIS_BOLD, INK, anchor="ma")
-    draw_rotated_label(im, (92, top + plot_h / 2), "Decision shifts (%)", FONT_AXIS_BOLD)
+    def draw_panel(panel_left, mode, title):
+        nonlocal draw
+        panel_top = top
+        draw.rounded_rectangle(
+            (panel_left, panel_top, panel_left + panel_w, panel_top + panel_h),
+            radius=18,
+            fill="#FBFCFE",
+            outline="#D8E0EA",
+            width=2,
+        )
+        draw_text(draw, (panel_left + panel_w / 2, panel_top + 36), title, FONT_PANEL, INK, anchor="ma")
+
+        left = panel_left + plot_pad_left
+        plot_top = panel_top + plot_pad_top
+
+        def x_pos(value):
+            return left + plot_w * (value - min_x) / (max_x - min_x)
+
+        def y_pos(value):
+            return plot_top + plot_h - plot_h * (value - min_y) / (max_y - min_y)
+
+        overlay = Image.new("RGBA", (width, height), (255, 255, 255, 0))
+        od = ImageDraw.Draw(overlay)
+        x_mid, y_mid = x_pos(x_cut), y_pos(y_cut)
+        od.rectangle((left, plot_top, x_mid, y_mid), fill=(*ImageColor.getrgb("#EAF4EF"), 150))
+        od.rectangle((x_mid, plot_top, left + plot_w, y_mid), fill=(*ImageColor.getrgb("#FFF3E8"), 150))
+        od.rectangle((left, y_mid, x_mid, plot_top + plot_h), fill=(*ImageColor.getrgb("#EEF5FB"), 150))
+        od.rectangle((x_mid, y_mid, left + plot_w, plot_top + plot_h), fill=(*ImageColor.getrgb("#F9EEF1"), 135))
+        base = Image.alpha_composite(im.convert("RGBA"), overlay).convert("RGB")
+        im.paste(base)
+        draw = ImageDraw.Draw(im)
+
+        for value in [0.10, 0.20, 0.30]:
+            xx = x_pos(value)
+            draw.line((xx, plot_top, xx, plot_top + plot_h), fill="#DCE3EC", width=1)
+            draw_text(draw, (xx, plot_top + plot_h + 16), f"{int(value * 100)}%", FONT_SMALL, MUTED, anchor="ma")
+        for value in [0.40, 0.60, 0.80]:
+            yy = y_pos(value)
+            draw.line((left, yy, left + plot_w, yy), fill="#DCE3EC", width=1)
+            draw_text(draw, (left - 15, yy), f"{int(value * 100)}%", FONT_SMALL, MUTED, anchor="rm")
+        draw.line((x_mid, plot_top, x_mid, plot_top + plot_h), fill="#586474", width=2)
+        draw.line((left, y_mid, left + plot_w, y_mid), fill="#586474", width=2)
+        draw.rectangle((left, plot_top, left + plot_w, plot_top + plot_h), outline="#1A2028", width=2)
+
+        rows = []
+        for model in MODELS:
+            rows.append(
+                {
+                    "model": model,
+                    "label": MODEL_SHORT_LABELS[model],
+                    "gt": row_lookup(headline, model=model, branch="GT", mode=mode, source="single")["rate"],
+                    "ngt": row_lookup(headline, model=model, branch="NGT", mode=mode, source="single")["rate"],
+                }
+            )
+
+        for row in sorted(rows, key=lambda item: item["ngt"]):
+            x = x_pos(row["gt"])
+            y = y_pos(row["ngt"])
+            badge = make_badge(row["model"])
+            badge.thumbnail((62, 62), RESAMPLE_LANCZOS)
+            im.paste(badge, (int(x - badge.width / 2), int(y - badge.height / 2)), badge)
+            draw = ImageDraw.Draw(im)
+            dx, dy, anchor = label_specs[mode].get(row["model"], (24, 18, "lm"))
+            lx, ly = x + dx, y + dy
+            if abs(dx) > 34 or abs(dy) > 34:
+                edge_x = x + (badge.width / 2 if dx > 0 else -badge.width / 2 if dx < 0 else 0)
+                edge_y = y + (badge.height / 2 if dy > 0 else -badge.height / 2 if dy < 0 else 0)
+                draw.line((edge_x, edge_y, lx, ly), fill="#AEB8C6", width=1)
+            draw.multiline_text((lx, ly), row["label"], font=FONT_TINY, fill=INK, anchor=anchor, spacing=1, align="center")
+
+        draw_text(
+            draw,
+            (left + plot_w / 2, plot_top + plot_h + 70),
+            "GT truth departure after 1 trigger (%)",
+            FONT_AXIS_BOLD,
+            INK,
+            anchor="ma",
+        )
+        draw_rotated_label(im, (panel_left + 31, plot_top + plot_h / 2), "NGT Flip-Flop after 1 trigger (%)", FONT_AXIS_BOLD)
+        draw = ImageDraw.Draw(im)
+
+    draw_panel(panel_lefts[0], "static", "Static")
+    draw_panel(panel_lefts[1], "adaptive", "Adaptive")
     save_tight(im, path)
 
 
@@ -1924,7 +1976,7 @@ def main():
                 "All figures are Python-generated PNG charts from the official pass@1-clean result files.",
                 "",
                 "- `trigger_model_comparison.png`: main-text model-level GT answer change versus right-to-wrong movement.",
-                "- `trigger_model_quadrant.png`: main-text model-level GT truth departure versus NGT Flip-Flop quadrant view.",
+                "- `trigger_model_quadrant.png`: main-text static/adaptive model-level GT truth departure versus NGT Flip-Flop quadrant view.",
                 "- `trigger_tone_gradient.png`: main-text Claude-family versus other-model tone-gradient comparison.",
                 "- `trigger_tone_claude_detail.png`: appendix endpoint-level Claude tone-gradient view.",
                 "- `trigger_model_tone.png`: appendix compact composite combining model-level rates with model-separated tone gradients.",
