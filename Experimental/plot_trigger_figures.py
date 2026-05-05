@@ -2,7 +2,6 @@ import argparse
 import csv
 import gzip
 import json
-import math
 import shutil
 from collections import defaultdict
 from pathlib import Path
@@ -1036,11 +1035,6 @@ def figure_model_comparison(path, rows):
     draw.line((left, top + plot_h, left + plot_w, top + plot_h), fill="#18212B", width=3)
     draw.line((left, top, left, top + plot_h), fill="#18212B", width=3)
 
-    # Correct-to-wrong turns are a stricter subset of answer movement.
-    diag_start, diag_end = max(min_x, min_y), min(max_x, max_y)
-    draw.line((x_pos(diag_start), y_pos(diag_start), x_pos(diag_end), y_pos(diag_end)), fill="#AEB8C6", width=3)
-    draw_text(draw, (x_pos(0.36) - 18, y_pos(0.36) + 22), "y = x", FONT_TINY, MUTED, anchor="rm")
-
     badge_offsets = {
         "openai/gpt-5.4": (-66, -34),
         "openai/gpt-5.4-mini": (-94, -48),
@@ -1253,10 +1247,6 @@ def figure_model_tone(path, model_rows, tone_rows):
     draw.line((left, top + plot_h, left + plot_w, top + plot_h), fill="#18212B", width=4)
     draw.line((left, top, left, top + plot_h), fill="#18212B", width=4)
 
-    diag_start, diag_end = max(min_x, min_y), min(max_x, max_y)
-    draw.line((x_pos(diag_start), y_pos(diag_start), x_pos(diag_end), y_pos(diag_end)), fill="#AEB8C6", width=4)
-    draw_text(draw, (x_pos(0.36) - 12, y_pos(0.36) + 30), "y = x", tiny_font, MUTED, anchor="rm")
-
     badge_offsets = {
         "openai/gpt-5.4": (-78, -44),
         "openai/gpt-5.4-mini": (-110, -58),
@@ -1438,19 +1428,6 @@ def figure_trigger_dynamics(path, tone_rows, temporal_rows, confidence_rows):
         },
     }
 
-    def draw_dashed_line(p0, p1, fill, width=4, dash=28, gap_len=16):
-        x0, y0 = p0
-        x1, y1 = p1
-        length = math.hypot(x1 - x0, y1 - y0)
-        if length == 0:
-            return
-        ux, uy = (x1 - x0) / length, (y1 - y0) / length
-        pos = 0
-        while pos < length:
-            end = min(pos + dash, length)
-            draw.line((x0 + ux * pos, y0 + uy * pos, x0 + ux * end, y0 + uy * end), fill=fill, width=width)
-            pos += dash + gap_len
-
     def scatter_panel(branch, panel_x, title, v_min, v_max, ticks, accent):
         draw.rounded_rectangle((panel_x, panel_y, panel_x + panel_w, panel_y + panel_h), radius=22, fill="#F8FAFC", outline="#D9E0E8", width=2)
         draw_text(draw, (panel_x + panel_w / 2, panel_y + 36), title, panel_font, INK, anchor="ma")
@@ -1474,8 +1451,6 @@ def figure_trigger_dynamics(path, tone_rows, temporal_rows, confidence_rows):
             draw_text(draw, (plot_x - 18, yy), f"{int(round(tick * 100))}", axis_font, MUTED, anchor="rm")
         draw.line((plot_x, plot_y, plot_x, plot_y + plot_h), fill="#9AA7B7", width=3)
         draw.line((plot_x, plot_y + plot_h, plot_x + plot_w, plot_y + plot_h), fill="#9AA7B7", width=3)
-        draw_dashed_line((plot_x, plot_y + plot_h), (plot_x + plot_w, plot_y), "#AAB5C3", width=4)
-
         for model in MODELS:
             single = row_lookup(temporal_rows, branch=branch, model=model, mode="adaptive", stage="single")["rate"]
             mixed = row_lookup(temporal_rows, branch=branch, model=model, mode="adaptive", stage="heterogeneous")["rate"]
@@ -1814,6 +1789,8 @@ def main():
         table_names.append(filename)
 
     figures = [
+        ("trigger_model_comparison.png", figure_model_comparison, tables["model_comparison"]),
+        ("trigger_tone_gradient_opus.png", figure_tone_opus, tables["tone_gradient_opus"]),
         ("trigger_static_vs_adaptive.png", figure_static_vs_adaptive, tables["static_vs_adaptive"]),
         ("trigger_temporal_pressure.png", figure_temporal_pressure, tables["temporal_pressure"]),
         ("trigger_confidence_trajectory.png", figure_confidence_trajectory, tables["confidence_trajectory"]),
@@ -1866,7 +1843,9 @@ def main():
                 "This directory is the single canonical location for trigger figure candidates.",
                 "All figures are Python-generated PNG charts from the official pass@1-clean result files.",
                 "",
-                "- `trigger_model_tone.png`: main-text Figure 6, combining model-level GT answer change versus right-to-wrong movement with model-separated tone gradients.",
+                "- `trigger_model_comparison.png`: main-text model-level GT answer change versus right-to-wrong movement.",
+                "- `trigger_tone_gradient_opus.png`: main-text tone-gradient view with Claude-family reversals highlighted.",
+                "- `trigger_model_tone.png`: appendix compact composite combining model-level rates with model-separated tone gradients.",
                 "- `trigger_static_vs_adaptive.png`: per-model static vs adaptive GT and NGT rates.",
                 "- `trigger_temporal_pressure.png`: per-model adaptive single, same-family escalation, heterogeneous temporal pressure, and mixed-minus-single deltas.",
                 "- `trigger_dynamics_summary.png`: 1x2 main-text scatter comparing single-follow-up and mixed three-turn movement by model for GT and NGT.",
