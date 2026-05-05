@@ -498,17 +498,17 @@ def draw_shift_panel(
 
 
 def save_shift_plot(summary: dict, out_png: Path, out_pdf: Path) -> None:
-    width, height = 3300, 1450
+    width, height = 3300, 1260
     img = Image.new("RGBA", (width, height), WHITE)
     draw = ImageDraw.Draw(img)
     title = "Neutral-to-Framed Movement"
     box = draw.textbbox((0, 0), title, font=F_TITLE)
-    draw.text((width / 2 - (box[2] - box[0]) / 2, 54), title, font=F_TITLE, fill=INK)
+    draw.text((width / 2 - (box[2] - box[0]) / 2, 26), title, font=F_TITLE, fill=INK)
 
     left_boxes = draw_shift_panel(
         draw,
         summary,
-        (120, 270, 1575, 1260),
+        (120, 190, 1575, 1110),
         "GT",
         "gt",
         0,
@@ -517,7 +517,7 @@ def save_shift_plot(summary: dict, out_png: Path, out_pdf: Path) -> None:
     right_boxes = draw_shift_panel(
         draw,
         summary,
-        (1715, 270, 3170, 1260),
+        (1715, 190, 3170, 1110),
         "NGT",
         "ngt",
         45,
@@ -526,7 +526,7 @@ def save_shift_plot(summary: dict, out_png: Path, out_pdf: Path) -> None:
     assert_no_overlap("shift-left", left_boxes)
     assert_no_overlap("shift-right", right_boxes)
 
-    legend_y = 1346
+    legend_y = 1200
     legend_x = 1210
     draw.ellipse([legend_x, legend_y - 14, legend_x + 28, legend_y + 14], fill="#4C78A8", outline=WHITE, width=3)
     draw.text((legend_x + 42, legend_y - 20), "Neutral", font=F_SHIFT_LEGEND, fill=INK)
@@ -538,7 +538,7 @@ def save_shift_plot(summary: dict, out_png: Path, out_pdf: Path) -> None:
     draw.text((legend_x + 42, legend_y - 20), "NGT framed", font=F_SHIFT_LEGEND, fill=INK)
 
     out_png.parent.mkdir(parents=True, exist_ok=True)
-    rgb = img.convert("RGB")
+    rgb = trim_white(img, padding=8)
     rgb.save(out_png, dpi=(360, 360), optimize=True)
     rgb.save(out_pdf, resolution=360)
 
