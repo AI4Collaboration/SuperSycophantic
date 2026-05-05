@@ -156,7 +156,7 @@ except AttributeError:
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Generate publication-oriented trigger figure candidates from pass@1-clean results."
+        description="Generate publication-oriented trigger figures from pass@1-clean results."
     )
     parser.add_argument("--run-id", required=True)
     parser.add_argument("--results-dir", type=Path, default=Path("Experimental/results"))
@@ -1827,7 +1827,7 @@ def clean_outputs(report_dir, figure_dir):
 def main():
     args = parse_args()
     report_dir = args.report_dir or Path("Experimental/reports") / args.run_id
-    figure_dir = report_dir / "paper_figure_candidates"
+    figure_dir = report_dir / "paper_figures"
     if args.clean:
         clean_outputs(report_dir, figure_dir)
     else:
@@ -1895,9 +1895,9 @@ def main():
     (figure_dir / "README.md").write_text(
         "\n".join(
             [
-                f"# Trigger Figure Candidates: {args.run_id}",
+                f"# Trigger Figures: {args.run_id}",
                 "",
-                "This directory is the single canonical location for trigger figure candidates.",
+                "This directory is the single canonical location for generated trigger figures.",
                 "All figures are Python-generated PNG charts from the official pass@1-clean result files.",
                 "",
                 "- `trigger_model_comparison.png`: main-text model-level GT answer change versus right-to-wrong movement.",

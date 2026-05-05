@@ -454,7 +454,7 @@ def main():
     (args.out_dir / "README.md").write_text(
         "\n".join(
             [
-                "# Appendix Figure Candidates",
+                "# Appendix Result Figures",
                 "",
                 "All figures in this directory are generated from the latest official raw result files:",
                 f"- context summary: `{args.context_summary}`",
@@ -464,7 +464,7 @@ def main():
                 "",
                 *[f"- `{name}`" for name in appendix_names],
                 "",
-                "All generated appendix diagnostics are directly referenced from `sections/appendix.tex`; there is no separate review-candidate pool.",
+                "All generated appendix diagnostics are directly referenced from `sections/appendix.tex`; there is no separate draft figure pool.",
                 "",
             ]
         ),

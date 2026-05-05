@@ -28,15 +28,15 @@ Current data:
 | --- | --- |
 | `Experimental/data/supersycophantic_context_gt_200.json` | 200 GT items, neutral + value/impression/outcome-relevant injected-wrong-answer context |
 | `Experimental/data/supersycophantic_context_ngt_100.json` | 100 NGT items, 25 materially different bases per domain, neutral + value/impression/outcome-relevant A/B context |
-| `Experimental/data/supersycophantic_trigger_gt_neutral_200.jsonl` | branch-split GT neutral trigger panel |
-| `Experimental/data/supersycophantic_trigger_ngt_neutral_100.jsonl` | branch-split NGT neutral trigger panel |
+| `Experimental/data/supersycophantic_trigger_gt_neutral_200.jsonl` | GT neutral trigger panel |
+| `Experimental/data/supersycophantic_trigger_ngt_neutral_100.jsonl` | NGT neutral trigger panel |
 | `Experimental/data/supersycophantic_mixed_gt_200.jsonl` | mixed GT source panel with 25 MMLU-Pro and 25 HLE-Verified items per domain |
 | `Experimental/data/mmlu_pro_release_gt_100.jsonl` | cleaned MMLU-Pro release pool used for the MMLU half of the mixed GT panel |
 | `Experimental/data/hle_verified/data/Gold_subset.*.parquet`, `Revision_subset.*.parquet` | local HLE-Verified cache used for the HLE half of the mixed GT panel |
 | `Experimental/data/helper/` | helper scripts used to build or audit the main context and trigger files |
 
 GT domains are `Mathematical Science`, `Physical Science`, `Chemical Science`, and
-`Biomedical Science`. The current GT branch uses a 200-item mixed panel: in each
+`Biomedical Science`. The current GT setting uses a 200-item mixed panel: in each
 domain, 25 items come from MMLU-Pro and 25 come from HLE-Verified. The panel is
 selected by saturated screening so both `openai/gpt-5.4-mini` and
 `google/gemini-3.1-flash-lite-preview` answer each retained item correctly under
@@ -133,7 +133,7 @@ Keep these axes separate in both outputs and summaries:
 
 | axis | values | rule |
 | --- | --- | --- |
-| branch | `GT`, `NGT` | never pool GT and NGT into one accuracy-like metric |
+| setting | `GT`, `NGT` | never pool GT and NGT into one accuracy-like metric |
 | context condition | context: `neutral`, `biased`; trigger: `neutral` only | biased prompts are context-only controls |
 | trigger mode | `static`, `adaptive` | run and store separately |
 | temporal mode | single-turn, temporal | temporal is part of trigger eval, not context eval |
@@ -150,7 +150,7 @@ Adaptive follow-ups are validated by the same default LM
 checker before they are shown to the target model; failed checks are regenerated
 up to `--max-attempts`, with candidate text, checker decisions, and rejection
 reasons stored in `adaptive_trigger_attempts`. The static-vs-adaptive comparison is the trigger-strength
-comparison: hold branch, neutral context, model, trigger family, tone, and
+comparison: hold setting, neutral context, model, trigger family, tone, and
 temporal schedule fixed, then compare adaptive minus static.
 
 GT trigger metric: truth departure when a correct initial answer becomes
@@ -160,17 +160,17 @@ later switches to the other defensible state without new task evidence.
 
 ## Eval Plan
 
-Run everything branch-split:
+Run everything GT/NGT-split:
 
 | eval layer | input | output pattern |
 | --- | --- | --- |
 | GT context-only | GT context JSON | `results/gt_context_only_boxed_eval.*` |
 | NGT context-only | NGT context JSON | `results/ngt_context_only_boxed_eval.*` |
-| GT first turn | branch-split GT neutral JSONL | `results/gt_first_turn.jsonl.gz` |
-| NGT first turn | branch-split NGT neutral JSONL | `results/ngt_first_turn.jsonl.gz` |
-| GT neutral trigger | branch-split GT neutral JSONL | `results/gt_trigger_{static,adaptive}.jsonl.gz` |
-| NGT neutral trigger | branch-split NGT neutral JSONL | `results/ngt_trigger_{static,adaptive}.jsonl.gz` |
-| temporal trigger | branch-split neutral JSONL | `results/{gt,ngt}_trigger_temporal_{static,adaptive}.jsonl.gz` |
+| GT first turn | GT neutral JSONL | `results/gt_first_turn.jsonl.gz` |
+| NGT first turn | NGT neutral JSONL | `results/ngt_first_turn.jsonl.gz` |
+| GT neutral trigger | GT neutral JSONL | `results/gt_trigger_{static,adaptive}.jsonl.gz` |
+| NGT neutral trigger | NGT neutral JSONL | `results/ngt_trigger_{static,adaptive}.jsonl.gz` |
+| temporal trigger | GT/NGT neutral JSONL | `results/{gt,ngt}_trigger_temporal_{static,adaptive}.jsonl.gz` |
 
 Generated eval outputs under `Experimental/results/` are scratch artifacts.
 Do not commit new result files unless the user explicitly asks. For a clean
@@ -230,7 +230,7 @@ python Experimental/run_context.py `
   --max-ngt 100
 ```
 
-Build branch-split trigger panels:
+Build GT/NGT-split trigger panels:
 
 ```powershell
 python Experimental/data/helper/build_supersycophantic_trigger_panel.py `
