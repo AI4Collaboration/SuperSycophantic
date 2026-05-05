@@ -739,19 +739,42 @@ def figure_strong_recheck_boundary(records, judge_rows, judge_meta, out_path):
 
 
 def figure_tone_recheck_combo(records, judge_rows, judge_meta, out_path):
-    width, height = 3000, 720
+    width, height = 3150, 820
     im = Image.new("RGB", (width, height), WHITE)
     draw = ImageDraw.Draw(im, "RGBA")
     claude_color = "#D96C42"
     other_color = STATIC
-    panel_font = font(34, True)
-    axis_font = font(25)
-    axis_bold = font(28, True)
-    value_font = font(22, True)
-    legend_font = font(27, True)
+    arrow_mid = "#0072B2"
+    arrow_strong = "#C74332"
+    panel_font = font(32, True)
+    axis_font = font(24)
+    axis_bold = font(27, True)
+    value_font = font(21, True)
+    legend_font = font(25, True)
+    family_font = font(21, True)
 
     def group(model):
         return "Claude" if model and model.startswith("anthropic/") else "Other"
+
+    def family_values(family):
+        values = []
+        for tone in TONES:
+            setting_rates = []
+            for branch in ["GT", "NGT"]:
+                subset = [
+                    row
+                    for row in records["single"]
+                    if row["_branch"] == branch
+                    and row.get("trigger") == family
+                    and row.get("tone") == tone
+                    and denom_ok(row, branch)
+                ]
+                denom = len(subset)
+                events = sum(int(single_event(row, branch)) for row in subset)
+                if denom:
+                    setting_rates.append(events / denom)
+            values.append(sum(setting_rates) / len(setting_rates) if setting_rates else 0.0)
+        return values
 
     def branch_values(branch, grp):
         model_values = []
@@ -820,6 +843,20 @@ def figure_tone_recheck_combo(records, judge_rows, judge_meta, out_path):
         draw.rounded_rectangle((x, y, x + w, y + h), radius=16, fill=WHITE, outline="#D8E0EA", width=2)
         draw_text(draw, (x + w / 2, y + 33), title, panel_font, INK, anchor="ma")
 
+    def draw_arrow(x0, y0, x1, y1, color, width_line=9):
+        draw.line((x0, y0, x1, y1), fill=color, width=width_line)
+        direction = 1 if x1 >= x0 else -1
+        head = 18
+        half = 11
+        draw.polygon(
+            [
+                (x1, y1),
+                (x1 - direction * head, y1 - half),
+                (x1 - direction * head, y1 + half),
+            ],
+            fill=color,
+        )
+
     def draw_line(points, color, width_line=7, dashed=False):
         if not dashed:
             for a, b in zip(points, points[1:]):
@@ -841,8 +878,40 @@ def figure_tone_recheck_combo(records, judge_rows, judge_meta, out_path):
                 draw.line((sx, sy, ex, ey), fill=color, width=width_line)
                 pos += dash + gap
 
-    def draw_tone_panel(x, y, w, h, branch, title, max_rate, ticks):
-        draw_panel_shell(x, y, w, h, title)
+    def draw_family_panel(x, y, w, h):
+        draw_panel_shell(x, y, w, h, "Tone steps by trigger family")
+        px0, px1 = x + 300, x + w - 54
+        py0, py1 = y + 102, y + h - 124
+        max_rate = 0.80
+        families = sorted(CIALDINI, key=lambda family: family_values(family)[-1], reverse=True)
+        row_h = (py1 - py0) / len(families)
+
+        def x_at(value):
+            return px0 + (px1 - px0) * min(value, max_rate) / max_rate
+
+        for tick in [0.0, 0.25, 0.50, 0.75]:
+            xx = x_at(tick)
+            draw.line((xx, py0 - 12, xx, py1 + 10), fill=LIGHT, width=1)
+            draw_text(draw, (xx, py1 + 34), str(int(tick * 100)), axis_font, MUTED, anchor="ma")
+        draw.line((px0, py1 + 10, px1, py1 + 10), fill=GRID, width=2)
+
+        for idx, family in enumerate(families):
+            values = family_values(family)
+            yy = py0 + idx * row_h + row_h / 2
+            label = TRIGGERS[family].replace("Social Proof", "Social proof")
+            draw_text(draw, (x + 28, yy), label, family_font, INK, anchor="lm")
+            xs = [x_at(value) for value in values]
+            draw.line((xs[0], yy, xs[2], yy), fill="#C9D2DE", width=4)
+            draw_arrow(xs[0], yy, xs[1], yy, arrow_mid)
+            draw_arrow(xs[1], yy, xs[2], yy, arrow_strong)
+            for xx, color in [(xs[0], GRAY), (xs[1], arrow_mid), (xs[2], arrow_strong)]:
+                draw.ellipse((xx - 9, yy - 9, xx + 9, yy + 9), fill=color, outline=WHITE, width=3)
+
+    def draw_claude_answer_panel(x, y, w, h):
+        branch = "NGT"
+        max_rate = 0.90
+        ticks = [0, 0.30, 0.60, 0.90]
+        draw_panel_shell(x, y, w, h, "Answer changes by tone")
         px0, px1 = x + 112, x + w - 52
         py0, py1 = y + 105, y + h - 136
 
@@ -875,7 +944,7 @@ def figure_tone_recheck_combo(records, judge_rows, judge_meta, out_path):
             draw_text(draw, (x_at(i), py1 + 38), tone.title(), axis_bold, INK, anchor="ma")
 
     def draw_boundary_panel(x, y, w, h):
-        draw_panel_shell(x, y, w, h, "Adaptive outcome vs. recheck")
+        draw_panel_shell(x, y, w, h, "Outcome vs. recheck")
         px0, px1 = x + 112, x + w - 52
         py0, py1 = y + 105, y + h - 136
         max_rate = 0.70
@@ -909,15 +978,17 @@ def figure_tone_recheck_combo(records, judge_rows, judge_meta, out_path):
         for i, tone in enumerate(TONES):
             draw_text(draw, (x_at(i), py1 + 38), tone.title(), axis_bold, INK, anchor="ma")
 
-    margin, gap = 34, 28
-    panel_w = (width - 2 * margin - 2 * gap) / 3
-    panel_h = 610
-    panel_y = 28
-    draw_tone_panel(margin, panel_y, panel_w, panel_h, "GT", "Model changes from right to wrong", 0.55, [0, 0.15, 0.30, 0.45])
-    draw_tone_panel(margin + panel_w + gap, panel_y, panel_w, panel_h, "NGT", "Model changes answer", 0.90, [0, 0.30, 0.60, 0.90])
+    margin, gap = 38, 34
+    panel_w = int((width - 2 * margin - 2 * gap) / 3)
+    panel_h = 650
+    panel_y = 30
+    draw_family_panel(margin, panel_y, panel_w, panel_h)
+    draw_claude_answer_panel(margin + panel_w + gap, panel_y, panel_w, panel_h)
     draw_boundary_panel(margin + 2 * (panel_w + gap), panel_y, panel_w, panel_h)
 
     legend_entries = [
+        ("mild to moderate", arrow_mid, "arrow"),
+        ("moderate to strong", arrow_strong, "arrow"),
         ("Claude family mean", claude_color, "line"),
         ("Other models mean", other_color, "line"),
         ("sycophantic outcome", INK, "solid"),
@@ -931,9 +1002,11 @@ def figure_tone_recheck_combo(records, judge_rows, judge_meta, out_path):
         total += entry_w
     total += 54 * (len(legend_entries) - 1)
     cursor = (width - total) / 2
-    legend_y = 684
+    legend_y = 748
     for (label, color, kind), entry_w in zip(legend_entries, widths):
-        if kind == "dashed":
+        if kind == "arrow":
+            draw_arrow(cursor, legend_y, cursor + 58, legend_y, color, width_line=7)
+        elif kind == "dashed":
             x0 = cursor
             while x0 < cursor + 58:
                 draw.line((x0, legend_y, min(cursor + 58, x0 + 18), legend_y), fill=color, width=6)
