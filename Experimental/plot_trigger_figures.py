@@ -244,7 +244,7 @@ def draw_header(draw, title, subtitle, width):
     draw.line((65, line_y, width - 65, line_y), fill=LIGHT_GRID, width=3)
 
 
-def save_tight(im, path, padding=34):
+def save_tight(im, path, padding=16):
     if Path(path).suffix.lower() != ".png":
         im.save(path)
         return
@@ -1000,13 +1000,13 @@ def figure_scatter(path, headline):
 
 
 def figure_model_comparison(path, rows):
-    width, height = 1780, 1036
+    width, height = 1780, 980
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
     draw_header(draw, "Model comparison", "", width)
 
-    left, top = 185, 190
-    plot_w, plot_h = 1280, 680
+    left, top = 185, 170
+    plot_w, plot_h = 1280, 640
     min_x, max_x = 0.10, 0.55
     min_y, max_y = 0.00, 0.36
 
@@ -1033,31 +1033,43 @@ def figure_model_comparison(path, rows):
     draw.line((x_pos(diag_start), y_pos(diag_start), x_pos(diag_end), y_pos(diag_end)), fill="#AEB8C6", width=3)
     draw_text(draw, (x_pos(0.36) - 18, y_pos(0.36) + 22), "y = x", FONT_TINY, MUTED, anchor="rm")
 
+    badge_offsets = {
+        "openai/gpt-5.4": (-66, -34),
+        "openai/gpt-5.4-mini": (-94, -48),
+        "anthropic/claude-opus-4.5": (2, 72),
+        "mistralai/mistral-medium-3.1": (56, 34),
+        "cohere/command-r-08-2024": (-98, 38),
+    }
     label_specs = {
-        "openai/gpt-5.4": (30, -54, "lm"),
-        "openai/gpt-5.4-mini": (-36, -72, "ma"),
-        "openai/gpt-5.4-nano": (28, -40, "lm"),
-        "anthropic/claude-opus-4.5": (-34, 58, "ma"),
-        "anthropic/claude-sonnet-4.5": (30, -38, "lm"),
-        "anthropic/claude-haiku-4.5": (-98, -32, "rm"),
-        "google/gemini-3.1-flash-lite-preview": (28, 22, "lm"),
-        "mistralai/mistral-medium-3.1": (32, 38, "lm"),
-        "cohere/command-r-08-2024": (-34, 58, "ma"),
+        "openai/gpt-5.4": (0, -56, "ma"),
+        "openai/gpt-5.4-mini": (0, -58, "ma"),
+        "openai/gpt-5.4-nano": (44, -16, "lm"),
+        "anthropic/claude-opus-4.5": (-46, 12, "rm"),
+        "anthropic/claude-sonnet-4.5": (54, -10, "lm"),
+        "anthropic/claude-haiku-4.5": (-70, -26, "rm"),
+        "google/gemini-3.1-flash-lite-preview": (54, 18, "lm"),
+        "mistralai/mistral-medium-3.1": (0, 54, "ma"),
+        "cohere/command-r-08-2024": (0, 54, "ma"),
     }
 
+    badge_centers = {}
     for row in sorted(rows, key=lambda item: item["ngt_rate"], reverse=True):
         model = row["model"]
         x = x_pos(row["gt_change_rate"])
         y = y_pos(row["gt_rate"])
+        dx, dy = badge_offsets.get(model, (0, 0))
+        bx, by = x + dx, y + dy
+        if dx or dy:
+            draw.line((x, y, bx, by), fill="#AEB8C6", width=2)
         badge = make_badge(model)
         badge.thumbnail((78, 78), RESAMPLE_LANCZOS)
-        im.paste(badge, (int(x - badge.width / 2), int(y - badge.height / 2)), badge)
+        im.paste(badge, (int(bx - badge.width / 2), int(by - badge.height / 2)), badge)
+        badge_centers[model] = (bx, by)
         draw = ImageDraw.Draw(im)
 
     for row in rows:
         model = row["model"]
-        x = x_pos(row["gt_change_rate"])
-        y = y_pos(row["gt_rate"])
+        x, y = badge_centers[model]
         dx, dy, anchor = label_specs.get(model, (24, 20, "lm"))
         draw.multiline_text(
             (x + dx, y + dy),
@@ -1074,7 +1086,7 @@ def figure_model_comparison(path, rows):
     yd = ImageDraw.Draw(y_label)
     yd.text((0, 0), "GT correct-to-wrong (%)", font=FONT_AXIS_BOLD, fill=INK)
     y_label = y_label.rotate(90, expand=True)
-    im.paste(y_label, (92, top + 155), y_label)
+    im.paste(y_label, (92, top + 130), y_label)
     save_tight(im, path)
 
 
@@ -1132,16 +1144,16 @@ def draw_confidence_cell(draw, rect, value, font=FONT_SMALL):
 
 
 def figure_tone_opus(path, rows):
-    width, height = 1780, 1036
+    width, height = 1640, 1036
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
     draw_header(draw, "Tone gradient by model", "", width)
     panels = [
-        ("GT", 130, 205, "GT correct-to-wrong", 0.55, [0, 0.15, 0.30, 0.45]),
-        ("NGT", 950, 205, "NGT flip", 0.9, [0, 0.3, 0.6, 0.9]),
+        ("GT", 110, 180, "GT correct-to-wrong", 0.55, [0, 0.15, 0.30, 0.45]),
+        ("NGT", 870, 180, "NGT flip", 0.9, [0, 0.3, 0.6, 0.9]),
     ]
     for branch, x, y, title, max_rate, ticks in panels:
-        w, h = 700, 610
+        w, h = 650, 610
         draw.rectangle((x, y, x + w, y + h), fill="white", outline="#D9E0E8", width=2)
         draw_text(draw, (x + 26, y + 24), title, FONT_PANEL, INK)
         px0, py0 = x + 108, y + 112
@@ -1157,7 +1169,6 @@ def figure_tone_opus(path, rows):
                     continue
                 color = MODEL_COLORS[model] if is_claude else "#B9C3D0"
                 line_w = 9 if model == "anthropic/claude-opus-4.5" else 6 if is_claude else 3
-                dot_r = 13 if model == "anthropic/claude-opus-4.5" else 10 if is_claude else 6
                 pts = []
                 for i, tone in enumerate(TONES):
                     value = row_lookup(rows, branch=branch, model=model, tone=tone)["rate"]
@@ -1165,8 +1176,6 @@ def figure_tone_opus(path, rows):
                     yy = py0 + ph - ph * value / max_rate
                     pts.append((xx, yy))
                 draw.line(pts, fill=color, width=line_w)
-                for xx, yy in pts:
-                    draw.ellipse((xx - dot_r, yy - dot_r, xx + dot_r, yy + dot_r), fill=color, outline="white", width=3)
         if branch == "NGT":
             draw_text(
                 draw,
@@ -1180,7 +1189,7 @@ def figure_tone_opus(path, rows):
             xx = px0 + i * pw / 2
             draw_text(draw, (xx, py0 + ph + 36), TONE_LABELS[tone], FONT_AXIS_BOLD, INK, anchor="ma")
         draw_text(draw, (px0 + pw / 2, y + h - 34), "Tone", FONT_AXIS_BOLD, INK, anchor="ma")
-    legend_x, legend_y = 220, 875
+    legend_x, legend_y = 170, 823
     legend_items = [
         ("anthropic/claude-opus-4.5", "Opus 4.5", 9),
         ("anthropic/claude-sonnet-4.5", "Sonnet 4.5", 6),
@@ -1188,10 +1197,9 @@ def figure_tone_opus(path, rows):
         (None, "Other models", 3),
     ]
     for i, (model, label, width_line) in enumerate(legend_items):
-        x = legend_x + i * 380
+        x = legend_x + i * 340
         color = MODEL_COLORS[model] if model else "#B9C3D0"
         draw.line((x, legend_y, x + 58, legend_y), fill=color, width=width_line)
-        draw.ellipse((x + 27, legend_y - 7, x + 41, legend_y + 7), fill=color, outline="white", width=2)
         draw_text(draw, (x + 76, legend_y), label, FONT_SMALL, INK, anchor="lm")
     save_tight(im, path)
 
@@ -1290,8 +1298,6 @@ def figure_trigger_dynamics(path, tone_rows, temporal_rows, confidence_rows):
             cx, cy = px + dx, py + dy
             if abs(dx) > 8 or abs(dy) > 8:
                 draw.line((px, py, cx, cy), fill="#AEB8C6", width=2)
-            color = MODEL_COLORS[model]
-            draw.ellipse((px - 8, py - 8, px + 8, py + 8), fill=color_alpha(color, 230), outline=(255, 255, 255, 255), width=2)
             badge = make_badge(model)
             badge.thumbnail((82, 82), RESAMPLE_LANCZOS)
             im.alpha_composite(badge, (int(cx - badge.width / 2), int(cy - badge.height / 2)))
@@ -1396,11 +1402,11 @@ def figure_tone_temporal(path, tone_rows, temporal_rows):
 
 
 def figure_static_vs_adaptive(path, rows):
-    width, height = 1780, 1100
+    width, height = 1780, 1000
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
     draw_header(draw, "Static vs. adaptive by model", "", width)
-    panels = [("GT", 110, 195, "GT correct-to-wrong", 0.55, STATIC), ("NGT", 935, 195, "NGT flip", 0.90, ADAPTIVE)]
+    panels = [("GT", 110, 170, "GT correct-to-wrong", 0.55, STATIC), ("NGT", 935, 170, "NGT flip", 0.90, ADAPTIVE)]
 
     def pooled_rate(branch, mode):
         subset = [row for row in rows if row["branch"] == branch and row["mode"] == mode]
@@ -1409,7 +1415,7 @@ def figure_static_vs_adaptive(path, rows):
         return events / denom if denom else 0.0
 
     for branch, x, y, title, max_rate, _ in panels:
-        w, h = 735, 780
+        w, h = 735, 720
         draw.rectangle((x, y, x + w, y + h), fill="white", outline="#D9E0E8", width=2)
         draw_text(draw, (x + 26, y + 26), title, FONT_PANEL, INK)
         label_x = x + 26
@@ -1448,17 +1454,17 @@ def figure_static_vs_adaptive(path, rows):
 
 
 def figure_temporal_pressure(path, rows):
-    width, height = 1780, 1100
+    width, height = 1780, 1000
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
     draw_header(draw, "Temporal pressure by model", "", width)
     panels = [
-        ("GT", 105, 195, "GT final correct-to-wrong", 0.55, STATIC, 0.14),
-        ("NGT", 920, 195, "NGT final flip", 0.90, ADAPTIVE, 0.40),
+        ("GT", 105, 170, "GT final correct-to-wrong", 0.55, STATIC, 0.14),
+        ("NGT", 920, 170, "NGT final flip", 0.90, ADAPTIVE, 0.40),
     ]
     stages = ["single", "same_family", "heterogeneous"]
     for branch, x, y, title, max_rate, color, max_delta in panels:
-        w, h = 755, 780
+        w, h = 755, 720
         draw.rectangle((x, y, x + w, y + h), fill="white", outline="#D9E0E8", width=2)
         draw_text(draw, (x + 26, y + 24), title, FONT_PANEL, INK)
         draw_text(draw, (x + w - 26, y + 36), "Adaptive", FONT_SMALL, MUTED, anchor="rm")
