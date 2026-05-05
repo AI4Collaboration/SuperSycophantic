@@ -1559,7 +1559,7 @@ def figure_confidence_trajectory(path, rows):
         draw.line((legend_x, yy, legend_x + 50, yy), fill=color, width=7)
         draw_text(draw, (legend_x + 66, yy), label, FONT_SMALL, INK, anchor="lm")
 
-    heat_x, heat_y = 95, 545
+    heat_x, heat_y = 95, 515
     model_x = heat_x + 24
     cell_x = heat_x + 275
     row_h = 42
