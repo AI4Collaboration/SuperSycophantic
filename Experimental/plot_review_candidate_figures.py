@@ -195,6 +195,34 @@ def draw_legend(draw, entries, x, y, gap=190):
         cursor += gap
 
 
+def draw_inline_confidence_legend(draw, width, y, colors):
+    title = "final self-reported confidence distribution (%)"
+    entries = [("<4", colors["<4"]), ("4", colors["4"]), ("5", colors["5"])]
+    swatch_w, swatch_h = 44, 25
+    title_gap = 34
+    item_gap = 34
+    text_gap = 12
+    total = text_w(draw, title, FONT_LABEL) + title_gap
+    for i, (label, _) in enumerate(entries):
+        total += swatch_w + text_gap + text_w(draw, label, FONT_LABEL)
+        if i < len(entries) - 1:
+            total += item_gap
+    cursor = (width - total) / 2
+    draw_text(draw, (cursor, y), title, FONT_LABEL, INK, anchor="lm")
+    cursor += text_w(draw, title, FONT_LABEL) + title_gap
+    for i, (label, color) in enumerate(entries):
+        draw.rounded_rectangle(
+            (cursor, y - swatch_h / 2, cursor + swatch_w, y + swatch_h / 2),
+            radius=6,
+            fill=color,
+        )
+        cursor += swatch_w + text_gap
+        draw_text(draw, (cursor, y), label, FONT_LABEL, MUTED, anchor="lm")
+        cursor += text_w(draw, label, FONT_LABEL)
+        if i < len(entries) - 1:
+            cursor += item_gap
+
+
 def figure_temporal_state_paths(records, out_path):
     width, height = 2500, 980
     im = Image.new("RGB", (width, height), WHITE)
@@ -329,7 +357,7 @@ def figure_judge_mechanism_outcome(judge_rows, out_path):
 
 
 def figure_trigger_confidence_high_risk(records, out_path):
-    width, height = 2500, 1160
+    width, height = 2500, 990
     im = Image.new("RGB", (width, height), WHITE)
     draw = ImageDraw.Draw(im)
     draw_header(draw, "High confidence remains common after sycophantic outcomes", width)
@@ -368,7 +396,7 @@ def figure_trigger_confidence_high_risk(records, out_path):
     for pi, (source, title) in enumerate([("single", "Single follow-up"), ("temporal", "Three-turn final")]):
         x = 90 + pi * 1200
         y = 160
-        w, h = 1120, 870
+        w, h = 1120, 800
         draw.rounded_rectangle((x, y, x + w, y + h), radius=18, fill=WHITE, outline="#D8E0EA", width=2)
         draw_text(draw, (x + w / 2, y + 38), title, FONT_PANEL, anchor="ma")
         x0, x1 = x + 260, x + w - 90
@@ -389,8 +417,7 @@ def figure_trigger_confidence_high_risk(records, out_path):
                 cursor = xx
             hi = pct(stats["4"] + stats["5"])
             draw_text(draw, (x1 + 18, yy + 33), f"{hi:.1f} high", FONT_SMALL, NGT if outcome in {"departed", "switched"} else MUTED, anchor="lm")
-    draw_legend(draw, [("<4", colors["<4"]), ("4", colors["4"]), ("5", colors["5"])], 910, height - 68, gap=115)
-    draw_text(draw, (width / 2, height - 30), "final self-reported confidence distribution (%)", FONT_LABEL, anchor="mm")
+    draw_inline_confidence_legend(draw, width, 926, colors)
     save(im, out_path)
 
 
