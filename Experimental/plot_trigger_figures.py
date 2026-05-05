@@ -141,11 +141,11 @@ def load_font(size, bold=False):
 
 
 FONT_TITLE = load_font(46, True)
-FONT_PANEL = load_font(27, True)
-FONT_AXIS = load_font(22)
-FONT_AXIS_BOLD = load_font(22, True)
-FONT_SMALL = load_font(19)
-FONT_TINY = load_font(16)
+FONT_PANEL = load_font(30, True)
+FONT_AXIS = load_font(24)
+FONT_AXIS_BOLD = load_font(25, True)
+FONT_SMALL = load_font(22)
+FONT_TINY = load_font(18)
 
 try:
     RESAMPLE_LANCZOS = Image.Resampling.LANCZOS
@@ -1585,11 +1585,11 @@ def figure_tone_temporal(path, tone_rows, temporal_rows):
 
 
 def figure_static_vs_adaptive(path, rows):
-    width, height = 1780, 1000
+    width, height = 1780, 940
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
     draw_header(draw, "Static vs. adaptive by model", "", width)
-    panels = [("GT", 110, 170, "GT correct-to-wrong", 0.55, STATIC), ("NGT", 935, 170, "NGT flip", 0.90, ADAPTIVE)]
+    panels = [("GT", 110, 150, "GT correct-to-wrong", 0.55, STATIC), ("NGT", 935, 150, "NGT flip", 0.90, ADAPTIVE)]
 
     def pooled_rate(branch, mode):
         subset = [row for row in rows if row["branch"] == branch and row["mode"] == mode]
@@ -1598,19 +1598,19 @@ def figure_static_vs_adaptive(path, rows):
         return events / denom if denom else 0.0
 
     for branch, x, y, title, max_rate, _ in panels:
-        w, h = 735, 720
+        w, h = 735, 700
         draw.rectangle((x, y, x + w, y + h), fill="white", outline="#D9E0E8", width=2)
-        draw_text(draw, (x + 26, y + 26), title, FONT_PANEL, INK)
+        draw_text(draw, (x + w / 2, y + 27), title, FONT_PANEL, INK, anchor="ma")
         label_x = x + 26
         cell_x = x + 285
-        top = y + 110
-        row_h = 56
+        top = y + 100
+        row_h = 54
         cell_w = 148
-        gap = 10
+        gap = 9
         for ci, mode in enumerate(["static", "adaptive"]):
-            draw_text(draw, (cell_x + ci * (cell_w + gap) + cell_w / 2, top - 34), mode.capitalize(), FONT_AXIS_BOLD, INK, anchor="ma")
+            draw_text(draw, (cell_x + ci * (cell_w + gap) + cell_w / 2, top - 30), mode.capitalize(), FONT_AXIS_BOLD, INK, anchor="ma")
         delta_x = cell_x + 2 * (cell_w + gap) + 8
-        draw_text(draw, (delta_x + 56, top - 34), "Delta pp", FONT_AXIS_BOLD, INK, anchor="ma")
+        draw_text(draw, (delta_x + 56, top - 30), "Delta pp", FONT_AXIS_BOLD, INK, anchor="ma")
         display_rows = [{"model": model, "label": model_display(model), "aggregate": False} for model in MODELS]
         display_rows.append({"model": None, "label": "All models", "aggregate": True})
         max_delta = 0.08 if branch == "GT" else 0.22
@@ -1618,7 +1618,7 @@ def figure_static_vs_adaptive(path, rows):
             model = item["model"]
             yy = top + ri * row_h
             if item["aggregate"]:
-                draw.line((label_x, yy - 8, x + w - 26, yy - 8), fill="#C9D2DE", width=2)
+                draw.line((label_x, yy - 7, x + w - 26, yy - 7), fill="#C9D2DE", width=2)
                 font = FONT_AXIS_BOLD
                 static = pooled_rate(branch, "static")
                 adaptive = pooled_rate(branch, "adaptive")
@@ -1626,65 +1626,64 @@ def figure_static_vs_adaptive(path, rows):
                 font = FONT_SMALL
                 static = row_lookup(rows, branch=branch, model=model, mode="static")["rate"]
                 adaptive = row_lookup(rows, branch=branch, model=model, mode="adaptive")["rate"]
-            draw_text(draw, (label_x, yy + 23), item["label"], font, INK, anchor="lm")
+            draw_text(draw, (label_x, yy + 22), item["label"], font, INK, anchor="lm")
             for ci, (mode, value) in enumerate([("static", static), ("adaptive", adaptive)]):
                 xx = cell_x + ci * (cell_w + gap)
                 color = STATIC if mode == "static" else ADAPTIVE
-                draw_rate_cell(draw, (xx, yy, xx + cell_w, yy + 46), value, max_rate, color, FONT_AXIS_BOLD)
+                draw_rate_cell(draw, (xx, yy, xx + cell_w, yy + 44), value, max_rate, color, FONT_AXIS_BOLD)
             delta = adaptive - static
-            draw_delta_cell(draw, (delta_x, yy, delta_x + 112, yy + 46), delta, max_delta, FONT_AXIS_BOLD)
+            draw_delta_cell(draw, (delta_x, yy, delta_x + 112, yy + 44), delta, max_delta, FONT_AXIS_BOLD)
     save_tight(im, path)
 
 
 def figure_temporal_pressure(path, rows):
-    width, height = 1780, 1000
+    width, height = 1780, 940
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
     draw_header(draw, "Temporal pressure by model", "", width)
     panels = [
-        ("GT", 105, 170, "GT final correct-to-wrong", 0.55, STATIC, 0.14),
-        ("NGT", 920, 170, "NGT final flip", 0.90, ADAPTIVE, 0.40),
+        ("GT", 105, 150, "GT final correct-to-wrong", 0.55, STATIC, 0.14),
+        ("NGT", 920, 150, "NGT final flip", 0.90, ADAPTIVE, 0.40),
     ]
     stages = ["single", "same_family", "heterogeneous"]
     for branch, x, y, title, max_rate, color, max_delta in panels:
-        w, h = 755, 720
+        w, h = 755, 700
         draw.rectangle((x, y, x + w, y + h), fill="white", outline="#D9E0E8", width=2)
-        draw_text(draw, (x + 26, y + 24), title, FONT_PANEL, INK)
-        draw_text(draw, (x + w - 26, y + 36), "Adaptive", FONT_SMALL, MUTED, anchor="rm")
+        draw_text(draw, (x + w / 2, y + 27), title, FONT_PANEL, INK, anchor="ma")
         label_x = x + 26
         cell_x = x + 250
-        top = y + 110
-        row_h = 60
+        top = y + 135
+        row_h = 53
         cell_w = 108
-        gap = 10
+        gap = 9
         for ci, stage in enumerate(stages):
             label = row_lookup(rows, branch=branch, model=MODELS[0], mode="adaptive", stage=stage)["stage_label"]
-            draw_wrapped(draw, label, cell_x + ci * (cell_w + gap) - 8, top - 52, cell_w + 16, FONT_TINY, INK, anchor_center=True)
+            draw_wrapped(draw, label, cell_x + ci * (cell_w + gap) - 10, top - 56, cell_w + 20, FONT_TINY, INK, anchor_center=True)
         delta_x = cell_x + 3 * (cell_w + gap) + 10
-        draw_wrapped(draw, "Mixed - single", delta_x, top - 57, 122, FONT_TINY, INK, anchor_center=True)
+        draw_wrapped(draw, "Mixed - single", delta_x, top - 56, 122, FONT_TINY, INK, anchor_center=True)
         for ri, model in enumerate(MODELS):
             yy = top + ri * row_h
-            draw_text(draw, (label_x, yy + 23), model_display(model), FONT_SMALL, INK, anchor="lm")
+            draw_text(draw, (label_x, yy + 21), model_display(model), FONT_SMALL, INK, anchor="lm")
             values = []
             for ci, stage in enumerate(stages):
                 value = row_lookup(rows, branch=branch, model=model, mode="adaptive", stage=stage)["rate"]
                 values.append(value)
                 xx = cell_x + ci * (cell_w + gap)
-                draw_rate_cell(draw, (xx, yy, xx + cell_w, yy + 46), value, max_rate, color, FONT_AXIS_BOLD)
-            draw_delta_cell(draw, (delta_x, yy, delta_x + 122, yy + 46), values[-1] - values[0], max_delta, FONT_AXIS_BOLD)
-        draw_text(draw, (x + w - 26, y + h - 28), "red = more final movement; blue = recovery", FONT_TINY, MUTED, anchor="rm")
+                draw_rate_cell(draw, (xx, yy, xx + cell_w, yy + 42), value, max_rate, color, FONT_AXIS_BOLD)
+            draw_delta_cell(draw, (delta_x, yy, delta_x + 122, yy + 42), values[-1] - values[0], max_delta, FONT_AXIS_BOLD)
+        draw_text(draw, (x + w / 2, y + h - 24), "red = more final movement; blue = recovery", FONT_TINY, MUTED, anchor="ma")
     save_tight(im, path)
 
 
 def figure_confidence_trajectory(path, rows):
-    width, height = 3900, 1045
+    width, height = 2620, 1045
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
-    title_font = load_font(58, True)
-    panel_font = load_font(37, True)
-    axis_font = load_font(27)
-    axis_bold = load_font(29, True)
-    label_font = load_font(27, True)
+    title_font = load_font(64, True)
+    panel_font = load_font(43, True)
+    axis_font = load_font(31)
+    axis_bold = load_font(34, True)
+    label_font = load_font(33, True)
     turns = [0, 1, 2, 3]
     turn_labels = ["Initial", "T1", "T2", "T3"]
 
@@ -1705,12 +1704,12 @@ def figure_confidence_trajectory(path, rows):
             outline="#D9E0E8",
             width=2,
         )
-        draw_text(draw, (panel_x + panel_w / 2, panel_y + 48), title, panel_font, INK, anchor="ma")
+        draw_text(draw, (panel_x + panel_w / 2, panel_y + 46), title, panel_font, INK, anchor="ma")
 
         plot_x = panel_x + 145
-        plot_y = panel_y + 138
+        plot_y = panel_y + 126
         plot_w = panel_w - 355
-        plot_h = panel_h - 280
+        plot_h = panel_h - 255
         y_min, y_max = 2.4, 5.0
 
         def x_pos(turn_index):
@@ -1726,7 +1725,7 @@ def figure_confidence_trajectory(path, rows):
         for i, label in enumerate(turn_labels):
             xx = x_pos(i)
             draw.line((xx, plot_y, xx, plot_y + plot_h), fill="#EEF2F6", width=1)
-            draw_text(draw, (xx, plot_y + plot_h + 34), label, axis_bold, INK, anchor="ma")
+            draw_text(draw, (xx, plot_y + plot_h + 32), label, axis_bold, INK, anchor="ma")
         draw.line((plot_x, plot_y + plot_h, plot_x + plot_w, plot_y + plot_h), fill="#9AA7B7", width=4)
         draw.line((plot_x, plot_y, plot_x, plot_y + plot_h), fill="#9AA7B7", width=4)
 
@@ -1742,7 +1741,7 @@ def figure_confidence_trajectory(path, rows):
             label_y = points[-1][1] + label_dy
             draw_text(draw, (label_x, label_y), label, label_font, color, anchor="lm")
 
-        draw_text(draw, (plot_x + plot_w / 2, panel_y + panel_h - 55), "Assistant turn", axis_bold, INK, anchor="ma")
+        draw_text(draw, (plot_x + plot_w / 2, panel_y + panel_h - 42), "Assistant turn", axis_bold, INK, anchor="ma")
         if show_y_label:
             draw_rotated_label(im, (plot_x - 82, plot_y + plot_h / 2), "Mean self-rated confidence (1-5)", axis_bold)
 
@@ -1759,18 +1758,7 @@ def figure_confidence_trajectory(path, rows):
         show_y_label=True,
     )
     draw_line_panel(
-        1342,
-        110,
-        1215,
-        900,
-        "Mode trend",
-        [
-            ("Static", lambda row: row["mode"] == "static", STATIC, 10, -20),
-            ("Adaptive", lambda row: row["mode"] == "adaptive", ADAPTIVE, 10, 16),
-        ],
-    )
-    draw_line_panel(
-        2619,
+        1340,
         110,
         1215,
         900,
@@ -1882,7 +1870,7 @@ def main():
                 "- `trigger_static_vs_adaptive.png`: per-model static vs adaptive GT and NGT rates.",
                 "- `trigger_temporal_pressure.png`: per-model adaptive single, same-family escalation, heterogeneous temporal pressure, and mixed-minus-single deltas.",
                 "- `trigger_dynamics_summary.png`: 1x2 main-text scatter comparing single-follow-up and mixed three-turn movement by model for GT and NGT.",
-                "- `trigger_confidence_trajectory.png`: three-panel confidence trends by branch, trigger mode, and stable versus moved final trajectories.",
+                "- `trigger_confidence_trajectory.png`: two-panel confidence trends by branch and stable versus moved final trajectories.",
                 "",
                 "The CSV files in this directory contain the exact plotted aggregates.",
                 "",
