@@ -138,12 +138,12 @@ def draw_model_label(im, draw, model, cx, y):
 
 
 def draw_figure(rows, out_path):
-    width, height = 3900, 1380
+    width, height = 3900, 1248
     im = Image.new("RGB", (width, height), PAPER)
     draw = ImageDraw.Draw(im)
 
-    draw_text(draw, (width / 2, 38), "Tone Strength Moves Models Unevenly", 66, bold=True, anchor="ma")
-    draw.line((90, 145, width - 90, 145), fill=GRID, width=4)
+    draw.rounded_rectangle((70, 22, width - 70, height - 34), radius=26, fill="#F8FAFC", outline="#D9E0E8", width=2)
+    draw_text(draw, (width / 2, 82), "Tone Strength Moves Models Unevenly", 66, bold=True, anchor="mm")
     draw_legend(draw, width - 1040, 180)
 
     x0, y0 = 190, 275

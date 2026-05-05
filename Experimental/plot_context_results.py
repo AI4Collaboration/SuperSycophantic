@@ -329,11 +329,10 @@ def draw_scatter(
     rect: tuple[int, int, int, int],
 ) -> list[tuple[str, tuple[int, int, int, int]]]:
     x0, y0, x1, y1 = rect
+    draw_axes(draw, rect)
     title = "Model-level Context Susceptibility"
     bbox = draw.textbbox((0, 0), title, font=F_TITLE)
-    draw.text((x0 + (x1 - x0 - (bbox[2] - bbox[0])) / 2, 58), title, font=F_TITLE, fill=INK)
-
-    draw_axes(draw, rect)
+    draw.text((x0 + (x1 - x0 - (bbox[2] - bbox[0])) / 2, y0 - 62), title, font=F_TITLE, fill=INK)
     metrics = metric_bundle(summary)
     bboxes = []
 
@@ -374,9 +373,10 @@ def draw_heatmap(
     rect: tuple[int, int, int, int],
 ) -> list[tuple[str, tuple[int, int, int, int]]]:
     x0, y0, x1, y1 = rect
+    draw.rounded_rectangle([x0 - 34, y0 - 88, x1 + 30, y1 + 52], radius=28, fill=PANEL_BG)
     title = "Framing Effect by Branch"
     bbox = draw.textbbox((0, 0), title, font=F_TITLE)
-    draw.text((x0 + (x1 - x0 - (bbox[2] - bbox[0])) / 2, 82), title, font=F_TITLE, fill=INK)
+    draw.text((x0 + (x1 - x0 - (bbox[2] - bbox[0])) / 2, y0 - 70), title, font=F_TITLE, fill=INK)
 
     row_label_w = 250
     top_label_h = 110
@@ -427,14 +427,13 @@ def draw_shift_panel(
     x_max: float,
 ) -> list[tuple[str, tuple[int, int, int, int]]]:
     x0, y0, x1, y1 = rect
-    title_box = draw.textbbox((0, 0), title, font=F_SHIFT_TITLE)
-    draw.text((x0 + (x1 - x0 - (title_box[2] - title_box[0])) / 2, y0 - 96), title, font=F_SHIFT_TITLE, fill=INK)
-
     draw.rounded_rectangle([x0 - 18, y0 - 22, x1 + 18, y1 + 66], radius=26, fill=PANEL_BG)
+    title_box = draw.textbbox((0, 0), title, font=F_SHIFT_TITLE)
+    draw.text((x0 + (x1 - x0 - (title_box[2] - title_box[0])) / 2, y0 + 18), title, font=F_SHIFT_TITLE, fill=INK)
 
     plot_left = x0 + 230
     plot_right = x1 - 34
-    plot_top = y0 + 40
+    plot_top = y0 + 96
     row_gap = (y1 - plot_top - 80) / (len(MODEL_ORDER) - 1)
 
     def x_map(v: float) -> float:
@@ -498,17 +497,14 @@ def draw_shift_panel(
 
 
 def save_shift_plot(summary: dict, out_png: Path, out_pdf: Path) -> None:
-    width, height = 3300, 1260
+    width, height = 3300, 1190
     img = Image.new("RGBA", (width, height), WHITE)
     draw = ImageDraw.Draw(img)
-    title = "Neutral-to-Framed Movement"
-    box = draw.textbbox((0, 0), title, font=F_TITLE)
-    draw.text((width / 2 - (box[2] - box[0]) / 2, 26), title, font=F_TITLE, fill=INK)
 
     left_boxes = draw_shift_panel(
         draw,
         summary,
-        (120, 190, 1575, 1110),
+        (120, 58, 1575, 1026),
         "GT",
         "gt",
         0,
@@ -517,7 +513,7 @@ def save_shift_plot(summary: dict, out_png: Path, out_pdf: Path) -> None:
     right_boxes = draw_shift_panel(
         draw,
         summary,
-        (1715, 190, 3170, 1110),
+        (1715, 58, 3170, 1026),
         "NGT",
         "ngt",
         45,
@@ -526,7 +522,7 @@ def save_shift_plot(summary: dict, out_png: Path, out_pdf: Path) -> None:
     assert_no_overlap("shift-left", left_boxes)
     assert_no_overlap("shift-right", right_boxes)
 
-    legend_y = 1200
+    legend_y = 1120
     legend_x = 1210
     draw.ellipse([legend_x, legend_y - 14, legend_x + 28, legend_y + 14], fill="#4C78A8", outline=WHITE, width=3)
     draw.text((legend_x + 42, legend_y - 20), "Neutral", font=F_SHIFT_LEGEND, fill=INK)

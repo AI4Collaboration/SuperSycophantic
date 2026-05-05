@@ -249,8 +249,14 @@ def draw_rotated_label(im, center, text, font, fill=INK, angle=90, pad_x=18, pad
 
 
 def draw_header(draw, title, _subtitle, width):
-    draw_text(draw, (width / 2, 38), title, FONT_TITLE, anchor="ma")
-    draw.line((65, 122, width - 65, 122), fill=LIGHT_GRID, width=3)
+    draw.rounded_rectangle(
+        (65, 22, width - 65, 120),
+        radius=20,
+        fill="#F8FAFC",
+        outline="#D9E0E8",
+        width=2,
+    )
+    draw_text(draw, (width / 2, 70), title, FONT_TITLE, anchor="mm")
 
 
 def save_tight(im, path, padding=16):
@@ -1044,7 +1050,7 @@ def figure_model_comparison(path, rows):
     }
     label_specs = {
         "openai/gpt-5.4": (0, -56, "ma"),
-        "openai/gpt-5.4-mini": (0, -58, "ma"),
+        "openai/gpt-5.4-mini": (0, -94, "ma"),
         "openai/gpt-5.4-nano": (44, -16, "lm"),
         "anthropic/claude-opus-4.5": (-46, 12, "rm"),
         "anthropic/claude-sonnet-4.5": (54, -10, "lm"),
@@ -1486,9 +1492,10 @@ def figure_tone_temporal(path, tone_rows, temporal_rows):
     width, height = 3900, 1500
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
-    draw_text(draw, (1000, 58), "Tone Gradient by Model", load_font(64, True), INK, anchor="ma")
-    draw_text(draw, (2930, 58), "Temporal Pressure by Model", load_font(64, True), INK, anchor="ma")
-    draw.line((70, 140, width - 70, 140), fill=LIGHT_GRID, width=4)
+    draw.rounded_rectangle((90, 22, 1910, 132), radius=22, fill="#F8FAFC", outline="#D9E0E8", width=2)
+    draw.rounded_rectangle((1990, 22, width - 90, 132), radius=22, fill="#F8FAFC", outline="#D9E0E8", width=2)
+    draw_text(draw, (1000, 78), "Tone Gradient by Model", load_font(64, True), INK, anchor="mm")
+    draw_text(draw, (2930, 78), "Temporal Pressure by Model", load_font(64, True), INK, anchor="mm")
 
     def tone_panel(branch, x, y, title, max_rate, ticks):
         w, h = 1750, 470
@@ -1654,7 +1661,6 @@ def figure_confidence_trajectory(path, rows):
     width, height = 2620, 1045
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
-    title_font = load_font(64, True)
     panel_font = load_font(43, True)
     axis_font = load_font(31)
     axis_bold = load_font(34, True)
@@ -1668,8 +1674,6 @@ def figure_confidence_trajectory(path, rows):
         if denom <= 0:
             return 0.0
         return sum(row["mean_confidence"] * row.get("n", 0) for row in subset) / denom
-
-    draw_text(draw, (width / 2, 50), "Confidence as an indicator", title_font, INK, anchor="ma")
 
     def draw_line_panel(panel_x, panel_y, panel_w, panel_h, title, line_defs, show_y_label=False):
         draw.rounded_rectangle(
@@ -1722,7 +1726,7 @@ def figure_confidence_trajectory(path, rows):
 
     draw_line_panel(
         65,
-        110,
+        60,
         1215,
         900,
         "Branch trend",
@@ -1734,7 +1738,7 @@ def figure_confidence_trajectory(path, rows):
     )
     draw_line_panel(
         1340,
-        110,
+        60,
         1215,
         900,
         "Sycophancy trend",
