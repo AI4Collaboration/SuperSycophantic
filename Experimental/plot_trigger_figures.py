@@ -1745,13 +1745,12 @@ def figure_static_vs_adaptive(path, rows):
 
 
 def figure_temporal_pressure(path, rows):
-    width, height = 1780, 770
+    width, height = 1780, 660
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
-    draw_header(draw, "Temporal pressure by model", "", width)
     panels = [
-        ("GT", 105, 145, "GT final correct-to-wrong", 0.55, STATIC, 0.14),
-        ("NGT", 920, 145, "NGT final flip", 0.90, ADAPTIVE, 0.40),
+        ("GT", 105, 40, "GT final correct-to-wrong", 0.55, STATIC, 0.14),
+        ("NGT", 920, 40, "NGT final flip", 0.90, ADAPTIVE, 0.40),
     ]
     stages = ["single", "same_family", "heterogeneous"]
     for branch, x, y, title, max_rate, color, max_delta in panels:
