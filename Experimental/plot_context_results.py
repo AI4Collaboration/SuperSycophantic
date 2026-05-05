@@ -229,6 +229,15 @@ def text_size(draw: ImageDraw.ImageDraw, text: str, fnt: ImageFont.FreeTypeFont)
     return max(widths) if widths else 0, sum(heights) + max(0, len(lines) - 1) * 6
 
 
+def rotated_label(img: Image.Image, xy: tuple[int, int], text: str, fnt: ImageFont.FreeTypeFont, fill: str) -> None:
+    bbox = ImageDraw.Draw(Image.new("RGBA", (1, 1))).textbbox((0, 0), text, font=fnt)
+    label = Image.new("RGBA", (bbox[2] - bbox[0] + 8, bbox[3] - bbox[1] + 8), (0, 0, 0, 0))
+    label_draw = ImageDraw.Draw(label)
+    label_draw.text((4 - bbox[0], 4 - bbox[1]), text, font=fnt, fill=fill)
+    label = label.rotate(270, expand=True)
+    img.alpha_composite(label, xy)
+
+
 def draw_centered_text(
     draw: ImageDraw.ImageDraw,
     center_x: int,
@@ -314,12 +323,6 @@ def draw_axes(draw: ImageDraw.ImageDraw, rect: tuple[int, int, int, int]) -> Non
     x_label = "GT Truth Departure (%)"
     bbox = draw.textbbox((0, 0), x_label, font=F_AXIS)
     draw.text((x0 + (x1 - x0 - (bbox[2] - bbox[0])) / 2, y1 + 74), x_label, font=F_AXIS, fill=INK)
-    y_label = "NGT User-View Lift (%)"
-    y_img = Image.new("RGBA", (560, 76), (0, 0, 0, 0))
-    yd = ImageDraw.Draw(y_img)
-    yd.text((0, 0), y_label, font=F_AXIS, fill=INK)
-    y_img = y_img.rotate(90, expand=True)
-    draw.bitmap((x0 - 168, y0 + (y1 - y0 - y_img.height) // 2), y_img, fill=None)
 
 
 def draw_scatter(
@@ -330,9 +333,10 @@ def draw_scatter(
 ) -> list[tuple[str, tuple[int, int, int, int]]]:
     x0, y0, x1, y1 = rect
     draw_axes(draw, rect)
-    title = "Model-level Context Susceptibility"
-    bbox = draw.textbbox((0, 0), title, font=F_TITLE)
-    draw.text((x0 + (x1 - x0 - (bbox[2] - bbox[0])) / 2, y0 - 62), title, font=F_TITLE, fill=INK)
+    y_label = "NGT User-View Lift (%)"
+    label_box = ImageDraw.Draw(Image.new("RGBA", (1, 1))).textbbox((0, 0), y_label, font=F_AXIS)
+    label_h = label_box[2] - label_box[0] + 8
+    rotated_label(base, (x0 - 164, y0 + (y1 - y0 - label_h) // 2), y_label, F_AXIS, INK)
     metrics = metric_bundle(summary)
     bboxes = []
 

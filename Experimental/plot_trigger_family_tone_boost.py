@@ -126,14 +126,14 @@ def draw_legend(draw, x, y):
     for i, family in enumerate(FAMILIES):
         xx = x + i * 310
         yy = y
-        draw.rounded_rectangle((xx, yy, xx + 36, yy + 28), radius=6, fill=FAMILY_COLORS[family])
-        draw_text(draw, (xx + 50, yy + 14), FAMILY_LABELS[family], 27, anchor="lm")
+        draw.rounded_rectangle((xx, yy, xx + 42, yy + 32), radius=7, fill=FAMILY_COLORS[family])
+        draw_text(draw, (xx + 58, yy + 16), FAMILY_LABELS[family], 36, anchor="lm")
     arrow_y = y
     for i, (label, color) in enumerate([("Mild to moderate", BOOST_MODERATE), ("Moderate to strong", BOOST_STRONG)]):
         xx = x + 2225 + i * 595
-        draw.line((xx, arrow_y + 15, xx + 96, arrow_y + 15), fill=color, width=11)
-        draw.polygon([(xx + 122, arrow_y + 15), (xx + 88, arrow_y - 3), (xx + 88, arrow_y + 33)], fill=color)
-        draw_text(draw, (xx + 148, arrow_y + 15), label, 27, anchor="lm")
+        draw.line((xx, arrow_y + 17, xx + 96, arrow_y + 17), fill=color, width=12)
+        draw.polygon([(xx + 122, arrow_y + 17), (xx + 88, arrow_y - 2), (xx + 88, arrow_y + 36)], fill=color)
+        draw_text(draw, (xx + 148, arrow_y + 17), label, 36, anchor="lm")
 
 
 def draw_model_label(im, draw, model, cx, y):
@@ -144,7 +144,7 @@ def draw_model_label(im, draw, model, cx, y):
     if len(label) > 12:
         parts = label.split()
         label = " ".join(parts[:1]) + "\n" + " ".join(parts[1:])
-    draw.multiline_text((cx, y + 78), label, font=font(25, True), fill=INK, anchor="ma", align="center", spacing=3)
+    draw.multiline_text((cx, y + 78), label, font=font(36, True), fill=INK, anchor="ma", align="center", spacing=3)
 
 
 def draw_figure(rows, out_path):
@@ -163,9 +163,9 @@ def draw_figure(rows, out_path):
     for tick in [0, 0.25, 0.50, 0.75, 1.0]:
         yy = y_at(tick, y0, plot_h, max_rate)
         draw.line((x0, yy, x0 + plot_w, yy), fill=GRID, width=2 if tick else 4)
-        draw_text(draw, (x0 - 22, yy), f"{int(tick * 100)}", 26, MUTED, bold=tick in [0, 1.0], anchor="rm")
+        draw_text(draw, (x0 - 22, yy), f"{int(tick * 100)}", 38, MUTED, bold=tick in [0, 1.0], anchor="rm")
     draw.line((x0, y0, x0, bottom), fill="#B7C1CE", width=4)
-    draw_text(draw, (x0, y0 - 36), "GT+NGT sycophantic rate (%)", 31, INK, bold=True, anchor="la")
+    draw_text(draw, (x0, y0 - 44), "GT+NGT sycophantic rate (%)", 42, INK, bold=True, anchor="la")
 
     cluster_w = plot_w / len(trigger_plot.MODELS)
     bar_w = 34
