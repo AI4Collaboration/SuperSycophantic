@@ -949,28 +949,17 @@ def figure_scatter(path, headline):
     min_y, max_y = 0.25, 0.95
     x_cut, y_cut = 0.20, 0.60
 
-    label_specs = {
+    badge_offsets = {
         "static": {
-            "openai/gpt-5.4": (-46, -54, "rm"),
-            "openai/gpt-5.4-mini": (-16, 58, "ma"),
-            "openai/gpt-5.4-nano": (34, -4, "lm"),
-            "anthropic/claude-opus-4.5": (-40, -50, "rm"),
-            "anthropic/claude-sonnet-4.5": (34, -44, "lm"),
-            "anthropic/claude-haiku-4.5": (36, 24, "lm"),
-            "google/gemini-3.1-flash-lite-preview": (32, -44, "lm"),
-            "mistralai/mistral-medium-3.1": (36, -10, "lm"),
-            "cohere/command-r-08-2024": (34, 18, "lm"),
+            "openai/gpt-5.4-mini": (-8, -18),
+            "anthropic/claude-opus-4.5": (-12, 14),
         },
         "adaptive": {
-            "openai/gpt-5.4": (0, -70, "ma"),
-            "openai/gpt-5.4-mini": (-46, 50, "rm"),
-            "openai/gpt-5.4-nano": (30, 50, "lm"),
-            "anthropic/claude-opus-4.5": (-42, 18, "rm"),
-            "anthropic/claude-sonnet-4.5": (36, -46, "lm"),
-            "anthropic/claude-haiku-4.5": (36, 18, "lm"),
-            "google/gemini-3.1-flash-lite-preview": (34, -44, "lm"),
-            "mistralai/mistral-medium-3.1": (38, 20, "lm"),
-            "cohere/command-r-08-2024": (36, 18, "lm"),
+            "openai/gpt-5.4": (16, -26),
+            "openai/gpt-5.4-mini": (-18, 22),
+            "anthropic/claude-opus-4.5": (-24, -6),
+            "anthropic/claude-sonnet-4.5": (22, -18),
+            "mistralai/mistral-medium-3.1": (24, 8),
         },
     }
 
@@ -1023,7 +1012,6 @@ def figure_scatter(path, headline):
             rows.append(
                 {
                     "model": model,
-                    "label": MODEL_SHORT_LABELS[model],
                     "gt": row_lookup(headline, model=model, branch="GT", mode=mode, source="single")["rate"],
                     "ngt": row_lookup(headline, model=model, branch="NGT", mode=mode, source="single")["rate"],
                 }
@@ -1032,17 +1020,14 @@ def figure_scatter(path, headline):
         for row in sorted(rows, key=lambda item: item["ngt"]):
             x = x_pos(row["gt"])
             y = y_pos(row["ngt"])
+            dx, dy = badge_offsets.get(mode, {}).get(row["model"], (0, 0))
+            bx, by = x + dx, y + dy
+            if dx or dy:
+                draw.line((x, y, bx, by), fill="#AEB8C6", width=1)
             badge = make_badge(row["model"])
             badge.thumbnail((62, 62), RESAMPLE_LANCZOS)
-            im.paste(badge, (int(x - badge.width / 2), int(y - badge.height / 2)), badge)
+            im.paste(badge, (int(bx - badge.width / 2), int(by - badge.height / 2)), badge)
             draw = ImageDraw.Draw(im)
-            dx, dy, anchor = label_specs[mode].get(row["model"], (24, 18, "lm"))
-            lx, ly = x + dx, y + dy
-            if abs(dx) > 34 or abs(dy) > 34:
-                edge_x = x + (badge.width / 2 if dx > 0 else -badge.width / 2 if dx < 0 else 0)
-                edge_y = y + (badge.height / 2 if dy > 0 else -badge.height / 2 if dy < 0 else 0)
-                draw.line((edge_x, edge_y, lx, ly), fill="#AEB8C6", width=1)
-            draw.multiline_text((lx, ly), row["label"], font=FONT_TINY, fill=INK, anchor=anchor, spacing=1, align="center")
 
         draw_text(
             draw,
@@ -1090,24 +1075,11 @@ def figure_model_comparison(path, rows):
 
     badge_offsets = {
         "openai/gpt-5.4": (-66, -34),
-        "openai/gpt-5.4-mini": (-94, -48),
+        "openai/gpt-5.4-mini": (-118, -82),
         "anthropic/claude-opus-4.5": (2, 72),
         "mistralai/mistral-medium-3.1": (56, 34),
-        "cohere/command-r-08-2024": (-98, 38),
+        "cohere/command-r-08-2024": (-116, 82),
     }
-    label_specs = {
-        "openai/gpt-5.4": (0, -56, "ma"),
-        "openai/gpt-5.4-mini": (0, -94, "ma"),
-        "openai/gpt-5.4-nano": (44, -16, "lm"),
-        "anthropic/claude-opus-4.5": (-46, 12, "rm"),
-        "anthropic/claude-sonnet-4.5": (54, -10, "lm"),
-        "anthropic/claude-haiku-4.5": (-70, -26, "rm"),
-        "google/gemini-3.1-flash-lite-preview": (54, 18, "lm"),
-        "mistralai/mistral-medium-3.1": (0, 54, "ma"),
-        "cohere/command-r-08-2024": (0, 54, "ma"),
-    }
-
-    badge_centers = {}
     for row in sorted(rows, key=lambda item: item["ngt_rate"], reverse=True):
         model = row["model"]
         x = x_pos(row["gt_change_rate"])
@@ -1119,22 +1091,7 @@ def figure_model_comparison(path, rows):
         badge = make_badge(model)
         badge.thumbnail((78, 78), RESAMPLE_LANCZOS)
         im.paste(badge, (int(bx - badge.width / 2), int(by - badge.height / 2)), badge)
-        badge_centers[model] = (bx, by)
         draw = ImageDraw.Draw(im)
-
-    for row in rows:
-        model = row["model"]
-        x, y = badge_centers[model]
-        dx, dy, anchor = label_specs.get(model, (24, 20, "lm"))
-        draw.multiline_text(
-            (x + dx, y + dy),
-            MODEL_SHORT_LABELS[model],
-            font=FONT_SMALL,
-            fill=INK,
-            anchor=anchor,
-            spacing=2,
-            align="center",
-        )
 
     draw_text(draw, (left + plot_w / 2, top + plot_h + 54), "Answer change after 1 trigger (%)", FONT_AXIS_BOLD, INK, anchor="ma")
     draw_rotated_label(im, (112, top + plot_h / 2), "Right-to-wrong after 1 trigger (%)", FONT_AXIS_BOLD)
@@ -1375,24 +1332,11 @@ def figure_model_tone(path, model_rows, tone_rows):
 
     badge_offsets = {
         "openai/gpt-5.4": (-78, -44),
-        "openai/gpt-5.4-mini": (-110, -58),
+        "openai/gpt-5.4-mini": (-132, -96),
         "anthropic/claude-opus-4.5": (2, 88),
         "mistralai/mistral-medium-3.1": (66, 42),
-        "cohere/command-r-08-2024": (-108, 46),
+        "cohere/command-r-08-2024": (-130, 96),
     }
-    label_specs = {
-        "openai/gpt-5.4": (0, -70, "ma"),
-        "openai/gpt-5.4-mini": (0, -72, "ma"),
-        "openai/gpt-5.4-nano": (58, -18, "lm"),
-        "anthropic/claude-opus-4.5": (-58, 16, "rm"),
-        "anthropic/claude-sonnet-4.5": (66, -12, "lm"),
-        "anthropic/claude-haiku-4.5": (-84, -28, "rm"),
-        "google/gemini-3.1-flash-lite-preview": (70, 20, "lm"),
-        "mistralai/mistral-medium-3.1": (0, 66, "ma"),
-        "cohere/command-r-08-2024": (0, 66, "ma"),
-    }
-
-    badge_centers = {}
     for row in sorted(model_rows, key=lambda item: item["ngt_rate"], reverse=True):
         model = row["model"]
         x = x_pos(row["gt_change_rate"])
@@ -1404,22 +1348,7 @@ def figure_model_tone(path, model_rows, tone_rows):
         badge = make_badge(model)
         badge.thumbnail((112, 112), RESAMPLE_LANCZOS)
         im.paste(badge, (int(bx - badge.width / 2), int(by - badge.height / 2)), badge)
-        badge_centers[model] = (bx, by)
         draw = ImageDraw.Draw(im)
-
-    for row in model_rows:
-        model = row["model"]
-        x, y = badge_centers[model]
-        dx, dy, anchor = label_specs.get(model, (28, 24, "lm"))
-        draw.multiline_text(
-            (x + dx, y + dy),
-            MODEL_SHORT_LABELS[model],
-            font=label_font,
-            fill=INK,
-            anchor=anchor,
-            spacing=2,
-            align="center",
-        )
 
     draw_text(
         draw,
@@ -1589,15 +1518,6 @@ def figure_trigger_dynamics(path, tone_rows, temporal_rows, confidence_rows):
             badge = make_badge(model)
             badge.thumbnail((82, 82), RESAMPLE_LANCZOS)
             im.alpha_composite(badge, (int(cx - badge.width / 2), int(cy - badge.height / 2)))
-            draw.multiline_text(
-                (cx, cy + badge.height / 2 + 8),
-                MODEL_SHORT_LABELS[model],
-                font=label_font,
-                fill=INK,
-                anchor="ma",
-                align="center",
-                spacing=2,
-            )
 
         draw_text(draw, (plot_x + plot_w / 2, panel_y + panel_h - 62), "Single-follow-up movement (%)", axis_bold, INK, anchor="ma")
         draw_rotated_label(im, (panel_x + 82, plot_y + plot_h / 2), "Mixed three-turn movement (%)", axis_bold)

@@ -64,50 +64,45 @@ LOGO_FILES = {
     "cohere": REPO_ROOT / "images" / "logos" / "cohere.png",
 }
 
-PROVIDER_COLORS = {
-    "openai": "#6E59C9",
-    "anthropic": "#C86A45",
-    "google": "#3B78E7",
-    "mistralai": "#D45A2A",
-    "cohere": "#2F6659",
+MODEL_SIZE_TIER = {
+    "openai/gpt-5.4": "large",
+    "openai/gpt-5.4-mini": "medium",
+    "openai/gpt-5.4-nano": "small",
+    "anthropic/claude-opus-4.5": "large",
+    "anthropic/claude-sonnet-4.5": "medium",
+    "anthropic/claude-haiku-4.5": "small",
+    "google/gemini-3.1-flash-lite-preview": "small",
+    "mistralai/mistral-medium-3.1": "medium",
+    "cohere/command-r-08-2024": "medium",
 }
 
-BADGE_PX = {
-    "openai/gpt-5.4": 150,
-    "openai/gpt-5.4-mini": 136,
-    "openai/gpt-5.4-nano": 122,
-    "anthropic/claude-opus-4.5": 148,
-    "anthropic/claude-sonnet-4.5": 138,
-    "anthropic/claude-haiku-4.5": 122,
-    "google/gemini-3.1-flash-lite-preview": 126,
-    "mistralai/mistral-medium-3.1": 132,
-    "cohere/command-r-08-2024": 132,
+SIZE_TIER_STYLE = {
+    "small": {"fill": "#C8F3E0", "outline": "#2EAA74"},
+    "medium": {"fill": "#9BCBFF", "outline": "#2D6FDA"},
+    "large": {"fill": "#B9A2FF", "outline": "#5942D3"},
 }
 
+BADGE_PX = 112
 LOGO_FILL = {
-    "openai/gpt-5.4": 0.76,
-    "openai/gpt-5.4-mini": 0.67,
-    "openai/gpt-5.4-nano": 0.58,
-    "anthropic/claude-opus-4.5": 0.76,
-    "anthropic/claude-sonnet-4.5": 0.69,
-    "anthropic/claude-haiku-4.5": 0.58,
-    "google/gemini-3.1-flash-lite-preview": 0.60,
-    "mistralai/mistral-medium-3.1": 0.68,
-    "cohere/command-r-08-2024": 0.66,
+    "openai": 0.56,
+    "anthropic": 0.62,
+    "google": 0.58,
+    "mistralai": 0.60,
+    "cohere": 0.64,
 }
 
-# Offsets move large labels away from dense metric clusters. Thin hairlines keep
-# the plotted metric anchor unambiguous while avoiding overlapping logos.
+# Offsets move dense logo clusters slightly apart. Thin hairlines keep the
+# plotted metric anchor unambiguous while avoiding overlapping logo badges.
 SCATTER_OFFSETS = {
-    "openai/gpt-5.4": (-210, -10),
-    "anthropic/claude-opus-4.5": (-210, 160),
-    "anthropic/claude-sonnet-4.5": (158, 92),
-    "anthropic/claude-haiku-4.5": (188, 70),
-    "google/gemini-3.1-flash-lite-preview": (-20, -170),
-    "mistralai/mistral-medium-3.1": (240, 10),
-    "openai/gpt-5.4-mini": (210, -154),
-    "openai/gpt-5.4-nano": (118, -58),
-    "cohere/command-r-08-2024": (-102, -122),
+    "openai/gpt-5.4": (-70, -12),
+    "anthropic/claude-opus-4.5": (-82, 58),
+    "anthropic/claude-sonnet-4.5": (73, -20),
+    "anthropic/claude-haiku-4.5": (90, 36),
+    "google/gemini-3.1-flash-lite-preview": (-20, -78),
+    "mistralai/mistral-medium-3.1": (118, -18),
+    "openai/gpt-5.4-mini": (80, -62),
+    "openai/gpt-5.4-nano": (68, -10),
+    "cohere/command-r-08-2024": (-52, -66),
 }
 
 INK = "#1D2733"
@@ -152,6 +147,17 @@ def trim_alpha(img: Image.Image) -> Image.Image:
     return img.crop(bbox) if bbox else img
 
 
+def drop_near_white_background(img: Image.Image) -> Image.Image:
+    rgba = img.convert("RGBA")
+    pixels = rgba.load()
+    for y in range(rgba.height):
+        for x in range(rgba.width):
+            r, g, b, a = pixels[x, y]
+            if a and r >= 245 and g >= 245 and b >= 245:
+                pixels[x, y] = (r, g, b, 0)
+    return rgba
+
+
 def trim_white(img: Image.Image, padding: int = 28) -> Image.Image:
     rgb = img.convert("RGB")
     pix = rgb.load()
@@ -184,7 +190,7 @@ def load_provider_logo(provider: str) -> Image.Image:
             if candidate.width * candidate.height > best.width * best.height:
                 best = candidate
         img = best
-    return trim_alpha(img)
+    return trim_alpha(drop_near_white_background(img))
 
 
 def fit_image(img: Image.Image, max_side: int) -> Image.Image:
@@ -194,26 +200,25 @@ def fit_image(img: Image.Image, max_side: int) -> Image.Image:
 
 
 def make_badge(model: str) -> Image.Image:
-    size = BADGE_PX[model]
+    size = BADGE_PX
     provider = PROVIDER[model]
+    tier = MODEL_SIZE_TIER[model]
+    style = SIZE_TIER_STYLE[tier]
     badge = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(badge)
-    radius = max(16, size // 7)
-    draw.rounded_rectangle(
-        [3, 3, size - 4, size - 4],
-        radius=radius,
-        fill=WHITE,
-        outline="#D7DFE8",
-        width=3,
+    shadow_offset = max(4, size // 24)
+    draw.ellipse(
+        [8, 10 + shadow_offset, size - 9, size - 7 + shadow_offset],
+        fill=(15, 23, 42, 34),
     )
-    draw.rounded_rectangle(
-        [6, 6, size - 7, size - 7],
-        radius=max(12, radius - 4),
-        outline=PROVIDER_COLORS[provider],
-        width=3,
+    draw.ellipse(
+        [7, 7, size - 8, size - 8],
+        fill=style["fill"],
+        outline=style["outline"],
+        width=5,
     )
     logo = load_provider_logo(provider)
-    logo = fit_image(logo, round(size * LOGO_FILL[model]))
+    logo = fit_image(logo, round(size * LOGO_FILL[provider]))
     badge.alpha_composite(logo, ((size - logo.width) // 2, (size - logo.height) // 2))
     return badge
 
@@ -353,20 +358,15 @@ def draw_scatter(
         cx = int(max(x0 + 84, min(x1 - 84, mx + dx)))
         cy = int(max(y0 + 88, min(y1 - 50, my + dy)))
         badge = make_badge(model)
-        label = SHORT_LABELS[model]
-        label_w, label_h = text_size(draw, label, F_MODEL)
-        total_w = max(badge.width, label_w)
-        total_h = badge.height + 12 + label_h
-        left = cx - total_w // 2
-        top = cy - total_h // 2
-        right = cx + math.ceil(total_w / 2)
-        bottom = top + total_h
+        left = cx - badge.width // 2
+        top = cy - badge.height // 2
+        right = left + badge.width
+        bottom = top + badge.height
 
         if abs(cx - mx) > 24 or abs(cy - my) > 24:
-            draw.line([(mx, my), (cx, top + badge.height / 2)], fill="#B5C0CE", width=2)
+            draw.line([(mx, my), (cx, cy)], fill="#B5C0CE", width=2)
 
-        base.alpha_composite(badge, (int(cx - badge.width / 2), int(top)))
-        draw_centered_text(draw, cx, int(top + badge.height + 12), label, F_MODEL, fill=INK)
+        base.alpha_composite(badge, (int(left), int(top)))
         bboxes.append((model, (int(left), int(top), int(right), int(bottom))))
     return bboxes
 
