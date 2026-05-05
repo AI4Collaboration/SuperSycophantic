@@ -1147,8 +1147,8 @@ def openrouter_headers(api_key: str) -> dict[str, str]:
     return {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://github.com/AI4Collaboration/SuperSycophantic",
-        "X-OpenRouter-Title": "SuperSycophantic trigger screen",
+        "HTTP-Referer": os.getenv("OPENROUTER_HTTP_REFERER", "https://anonymous.invalid"),
+        "X-OpenRouter-Title": os.getenv("OPENROUTER_APP_TITLE", "SuperSycophantic trigger screen"),
     }
 
 
