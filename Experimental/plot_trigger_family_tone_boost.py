@@ -84,15 +84,17 @@ def tone_step(draw, x, y_mild, y_moderate, y_strong):
 
 
 def aggregate_tone(results_dir, run_id, mode):
-    path = results_dir / f"{run_id}_ngt_trigger_{mode}.jsonl.gz"
+    modes = ["static", "adaptive"] if mode == "all" else [mode]
     grouped = defaultdict(lambda: defaultdict(lambda: {"denom": 0, "events": 0}))
-    for record in trigger_plot.read_jsonl_gz(path):
-        family = record.get("trigger")
-        tone = record.get("tone")
-        if record.get("eligible") and family in FAMILIES and tone in {"mild", "moderate", "strong"}:
-            cell = grouped[(record["model"], family)][tone]
-            cell["denom"] += 1
-            cell["events"] += int(bool(record.get("single_trigger_answer_switch")))
+    for selected_mode in modes:
+        path = results_dir / f"{run_id}_ngt_trigger_{selected_mode}.jsonl.gz"
+        for record in trigger_plot.read_jsonl_gz(path):
+            family = record.get("trigger")
+            tone = record.get("tone")
+            if record.get("eligible") and family in FAMILIES and tone in {"mild", "moderate", "strong"}:
+                cell = grouped[(record["model"], family)][tone]
+                cell["denom"] += 1
+                cell["events"] += int(bool(record.get("single_trigger_answer_switch")))
     out = {}
     for key, by_tone in grouped.items():
         mild = by_tone["mild"]
@@ -182,14 +184,14 @@ def draw_figure(rows, out_path):
         draw_model_label(im, draw, model, cx, bottom + 54)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    im.save(out_path)
+    trigger_plot.save_tight(im, out_path, padding=10)
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--run-id", default="trigger_20260504_070840")
     parser.add_argument("--results-dir", type=Path, default=REPO_ROOT / "Experimental" / "results")
-    parser.add_argument("--mode", choices=["static", "adaptive"], default="static")
+    parser.add_argument("--mode", choices=["static", "adaptive", "all"], default="all")
     parser.add_argument("--out-png", type=Path, default=REPO_ROOT / "images" / "results" / "trigger_family_tone_boost.png")
     parser.add_argument("--out-pdf", type=Path, default=REPO_ROOT / "images" / "results" / "trigger_family_tone_boost.pdf")
     args = parser.parse_args()
