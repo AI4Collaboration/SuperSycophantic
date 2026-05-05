@@ -1857,6 +1857,7 @@ def main():
         figure_dir.mkdir(parents=True, exist_ok=True)
 
     records = collect_records(args.results_dir, args.run_id)
+    headline, _, _, _ = build_tables(records)
     tables = build_trigger_figure_tables(records)
 
     table_names = []
@@ -1866,6 +1867,7 @@ def main():
         table_names.append(filename)
 
     figures = [
+        ("trigger_model_quadrant.png", figure_scatter, headline),
         ("trigger_model_comparison.png", figure_model_comparison, tables["model_comparison"]),
         ("trigger_tone_gradient.png", figure_tone_gradient, tables["tone_gradient_opus"]),
         ("trigger_tone_claude_detail.png", figure_tone_claude_detail, tables["tone_gradient_opus"]),
@@ -1922,6 +1924,7 @@ def main():
                 "All figures are Python-generated PNG charts from the official pass@1-clean result files.",
                 "",
                 "- `trigger_model_comparison.png`: main-text model-level GT answer change versus right-to-wrong movement.",
+                "- `trigger_model_quadrant.png`: main-text model-level GT truth departure versus NGT Flip-Flop quadrant view.",
                 "- `trigger_tone_gradient.png`: main-text Claude-family versus other-model tone-gradient comparison.",
                 "- `trigger_tone_claude_detail.png`: appendix endpoint-level Claude tone-gradient view.",
                 "- `trigger_model_tone.png`: appendix compact composite combining model-level rates with model-separated tone gradients.",
