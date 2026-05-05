@@ -1161,18 +1161,18 @@ def tone_family_series(rows, branch, models):
 
 
 def figure_tone_gradient(path, rows):
-    width, height = 1640, 1036
+    width, height = 1780, 820
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im, "RGBA")
     draw_header(draw, "Tone gradient", "", width)
     panels = [
-        ("GT", 110, 180, "GT correct-to-wrong", 0.55, [0, 0.15, 0.30, 0.45]),
-        ("NGT", 870, 180, "NGT flip", 0.9, [0, 0.3, 0.6, 0.9]),
+        ("GT", 105, 145, "GT correct-to-wrong", 0.55, [0, 0.15, 0.30, 0.45]),
+        ("NGT", 920, 145, "NGT flip", 0.9, [0, 0.3, 0.6, 0.9]),
     ]
     claude_color = "#D96C42"
     other_color = "#4C78A8"
     for branch, x, y, title, max_rate, ticks in panels:
-        w, h = 650, 610
+        w, h = 755, 595
         draw.rectangle((x, y, x + w, y + h), fill="white", outline="#D9E0E8", width=2)
         draw_text(draw, (x + 26, y + 24), title, FONT_PANEL, INK)
         px0, py0 = x + 108, y + 112
@@ -1187,7 +1187,7 @@ def figure_tone_gradient(path, rows):
         for tick in ticks:
             yy = y_at(tick)
             draw.line((px0, yy, px0 + pw, yy), fill="#E7EDF3", width=1)
-            draw_text(draw, (px0 - 16, yy), f"{int(tick * 100)}", FONT_SMALL, MUTED, anchor="rm")
+            draw_text(draw, (px0 - 16, yy), f"{int(tick * 100)}", FONT_SMALL, INK, anchor="rm")
 
         for models, line_color, band_color, line_width in [
             (OTHER_MODELS, other_color, (76, 120, 168, 42), 7),
@@ -1209,7 +1209,7 @@ def figure_tone_gradient(path, rows):
             draw_text(draw, (xx, py0 + ph + 36), TONE_LABELS[tone], FONT_AXIS_BOLD, INK, anchor="ma")
         draw_text(draw, (px0 + pw / 2, y + h - 34), "Tone", FONT_AXIS_BOLD, INK, anchor="ma")
 
-    legend_x, legend_y = 300, 823
+    legend_x, legend_y = 380, 780
     legend_items = [
         (claude_color, "Claude family mean"),
         (other_color, "Other models mean"),
@@ -1219,8 +1219,7 @@ def figure_tone_gradient(path, rows):
         draw.line((x, legend_y, x + 70, legend_y), fill=color, width=9)
         draw.ellipse((x + 28, legend_y - 10, x + 48, legend_y + 10), fill=color, outline="white", width=3)
         draw_text(draw, (x + 90, legend_y), label, FONT_SMALL, INK, anchor="lm")
-    draw_text(draw, (width / 2, 885), "Shaded bands show endpoint range within each group.", FONT_TINY, MUTED, anchor="ma")
-    save_tight(im, path)
+    im.save(path)
 
 
 def figure_tone_claude_detail(path, rows):
@@ -1694,23 +1693,23 @@ def figure_static_vs_adaptive(path, rows):
 
 
 def figure_temporal_pressure(path, rows):
-    width, height = 1780, 940
+    width, height = 1780, 820
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
     draw_header(draw, "Temporal pressure by model", "", width)
     panels = [
-        ("GT", 105, 150, "GT final correct-to-wrong", 0.55, STATIC, 0.14),
-        ("NGT", 920, 150, "NGT final flip", 0.90, ADAPTIVE, 0.40),
+        ("GT", 105, 145, "GT final correct-to-wrong", 0.55, STATIC, 0.14),
+        ("NGT", 920, 145, "NGT final flip", 0.90, ADAPTIVE, 0.40),
     ]
     stages = ["single", "same_family", "heterogeneous"]
     for branch, x, y, title, max_rate, color, max_delta in panels:
-        w, h = 755, 700
+        w, h = 755, 635
         draw.rectangle((x, y, x + w, y + h), fill="white", outline="#D9E0E8", width=2)
         draw_text(draw, (x + w / 2, y + 27), title, FONT_PANEL, INK, anchor="ma")
         label_x = x + 26
         cell_x = x + 250
-        top = y + 135
-        row_h = 53
+        top = y + 122
+        row_h = 48
         cell_w = 108
         gap = 9
         for ci, stage in enumerate(stages):
@@ -1728,8 +1727,7 @@ def figure_temporal_pressure(path, rows):
                 xx = cell_x + ci * (cell_w + gap)
                 draw_rate_cell(draw, (xx, yy, xx + cell_w, yy + 42), value, max_rate, color, FONT_AXIS_BOLD)
             draw_delta_cell(draw, (delta_x, yy, delta_x + 122, yy + 42), values[-1] - values[0], max_delta, FONT_AXIS_BOLD)
-        draw_text(draw, (x + w / 2, y + h - 24), "red = more final movement; blue = recovery", FONT_TINY, MUTED, anchor="ma")
-    save_tight(im, path)
+    im.save(path)
 
 
 def figure_confidence_trajectory(path, rows):
