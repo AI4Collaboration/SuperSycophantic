@@ -77,8 +77,8 @@ MODEL_SIZE_TIER = {
 }
 
 SIZE_TIER_STYLE = {
-    "small": {"fill": (250, 204, 21, 78), "outline": (202, 138, 4, 230)},
-    "medium": {"fill": (249, 115, 22, 76), "outline": (194, 65, 12, 230)},
+    "small": {"fill": (59, 130, 246, 82), "outline": (29, 78, 216, 230)},
+    "medium": {"fill": (20, 184, 166, 78), "outline": (13, 148, 136, 230)},
     "large": {"fill": (168, 85, 247, 86), "outline": (109, 40, 217, 230)},
 }
 
