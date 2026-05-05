@@ -634,39 +634,46 @@ def build_trigger_figure_tables(records):
     confidence = []
     for branch in ["GT", "NGT"]:
         for model_id in MODELS:
-            for category in (["preserved", "departed"] if branch == "GT" else ["held", "switched"]):
-                by_turn = {turn: [] for turn in range(4)}
-                for record in temporal:
-                    if record["_branch"] != branch or record["model"] != model_id or not denom_ok(record, branch):
-                        continue
-                    event = metric(record, branch, temporal=True)
-                    if branch == "GT":
-                        wanted = event if category == "departed" else not event
-                    else:
-                        wanted = event if category == "switched" else not event
-                    if not wanted:
-                        continue
-                    values = [record.get("initial_confidence")]
-                    values.extend(round_record.get("confidence") for round_record in record.get("rounds") or [])
-                    if len(values) != 4:
-                        continue
-                    for turn, value in enumerate(values):
-                        if isinstance(value, (int, float)):
-                            by_turn[turn].append(float(value))
-                for turn, values in by_turn.items():
-                    confidence.append(
-                        {
-                            "branch": branch,
-                            "model": model_id,
-                            "model_label": MODEL_LABELS[model_id],
-                            "model_short_label": MODEL_SHORT_LABELS[model_id].replace("\n", " "),
-                            "category": category,
-                            "turn": turn,
-                            "turn_label": ["Initial", "Turn 1", "Turn 2", "Turn 3"][turn],
-                            "mean_confidence": sum(values) / len(values) if values else 0.0,
-                            "n": len(values),
-                        }
-                    )
+            for mode in ["static", "adaptive"]:
+                for category in (["preserved", "departed"] if branch == "GT" else ["held", "switched"]):
+                    by_turn = {turn: [] for turn in range(4)}
+                    for record in temporal:
+                        if (
+                            record["_branch"] != branch
+                            or record["model"] != model_id
+                            or record["_mode"] != mode
+                            or not denom_ok(record, branch)
+                        ):
+                            continue
+                        event = metric(record, branch, temporal=True)
+                        if branch == "GT":
+                            wanted = event if category == "departed" else not event
+                        else:
+                            wanted = event if category == "switched" else not event
+                        if not wanted:
+                            continue
+                        values = [record.get("initial_confidence")]
+                        values.extend(round_record.get("confidence") for round_record in record.get("rounds") or [])
+                        if len(values) != 4:
+                            continue
+                        for turn, value in enumerate(values):
+                            if isinstance(value, (int, float)):
+                                by_turn[turn].append(float(value))
+                    for turn, values in by_turn.items():
+                        confidence.append(
+                            {
+                                "branch": branch,
+                                "model": model_id,
+                                "model_label": MODEL_LABELS[model_id],
+                                "model_short_label": MODEL_SHORT_LABELS[model_id].replace("\n", " "),
+                                "mode": mode,
+                                "category": category,
+                                "turn": turn,
+                                "turn_label": ["Initial", "Turn 1", "Turn 2", "Turn 3"][turn],
+                                "mean_confidence": sum(values) / len(values) if values else 0.0,
+                                "n": len(values),
+                            }
+                        )
     return {
         "model_comparison": model,
         "tone_gradient_opus": tone,
@@ -1686,10 +1693,10 @@ def figure_confidence_trajectory(path, rows):
     draw = ImageDraw.Draw(im)
     title_font = load_font(58, True)
     subtitle_font = load_font(30)
-    panel_font = load_font(42, True)
-    axis_font = load_font(31)
-    axis_bold = load_font(33, True)
-    label_font = load_font(31, True)
+    panel_font = load_font(37, True)
+    axis_font = load_font(27)
+    axis_bold = load_font(29, True)
+    label_font = load_font(27, True)
     turns = [0, 1, 2, 3]
     turn_labels = ["Initial", "T1", "T2", "T3"]
 
@@ -1703,7 +1710,7 @@ def figure_confidence_trajectory(path, rows):
     draw_text(draw, (width / 2, 48), "Confidence as an indicator", title_font, INK, anchor="ma")
     draw_text(draw, (width / 2, 104), "Self-reported confidence trends under temporal trigger pressure", subtitle_font, MUTED, anchor="ma")
 
-    def draw_line_panel(panel_x, panel_y, panel_w, panel_h, title, subtitle, line_defs):
+    def draw_line_panel(panel_x, panel_y, panel_w, panel_h, title, subtitle, line_defs, show_y_label=False):
         draw.rounded_rectangle(
             (panel_x, panel_y, panel_x + panel_w, panel_y + panel_h),
             radius=22,
@@ -1714,9 +1721,9 @@ def figure_confidence_trajectory(path, rows):
         draw_text(draw, (panel_x + panel_w / 2, panel_y + 42), title, panel_font, INK, anchor="ma")
         draw_text(draw, (panel_x + panel_w / 2, panel_y + 88), subtitle, axis_font, MUTED, anchor="ma")
 
-        plot_x = panel_x + 180
+        plot_x = panel_x + 145
         plot_y = panel_y + 170
-        plot_w = panel_w - 315
+        plot_w = panel_w - 355
         plot_h = panel_h - 330
         y_min, y_max = 2.4, 5.0
 
@@ -1737,42 +1744,58 @@ def figure_confidence_trajectory(path, rows):
         draw.line((plot_x, plot_y + plot_h, plot_x + plot_w, plot_y + plot_h), fill="#9AA7B7", width=4)
         draw.line((plot_x, plot_y, plot_x, plot_y + plot_h), fill="#9AA7B7", width=4)
 
-        for label, predicate, color, line_w in line_defs:
+        for line_def in line_defs:
+            label, predicate, color, line_w = line_def[:4]
+            label_dy = line_def[4] if len(line_def) > 4 else 0
             values = [weighted_mean(predicate, turn) for turn in turns]
             points = [(x_pos(i), y_pos(value)) for i, value in enumerate(values)]
             draw.line(points, fill=color, width=line_w)
             for xx, yy in points:
                 draw.ellipse((xx - 11, yy - 11, xx + 11, yy + 11), fill=color, outline="white", width=3)
             label_x = points[-1][0] + 22
-            label_y = points[-1][1]
+            label_y = points[-1][1] + label_dy
             draw_text(draw, (label_x, label_y), label, label_font, color, anchor="lm")
 
         draw_text(draw, (plot_x + plot_w / 2, panel_y + panel_h - 55), "Assistant turn", axis_bold, INK, anchor="ma")
-        y_label = Image.new("RGBA", (740, 50), (255, 255, 255, 0))
-        yd = ImageDraw.Draw(y_label)
-        yd.text((0, 0), "Mean self-rated confidence (1-5)", font=axis_bold, fill=INK)
-        y_label = y_label.rotate(90, expand=True)
-        im.paste(y_label, (int(plot_x - 128), int(plot_y + plot_h / 2 - y_label.height / 2)), y_label)
+        if show_y_label:
+            y_label = Image.new("RGBA", (740, 50), (255, 255, 255, 0))
+            yd = ImageDraw.Draw(y_label)
+            yd.text((0, 0), "Mean self-rated confidence (1-5)", font=axis_bold, fill=INK)
+            y_label = y_label.rotate(90, expand=True)
+            im.paste(y_label, (int(plot_x - 118), int(plot_y + plot_h / 2 - y_label.height / 2)), y_label)
 
     draw_line_panel(
-        80,
+        65,
         145,
-        1810,
+        1215,
         960,
-        "Overall trend",
-        "All temporal runs, averaged by branch",
+        "Branch trend",
+        "All temporal runs",
         [
             ("GT all", lambda row: row["branch"] == "GT", GT, 10),
             ("NGT all", lambda row: row["branch"] == "NGT", NGT, 10),
         ],
+        show_y_label=True,
     )
     draw_line_panel(
-        2010,
+        1342,
         145,
-        1810,
+        1215,
+        960,
+        "Mode trend",
+        "Static versus adaptive",
+        [
+            ("Static", lambda row: row["mode"] == "static", STATIC, 10, -20),
+            ("Adaptive", lambda row: row["mode"] == "adaptive", ADAPTIVE, 10, 16),
+        ],
+    )
+    draw_line_panel(
+        2619,
+        145,
+        1215,
         960,
         "Sycophancy trend",
-        "Stable final states versus pressure-driven movement",
+        "Stable versus moved",
         [
             (
                 "Stable",
@@ -1880,7 +1903,7 @@ def main():
                 "- `trigger_static_vs_adaptive.png`: per-model static vs adaptive GT and NGT rates.",
                 "- `trigger_temporal_pressure.png`: per-model adaptive single, same-family escalation, heterogeneous temporal pressure, and mixed-minus-single deltas.",
                 "- `trigger_dynamics_summary.png`: 1x2 main-text scatter comparing single-follow-up and mixed three-turn movement by model for GT and NGT.",
-                "- `trigger_confidence_trajectory.png`: side-by-side confidence trends for overall temporal runs and stable versus moved final trajectories.",
+                "- `trigger_confidence_trajectory.png`: three-panel confidence trends by branch, trigger mode, and stable versus moved final trajectories.",
                 "",
                 "The CSV files in this directory contain the exact plotted aggregates.",
                 "",
