@@ -4,4 +4,6 @@
 __pycache__/
 *.py[cod]
 Experimental/results/
+Experimental/reports/
+Experimental/IAA/
 figure_png_for_upscale/

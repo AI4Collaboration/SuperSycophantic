@@ -1,7 +1,11 @@
-# SuperSycophantic
+# SuperSycophantic Codebase
 
-Paper-first repo for the SuperSycophantic benchmark. Manuscript files live in
-`main.tex` and `sections/`; data and runners live in `Experimental/`.
+Codebase-only repo for the SuperSycophantic experiments. Data, runners, audits,
+and plotting scripts live in `Experimental/`; model logo assets used by the
+plotting scripts live in `images/model_logos/`.
+
+The manuscript is maintained separately in the Overleaf git remote. GitHub is
+not used to sync the paper.
 
 ## Models To Run
 
@@ -350,6 +354,6 @@ not a human-released benchmark until this review is complete.
 
 ## Notes
 
-- "Update Overleaf" means update local `.tex` files in this repo.
+- "Update Overleaf" means use the separate Overleaf git tree, not this GitHub codebase tree.
 - Do not run local LaTeX compilation unless explicitly requested.
 - Keep generated outputs out of commits unless they are explicitly requested.
