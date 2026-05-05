@@ -44,7 +44,6 @@ GRID = "#E4E9F0"
 PAPER = "#FFFFFF"
 BOOST_MODERATE = "#FFD84D"
 BOOST_STRONG = "#F7A63B"
-DROP = "#D23B35"
 
 
 def font(size, bold=False):
@@ -69,18 +68,14 @@ def tone_arrow(draw, x, y_from, y_to, color):
         draw.polygon(head, fill=color)
     else:
         shaft_end = y_to - 18
-        draw.line((x, y_from, x, shaft_end), fill=DROP, width=7)
+        draw.line((x, y_from, x, shaft_end), fill=color, width=7)
         head = [(x, y_to), (x - 14, y_to - 25), (x + 14, y_to - 25)]
-        draw.polygon(head, fill=DROP)
+        draw.polygon(head, fill=color)
 
 
 def tone_step(draw, x, y_mild, y_moderate, y_strong):
-    x_mid = x - 6
-    x_strong = x + 8
-    tone_arrow(draw, x_mid, y_mild, y_moderate, BOOST_MODERATE)
-    if abs(y_strong - y_moderate) >= 8:
-        draw.line((x_mid, y_moderate, x_strong, y_moderate), fill="#CBD3DE", width=3)
-    tone_arrow(draw, x_strong, y_moderate, y_strong, BOOST_STRONG)
+    tone_arrow(draw, x, y_mild, y_moderate, BOOST_MODERATE)
+    tone_arrow(draw, x, y_moderate, y_strong, BOOST_STRONG)
 
 
 def aggregate_tone(results_dir, run_id, mode):
@@ -123,6 +118,12 @@ def draw_legend(draw, x, y):
         yy = y + row * 40
         draw.rounded_rectangle((xx, yy, xx + 30, yy + 24), radius=5, fill=FAMILY_COLORS[family])
         draw_text(draw, (xx + 42, yy + 12), FAMILY_LABELS[family], 23, anchor="lm")
+    arrow_y = y + 96
+    for i, (label, color) in enumerate([("Mild to moderate", BOOST_MODERATE), ("Moderate to strong", BOOST_STRONG)]):
+        xx = x + i * 360
+        draw.line((xx, arrow_y + 13, xx + 64, arrow_y + 13), fill=color, width=7)
+        draw.polygon([(xx + 80, arrow_y + 13), (xx + 58, arrow_y + 1), (xx + 58, arrow_y + 25)], fill=color)
+        draw_text(draw, (xx + 98, arrow_y + 13), label, 23, anchor="lm")
 
 
 def draw_model_label(im, draw, model, cx, y):
