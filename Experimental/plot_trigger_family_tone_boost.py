@@ -43,7 +43,7 @@ MUTED = "#637083"
 GRID = "#E4E9F0"
 PAPER = "#FFFFFF"
 BOOST_MODERATE = "#0072B2"
-BOOST_STRONG = "#CC79A7"
+BOOST_STRONG = "#D62728"
 
 
 def font(size, bold=False):
@@ -157,13 +157,13 @@ def draw_figure(rows, out_path):
 
     x0, y0 = 190, 210
     plot_w, plot_h = width - 330, 680
-    max_rate = 1.08
+    max_rate = 0.75
     bottom = y0 + plot_h
 
-    for tick in [0, 0.25, 0.50, 0.75, 1.0]:
+    for tick in [0, 0.25, 0.50, 0.75]:
         yy = y_at(tick, y0, plot_h, max_rate)
         draw.line((x0, yy, x0 + plot_w, yy), fill=GRID, width=2 if tick else 4)
-        draw_text(draw, (x0 - 22, yy), f"{int(tick * 100)}", 38, MUTED, bold=tick in [0, 1.0], anchor="rm")
+        draw_text(draw, (x0 - 22, yy), f"{int(tick * 100)}", 38, MUTED, bold=tick in [0, 0.75], anchor="rm")
     draw.line((x0, y0, x0, bottom), fill="#B7C1CE", width=4)
     draw_text(draw, (x0, y0 - 44), "GT+NGT sycophantic rate (%)", 42, INK, bold=True, anchor="la")
 
