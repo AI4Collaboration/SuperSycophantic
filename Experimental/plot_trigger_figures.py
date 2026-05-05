@@ -1681,103 +1681,117 @@ def figure_temporal_pressure(path, rows):
 
 
 def figure_confidence_trajectory(path, rows):
-    width, height = 1780, 1130
+    width, height = 3900, 1125
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
-    draw_header(draw, "Confidence under temporal pressure", "", width)
-    outcomes = [
-        ("GT", "preserved", "GT preserved", "#3C8A66"),
-        ("GT", "departed", "GT departed", "#C64B4B"),
-        ("NGT", "held", "NGT held", "#58A681"),
-        ("NGT", "switched", "NGT switched", "#D88968"),
-    ]
+    title_font = load_font(58, True)
+    subtitle_font = load_font(30)
+    panel_font = load_font(42, True)
+    axis_font = load_font(31)
+    axis_bold = load_font(33, True)
+    label_font = load_font(31, True)
     turns = [0, 1, 2, 3]
     turn_labels = ["Initial", "T1", "T2", "T3"]
 
-    def confidence_row(branch, model, category, turn):
-        return row_lookup(rows, branch=branch, model=model, category=category, turn=turn)
-
-    def weighted_mean(branch, category, turn):
-        subset = [row for row in rows if row["branch"] == branch and row["category"] == category and row["turn"] == turn]
+    def weighted_mean(predicate, turn):
+        subset = [row for row in rows if row["turn"] == turn and predicate(row)]
         denom = sum(row.get("n", 0) for row in subset)
         if denom <= 0:
             return 0.0
         return sum(row["mean_confidence"] * row.get("n", 0) for row in subset) / denom
 
-    chart_x, chart_y = 190, 165
-    chart_w, chart_h = 1180, 315
-    y_min, y_max = 2.4, 5.0
-    draw.rectangle((chart_x, chart_y, chart_x + chart_w, chart_y + chart_h), fill="#FBFCFE", outline="#D9E0E8", width=2)
-    draw_text(draw, (chart_x + 24, chart_y + 22), "Mean confidence trajectory", FONT_PANEL, INK)
+    draw_text(draw, (width / 2, 48), "Confidence as an indicator", title_font, INK, anchor="ma")
+    draw_text(draw, (width / 2, 104), "Self-reported confidence trends under temporal trigger pressure", subtitle_font, MUTED, anchor="ma")
 
-    plot_x, plot_y = chart_x + 95, chart_y + 78
-    plot_w, plot_h = chart_w - 255, chart_h - 145
+    def draw_line_panel(panel_x, panel_y, panel_w, panel_h, title, subtitle, line_defs):
+        draw.rounded_rectangle(
+            (panel_x, panel_y, panel_x + panel_w, panel_y + panel_h),
+            radius=22,
+            fill="#F8FAFC",
+            outline="#D9E0E8",
+            width=2,
+        )
+        draw_text(draw, (panel_x + panel_w / 2, panel_y + 42), title, panel_font, INK, anchor="ma")
+        draw_text(draw, (panel_x + panel_w / 2, panel_y + 88), subtitle, axis_font, MUTED, anchor="ma")
 
-    def x_pos(turn_index):
-        return plot_x + plot_w * turn_index / 3
+        plot_x = panel_x + 180
+        plot_y = panel_y + 170
+        plot_w = panel_w - 315
+        plot_h = panel_h - 330
+        y_min, y_max = 2.4, 5.0
 
-    def y_pos(value):
-        return plot_y + plot_h - plot_h * (value - y_min) / (y_max - y_min)
+        def x_pos(turn_index):
+            return plot_x + plot_w * turn_index / 3
 
-    for tick in [2.5, 3.0, 3.5, 4.0, 4.5, 5.0]:
-        yy = y_pos(tick)
-        draw.line((plot_x, yy, plot_x + plot_w, yy), fill="#E7EDF3", width=1)
-        draw_text(draw, (plot_x - 16, yy), f"{tick:.1f}", FONT_SMALL, MUTED, anchor="rm")
-    for i, label in enumerate(turn_labels):
-        xx = x_pos(i)
-        draw.line((xx, plot_y, xx, plot_y + plot_h), fill="#EEF2F6", width=1)
-        draw_text(draw, (xx, plot_y + plot_h + 34), label, FONT_AXIS_BOLD, INK, anchor="ma")
-    draw.line((plot_x, plot_y + plot_h, plot_x + plot_w, plot_y + plot_h), fill="#9AA7B7", width=3)
-    draw.line((plot_x, plot_y, plot_x, plot_y + plot_h), fill="#9AA7B7", width=3)
-    draw_text(draw, (plot_x + plot_w / 2, chart_y + chart_h - 24), "Turn", FONT_AXIS_BOLD, INK, anchor="ma")
-    draw_text(draw, (plot_x, plot_y - 28), "Confidence (1-5)", FONT_SMALL, MUTED, anchor="la")
+        def y_pos(value):
+            return plot_y + plot_h - plot_h * (value - y_min) / (y_max - y_min)
 
-    for branch, category, label, color in outcomes:
-        values = [weighted_mean(branch, category, turn) for turn in turns]
-        points = [(x_pos(i), y_pos(value)) for i, value in enumerate(values)]
-        draw.line(points, fill=color, width=7)
-        for xx, yy in points:
-            draw.rounded_rectangle((xx - 7, yy - 7, xx + 7, yy + 7), radius=3, fill=color, outline="white", width=2)
+        for tick in [2.5, 3.0, 3.5, 4.0, 4.5, 5.0]:
+            yy = y_pos(tick)
+            draw.line((plot_x, yy, plot_x + plot_w, yy), fill="#E3EAF2", width=2)
+            draw_text(draw, (plot_x - 18, yy), f"{tick:.1f}", axis_font, MUTED, anchor="rm")
+        for i, label in enumerate(turn_labels):
+            xx = x_pos(i)
+            draw.line((xx, plot_y, xx, plot_y + plot_h), fill="#EEF2F6", width=1)
+            draw_text(draw, (xx, plot_y + plot_h + 34), label, axis_bold, INK, anchor="ma")
+        draw.line((plot_x, plot_y + plot_h, plot_x + plot_w, plot_y + plot_h), fill="#9AA7B7", width=4)
+        draw.line((plot_x, plot_y, plot_x, plot_y + plot_h), fill="#9AA7B7", width=4)
 
-    legend_x, legend_y = 1410, chart_y + 84
-    draw_text(draw, (legend_x, legend_y), "Outcome split", FONT_AXIS_BOLD, INK, anchor="lm")
-    for i, (_, _, label, color) in enumerate(outcomes):
-        yy = legend_y + 42 + i * 34
-        draw.line((legend_x, yy, legend_x + 50, yy), fill=color, width=7)
-        draw_text(draw, (legend_x + 66, yy), label, FONT_SMALL, INK, anchor="lm")
+        for label, predicate, color, line_w in line_defs:
+            values = [weighted_mean(predicate, turn) for turn in turns]
+            points = [(x_pos(i), y_pos(value)) for i, value in enumerate(values)]
+            draw.line(points, fill=color, width=line_w)
+            for xx, yy in points:
+                draw.ellipse((xx - 11, yy - 11, xx + 11, yy + 11), fill=color, outline="white", width=3)
+            label_x = points[-1][0] + 22
+            label_y = points[-1][1]
+            draw_text(draw, (label_x, label_y), label, label_font, color, anchor="lm")
 
-    heat_x, heat_y = 95, 515
-    model_x = heat_x + 24
-    cell_x = heat_x + 275
-    row_h = 42
-    cell_w = 290
-    cell_h = 31
-    gap = 14
-    table_w = 275 + 4 * cell_w + 3 * gap + 28
-    table_h = 120 + len(MODELS) * row_h + 28
-    draw.rectangle((heat_x, heat_y, heat_x + table_w, heat_y + table_h), fill="#FBFCFE", outline="#D9E0E8", width=2)
-    draw_text(draw, (heat_x + 24, heat_y + 22), "Model-level confidence change", FONT_PANEL, INK)
-    draw_text(draw, (heat_x + table_w - 26, heat_y + 33), "T3 - initial", FONT_SMALL, MUTED, anchor="rm")
+        draw_text(draw, (plot_x + plot_w / 2, panel_y + panel_h - 55), "Assistant turn", axis_bold, INK, anchor="ma")
+        y_label = Image.new("RGBA", (740, 50), (255, 255, 255, 0))
+        yd = ImageDraw.Draw(y_label)
+        yd.text((0, 0), "Mean self-rated confidence (1-5)", font=axis_bold, fill=INK)
+        y_label = y_label.rotate(90, expand=True)
+        im.paste(y_label, (int(plot_x - 128), int(plot_y + plot_h / 2 - y_label.height / 2)), y_label)
 
-    for ci, (_, _, label, _) in enumerate(outcomes):
-        x = cell_x + ci * (cell_w + gap)
-        draw_wrapped(draw, label, x, heat_y + 68, cell_w, FONT_AXIS_BOLD, INK, anchor_center=True)
+    draw_line_panel(
+        80,
+        145,
+        1810,
+        960,
+        "Overall trend",
+        "All temporal runs, averaged by branch",
+        [
+            ("GT all", lambda row: row["branch"] == "GT", GT, 10),
+            ("NGT all", lambda row: row["branch"] == "NGT", NGT, 10),
+        ],
+    )
+    draw_line_panel(
+        2010,
+        145,
+        1810,
+        960,
+        "Sycophancy trend",
+        "Stable final states versus pressure-driven movement",
+        [
+            (
+                "Stable",
+                lambda row: (row["branch"] == "GT" and row["category"] == "preserved")
+                or (row["branch"] == "NGT" and row["category"] == "held"),
+                "#3C8A66",
+                10,
+            ),
+            (
+                "Moved",
+                lambda row: (row["branch"] == "GT" and row["category"] == "departed")
+                or (row["branch"] == "NGT" and row["category"] == "switched"),
+                "#C64B4B",
+                10,
+            ),
+        ],
+    )
 
-    for ri, model in enumerate(MODELS):
-        yy = heat_y + 115 + ri * row_h
-        badge = make_badge(model)
-        badge.thumbnail((34, 34), RESAMPLE_LANCZOS)
-        im.paste(badge, (model_x, int(yy - 2)), badge)
-        draw = ImageDraw.Draw(im)
-        draw_text(draw, (model_x + 44, yy + 17), model_display(model), FONT_SMALL, INK, anchor="lm")
-        for ci, (branch, category, _, _) in enumerate(outcomes):
-            initial = confidence_row(branch, model, category, 0)["mean_confidence"]
-            final = confidence_row(branch, model, category, 3)["mean_confidence"]
-            x = cell_x + ci * (cell_w + gap)
-            draw_delta_cell(draw, (x, yy, x + cell_w, yy + cell_h), final - initial, 1.6, FONT_AXIS_BOLD, confidence=True)
-
-    draw_text(draw, (cell_x + 2 * (cell_w + gap), heat_y + table_h - 18), "green = confidence increased; red = confidence declined", FONT_TINY, MUTED, anchor="ma")
-    save_tight(im, path)
+    save_tight(im, path, padding=8)
 
 
 def clean_outputs(report_dir, figure_dir):
@@ -1866,7 +1880,7 @@ def main():
                 "- `trigger_static_vs_adaptive.png`: per-model static vs adaptive GT and NGT rates.",
                 "- `trigger_temporal_pressure.png`: per-model adaptive single, same-family escalation, heterogeneous temporal pressure, and mixed-minus-single deltas.",
                 "- `trigger_dynamics_summary.png`: 1x2 main-text scatter comparing single-follow-up and mixed three-turn movement by model for GT and NGT.",
-                "- `trigger_confidence_trajectory.png`: aggregate confidence trajectories plus a compact per-model T3-minus-initial delta matrix.",
+                "- `trigger_confidence_trajectory.png`: side-by-side confidence trends for overall temporal runs and stable versus moved final trajectories.",
                 "",
                 "The CSV files in this directory contain the exact plotted aggregates.",
                 "",
