@@ -25,6 +25,8 @@ MODELS = [
     "mistralai/mistral-medium-3.1",
     "cohere/command-r-08-2024",
 ]
+CLAUDE_MODELS = [model for model in MODELS if model.startswith("anthropic/")]
+OTHER_MODELS = [model for model in MODELS if model not in CLAUDE_MODELS]
 
 MODEL_LABELS = {
     "openai/gpt-5.4": "GPT-5.4",
@@ -1147,11 +1149,85 @@ def draw_confidence_cell(draw, rect, value, font=FONT_SMALL):
     draw_text(draw, ((rect[0] + rect[2]) / 2, (rect[1] + rect[3]) / 2), f"{value:.1f}", font, text_fill, anchor="mm")
 
 
-def figure_tone_opus(path, rows):
+def tone_family_series(rows, branch, models):
+    model_values = [
+        [row_lookup(rows, branch=branch, model=model, tone=tone)["rate"] for tone in TONES]
+        for model in models
+    ]
+    means = [sum(values[i] for values in model_values) / len(model_values) for i in range(len(TONES))]
+    lows = [min(values[i] for values in model_values) for i in range(len(TONES))]
+    highs = [max(values[i] for values in model_values) for i in range(len(TONES))]
+    return model_values, means, lows, highs
+
+
+def figure_tone_gradient(path, rows):
+    width, height = 1640, 1036
+    im = Image.new("RGB", (width, height), PAPER_BG)
+    draw = ImageDraw.Draw(im, "RGBA")
+    draw_header(draw, "Tone gradient", "", width)
+    panels = [
+        ("GT", 110, 180, "GT correct-to-wrong", 0.55, [0, 0.15, 0.30, 0.45]),
+        ("NGT", 870, 180, "NGT flip", 0.9, [0, 0.3, 0.6, 0.9]),
+    ]
+    claude_color = "#D96C42"
+    other_color = "#4C78A8"
+    for branch, x, y, title, max_rate, ticks in panels:
+        w, h = 650, 610
+        draw.rectangle((x, y, x + w, y + h), fill="white", outline="#D9E0E8", width=2)
+        draw_text(draw, (x + 26, y + 24), title, FONT_PANEL, INK)
+        px0, py0 = x + 108, y + 112
+        pw, ph = w - 178, h - 225
+
+        def x_at(i):
+            return px0 + i * pw / 2
+
+        def y_at(value):
+            return py0 + ph - ph * value / max_rate
+
+        for tick in ticks:
+            yy = y_at(tick)
+            draw.line((px0, yy, px0 + pw, yy), fill="#E7EDF3", width=1)
+            draw_text(draw, (px0 - 16, yy), f"{int(tick * 100)}", FONT_SMALL, MUTED, anchor="rm")
+
+        for models, line_color, band_color, line_width in [
+            (OTHER_MODELS, other_color, (76, 120, 168, 42), 7),
+            (CLAUDE_MODELS, claude_color, (217, 108, 66, 50), 9),
+        ]:
+            _, means, lows, highs = tone_family_series(rows, branch, models)
+            upper = [(x_at(i), y_at(highs[i])) for i in range(len(TONES))]
+            lower = [(x_at(i), y_at(lows[i])) for i in range(len(TONES) - 1, -1, -1)]
+            draw.polygon(upper + lower, fill=band_color)
+            points = [(x_at(i), y_at(value)) for i, value in enumerate(means)]
+            draw.line(points, fill=line_color, width=line_width)
+            for xx, yy in points:
+                draw.ellipse((xx - 11, yy - 11, xx + 11, yy + 11), fill=line_color, outline="white", width=3)
+
+        if branch == "NGT":
+            draw_text(draw, (x + w - 26, y + 80), "Claude drops at strong tone", FONT_SMALL, claude_color, anchor="ra")
+        for i, tone in enumerate(TONES):
+            xx = x_at(i)
+            draw_text(draw, (xx, py0 + ph + 36), TONE_LABELS[tone], FONT_AXIS_BOLD, INK, anchor="ma")
+        draw_text(draw, (px0 + pw / 2, y + h - 34), "Tone", FONT_AXIS_BOLD, INK, anchor="ma")
+
+    legend_x, legend_y = 300, 823
+    legend_items = [
+        (claude_color, "Claude family mean"),
+        (other_color, "Other models mean"),
+    ]
+    for i, (color, label) in enumerate(legend_items):
+        x = legend_x + i * 475
+        draw.line((x, legend_y, x + 70, legend_y), fill=color, width=9)
+        draw.ellipse((x + 28, legend_y - 10, x + 48, legend_y + 10), fill=color, outline="white", width=3)
+        draw_text(draw, (x + 90, legend_y), label, FONT_SMALL, INK, anchor="lm")
+    draw_text(draw, (width / 2, 885), "Shaded bands show endpoint range within each group.", FONT_TINY, MUTED, anchor="ma")
+    save_tight(im, path)
+
+
+def figure_tone_claude_detail(path, rows):
     width, height = 1640, 1036
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
-    draw_header(draw, "Tone gradient by model", "", width)
+    draw_header(draw, "Claude endpoint tone gradient", "", width)
     panels = [
         ("GT", 110, 180, "GT correct-to-wrong", 0.55, [0, 0.15, 0.30, 0.45]),
         ("NGT", 870, 180, "NGT flip", 0.9, [0, 0.3, 0.6, 0.9]),
@@ -1794,7 +1870,8 @@ def main():
 
     figures = [
         ("trigger_model_comparison.png", figure_model_comparison, tables["model_comparison"]),
-        ("trigger_tone_gradient_opus.png", figure_tone_opus, tables["tone_gradient_opus"]),
+        ("trigger_tone_gradient.png", figure_tone_gradient, tables["tone_gradient_opus"]),
+        ("trigger_tone_claude_detail.png", figure_tone_claude_detail, tables["tone_gradient_opus"]),
         ("trigger_static_vs_adaptive.png", figure_static_vs_adaptive, tables["static_vs_adaptive"]),
         ("trigger_temporal_pressure.png", figure_temporal_pressure, tables["temporal_pressure"]),
         ("trigger_confidence_trajectory.png", figure_confidence_trajectory, tables["confidence_trajectory"]),
@@ -1848,7 +1925,8 @@ def main():
                 "All figures are Python-generated PNG charts from the official pass@1-clean result files.",
                 "",
                 "- `trigger_model_comparison.png`: main-text model-level GT answer change versus right-to-wrong movement.",
-                "- `trigger_tone_gradient_opus.png`: main-text tone-gradient view with Claude-family reversals highlighted.",
+                "- `trigger_tone_gradient.png`: main-text Claude-family versus other-model tone-gradient comparison.",
+                "- `trigger_tone_claude_detail.png`: appendix endpoint-level Claude tone-gradient view.",
                 "- `trigger_model_tone.png`: appendix compact composite combining model-level rates with model-separated tone gradients.",
                 "- `trigger_static_vs_adaptive.png`: per-model static vs adaptive GT and NGT rates.",
                 "- `trigger_temporal_pressure.png`: per-model adaptive single, same-family escalation, heterogeneous temporal pressure, and mixed-minus-single deltas.",
