@@ -42,8 +42,8 @@ INK = "#17202A"
 MUTED = "#637083"
 GRID = "#E4E9F0"
 PAPER = "#FFFFFF"
-BOOST_MODERATE = "#FFD84D"
-BOOST_STRONG = "#F7A63B"
+BOOST_MODERATE = "#F2C300"
+BOOST_STRONG = "#C83E2D"
 
 
 def font(size, bold=False):
@@ -62,14 +62,14 @@ def tone_arrow(draw, x, y_from, y_to, color):
     if abs(y_to - y_from) < 8:
         return
     if y_to < y_from:
-        shaft_end = y_to + 18
-        draw.line((x, y_from, x, shaft_end), fill=color, width=7)
-        head = [(x, y_to), (x - 14, y_to + 25), (x + 14, y_to + 25)]
+        shaft_end = y_to + 22
+        draw.line((x, y_from, x, shaft_end), fill=color, width=10)
+        head = [(x, y_to), (x - 18, y_to + 32), (x + 18, y_to + 32)]
         draw.polygon(head, fill=color)
     else:
-        shaft_end = y_to - 18
-        draw.line((x, y_from, x, shaft_end), fill=color, width=7)
-        head = [(x, y_to), (x - 14, y_to - 25), (x + 14, y_to - 25)]
+        shaft_end = y_to - 22
+        draw.line((x, y_from, x, shaft_end), fill=color, width=10)
+        head = [(x, y_to), (x - 18, y_to - 32), (x + 18, y_to - 32)]
         draw.polygon(head, fill=color)
 
 
@@ -131,9 +131,9 @@ def draw_legend(draw, x, y):
     arrow_y = y
     for i, (label, color) in enumerate([("Mild to moderate", BOOST_MODERATE), ("Moderate to strong", BOOST_STRONG)]):
         xx = x + 2225 + i * 595
-        draw.line((xx, arrow_y + 15, xx + 84, arrow_y + 15), fill=color, width=8)
-        draw.polygon([(xx + 104, arrow_y + 15), (xx + 76, arrow_y), (xx + 76, arrow_y + 30)], fill=color)
-        draw_text(draw, (xx + 126, arrow_y + 15), label, 27, anchor="lm")
+        draw.line((xx, arrow_y + 15, xx + 96, arrow_y + 15), fill=color, width=11)
+        draw.polygon([(xx + 122, arrow_y + 15), (xx + 88, arrow_y - 3), (xx + 88, arrow_y + 33)], fill=color)
+        draw_text(draw, (xx + 148, arrow_y + 15), label, 27, anchor="lm")
 
 
 def draw_model_label(im, draw, model, cx, y):
