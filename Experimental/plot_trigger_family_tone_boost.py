@@ -80,24 +80,36 @@ def tone_step(draw, x, y_mild, y_moderate, y_strong):
 
 def aggregate_tone(results_dir, run_id, mode):
     modes = ["static", "adaptive"] if mode == "all" else [mode]
-    grouped = defaultdict(lambda: defaultdict(lambda: {"denom": 0, "events": 0}))
+    grouped = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: {"denom": 0, "events": 0})))
     for selected_mode in modes:
-        path = results_dir / f"{run_id}_ngt_trigger_{selected_mode}.jsonl.gz"
-        for record in trigger_plot.read_jsonl_gz(path):
-            family = record.get("trigger")
-            tone = record.get("tone")
-            if record.get("eligible") and family in FAMILIES and tone in {"mild", "moderate", "strong"}:
-                cell = grouped[(record["model"], family)][tone]
-                cell["denom"] += 1
-                cell["events"] += int(bool(record.get("single_trigger_answer_switch")))
+        for branch in ["gt", "ngt"]:
+            path = results_dir / f"{run_id}_{branch}_trigger_{selected_mode}.jsonl.gz"
+            for record in trigger_plot.read_jsonl_gz(path):
+                family = record.get("trigger")
+                tone = record.get("tone")
+                if record.get("eligible") and family in FAMILIES and tone in {"mild", "moderate", "strong"}:
+                    cell = grouped[(record["model"], family)][tone][branch]
+                    cell["denom"] += 1
+                    if branch == "gt":
+                        event = bool(record.get("single_trigger_truth_departure"))
+                    else:
+                        event = bool(record.get("single_trigger_answer_switch"))
+                    cell["events"] += int(event)
     out = {}
     for key, by_tone in grouped.items():
-        mild = by_tone["mild"]
-        moderate = by_tone["moderate"]
-        strong = by_tone["strong"]
-        mild_rate = mild["events"] / mild["denom"] if mild["denom"] else 0.0
-        moderate_rate = moderate["events"] / moderate["denom"] if moderate["denom"] else 0.0
-        strong_rate = strong["events"] / strong["denom"] if strong["denom"] else 0.0
+        rates = {}
+        denoms = []
+        for tone in ["mild", "moderate", "strong"]:
+            branch_rates = []
+            for branch in ["gt", "ngt"]:
+                cell = by_tone[tone][branch]
+                if cell["denom"]:
+                    branch_rates.append(cell["events"] / cell["denom"])
+                    denoms.append(cell["denom"])
+            rates[tone] = sum(branch_rates) / len(branch_rates) if branch_rates else 0.0
+        mild_rate = rates["mild"]
+        moderate_rate = rates["moderate"]
+        strong_rate = rates["strong"]
         out[key] = {
             "mild": mild_rate,
             "moderate": moderate_rate,
@@ -105,25 +117,23 @@ def aggregate_tone(results_dir, run_id, mode):
             "delta_moderate": moderate_rate - mild_rate,
             "delta_strong": strong_rate - moderate_rate,
             "delta_total": strong_rate - mild_rate,
-            "denom": min(mild["denom"], moderate["denom"], strong["denom"]),
+            "denom": min(denoms) if denoms else 0,
         }
     return out
 
 
 def draw_legend(draw, x, y):
     for i, family in enumerate(FAMILIES):
-        row = 0 if i < 4 else 1
-        col = i if i < 4 else i - 4
-        xx = x + col * 230
-        yy = y + row * 40
-        draw.rounded_rectangle((xx, yy, xx + 30, yy + 24), radius=5, fill=FAMILY_COLORS[family])
-        draw_text(draw, (xx + 42, yy + 12), FAMILY_LABELS[family], 23, anchor="lm")
-    arrow_y = y + 96
+        xx = x + i * 310
+        yy = y
+        draw.rounded_rectangle((xx, yy, xx + 36, yy + 28), radius=6, fill=FAMILY_COLORS[family])
+        draw_text(draw, (xx + 50, yy + 14), FAMILY_LABELS[family], 27, anchor="lm")
+    arrow_y = y
     for i, (label, color) in enumerate([("Mild to moderate", BOOST_MODERATE), ("Moderate to strong", BOOST_STRONG)]):
-        xx = x + i * 360
-        draw.line((xx, arrow_y + 13, xx + 64, arrow_y + 13), fill=color, width=7)
-        draw.polygon([(xx + 80, arrow_y + 13), (xx + 58, arrow_y + 1), (xx + 58, arrow_y + 25)], fill=color)
-        draw_text(draw, (xx + 98, arrow_y + 13), label, 23, anchor="lm")
+        xx = x + 2225 + i * 595
+        draw.line((xx, arrow_y + 15, xx + 84, arrow_y + 15), fill=color, width=8)
+        draw.polygon([(xx + 104, arrow_y + 15), (xx + 76, arrow_y), (xx + 76, arrow_y + 30)], fill=color)
+        draw_text(draw, (xx + 126, arrow_y + 15), label, 27, anchor="lm")
 
 
 def draw_model_label(im, draw, model, cx, y):
@@ -143,11 +153,10 @@ def draw_figure(rows, out_path):
     draw = ImageDraw.Draw(im)
 
     draw.rounded_rectangle((70, 22, width - 70, height - 34), radius=26, fill="#F8FAFC", outline="#D9E0E8", width=2)
-    draw_text(draw, (width / 2, 82), "Tone Strength Moves Models Unevenly", 66, bold=True, anchor="mm")
-    draw_legend(draw, width - 1040, 180)
+    draw_text(draw, (width / 2, 82), "Tone Is the Most Influential Trigger Factor", 66, bold=True, anchor="mm")
 
-    x0, y0 = 190, 275
-    plot_w, plot_h = width - 330, 720
+    x0, y0 = 190, 210
+    plot_w, plot_h = width - 330, 680
     max_rate = 1.08
     bottom = y0 + plot_h
 
@@ -156,7 +165,7 @@ def draw_figure(rows, out_path):
         draw.line((x0, yy, x0 + plot_w, yy), fill=GRID, width=2 if tick else 4)
         draw_text(draw, (x0 - 22, yy), f"{int(tick * 100)}", 26, MUTED, bold=tick in [0, 1.0], anchor="rm")
     draw.line((x0, y0, x0, bottom), fill="#B7C1CE", width=4)
-    draw_text(draw, (x0, y0 - 36), "NGT flip rate (%)", 31, INK, bold=True, anchor="la")
+    draw_text(draw, (x0, y0 - 36), "GT+NGT sycophantic rate (%)", 31, INK, bold=True, anchor="la")
 
     cluster_w = plot_w / len(trigger_plot.MODELS)
     bar_w = 34
@@ -184,6 +193,7 @@ def draw_figure(rows, out_path):
             tone_step(draw, x + bar_w / 2, y_mild, y_moderate, y_strong)
         draw_model_label(im, draw, model, cx, bottom + 54)
 
+    draw_legend(draw, 300, 1165)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     trigger_plot.save_tight(im, out_path, padding=10)
 
