@@ -1805,7 +1805,7 @@ def figure_confidence_trajectory(path, rows):
         60,
         1215,
         900,
-        "Branch trend",
+        "GT vs. NGT",
         [
             ("GT all", lambda row: row["branch"] == "GT", GT, 10),
             ("NGT all", lambda row: row["branch"] == "NGT", NGT, 10),
@@ -1817,7 +1817,7 @@ def figure_confidence_trajectory(path, rows):
         60,
         1215,
         900,
-        "Sycophancy trend",
+        "Sycophantic vs. stable",
         [
             (
                 "Stable",
@@ -1827,7 +1827,7 @@ def figure_confidence_trajectory(path, rows):
                 10,
             ),
             (
-                "Moved",
+                "Sycophantic",
                 lambda row: (row["branch"] == "GT" and row["category"] == "departed")
                 or (row["branch"] == "NGT" and row["category"] == "switched"),
                 "#C64B4B",
@@ -1931,7 +1931,7 @@ def main():
                 "- `trigger_static_vs_adaptive.png`: per-model static vs adaptive GT and NGT rates.",
                 "- `trigger_temporal_pressure.png`: per-model adaptive single, same-family escalation, heterogeneous temporal pressure, and mixed-minus-single deltas.",
                 "- `trigger_dynamics_summary.png`: 1x2 main-text scatter comparing single-follow-up and mixed three-turn movement by model for GT and NGT.",
-                "- `trigger_confidence_trajectory.png`: two-panel confidence trends by branch and stable versus moved final trajectories.",
+                "- `trigger_confidence_trajectory.png`: two-panel confidence trends for GT versus NGT and stable versus sycophantic final trajectories.",
                 "",
                 "The CSV files in this directory contain the exact plotted aggregates.",
                 "",
