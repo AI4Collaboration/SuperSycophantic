@@ -1494,45 +1494,102 @@ def figure_temporal_pressure(path, rows):
 
 
 def figure_confidence_trajectory(path, rows):
-    width, height = 1780, 1100
+    width, height = 1780, 1130
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
-    draw_header(draw, "Confidence trajectory by model", "", width)
-    panels = [
-        ("GT", "preserved", "GT preserved", 90, 190, GT),
-        ("GT", "departed", "GT departed", 925, 190, ACCENT),
-        ("NGT", "held", "NGT held", 90, 610, GT),
-        ("NGT", "switched", "NGT switched", 925, 610, ACCENT),
+    draw_header(draw, "Confidence under temporal pressure", "", width)
+    outcomes = [
+        ("GT", "preserved", "GT preserved", "#3C8A66"),
+        ("GT", "departed", "GT departed", "#C64B4B"),
+        ("NGT", "held", "NGT held", "#58A681"),
+        ("NGT", "switched", "NGT switched", "#D88968"),
     ]
     turns = [0, 1, 2, 3]
-    for branch, category, title, x, y, color in panels:
-        w, h = 765, 355
-        draw.rectangle((x, y, x + w, y + h), fill="white", outline="#D9E0E8", width=2)
-        draw_text(draw, (x + 24, y + 18), title, FONT_PANEL, INK)
-        label_x = x + 24
-        cell_x = x + 250
-        top = y + 70
-        row_h = 29
-        cell_w = 82
-        gap = 8
-        for ci, turn in enumerate(turns):
-            draw_text(draw, (cell_x + ci * (cell_w + gap) + cell_w / 2, top - 20), ["Initial", "T1", "T2", "T3"][turn], FONT_TINY, INK, anchor="ma")
-        delta_x = cell_x + 4 * (cell_w + gap) + 14
-        draw_text(draw, (delta_x + 50, top - 20), "Delta", FONT_TINY, INK, anchor="ma")
-        for ri, model in enumerate(MODELS):
-            yy = top + ri * row_h
-            draw_text(draw, (label_x, yy + 11), model_display(model), FONT_TINY, INK, anchor="lm")
-            values = []
-            for ci, turn in enumerate(turns):
-                row = row_lookup(rows, branch=branch, model=model, category=category, turn=turn)
-                value = row["mean_confidence"]
-                values.append(value)
-                t = 0 if value <= 0 else (value - 2.8) / 2.2
-                fill = blend_color(color, 0.18 + 0.70 * t)
-                xx = cell_x + ci * (cell_w + gap)
-                draw.rounded_rectangle((xx, yy, xx + cell_w, yy + 23), radius=6, fill=fill)
-                draw_text(draw, (xx + cell_w / 2, yy + 11), f"{value:.1f}", FONT_TINY, "white" if t > 0.62 else INK, anchor="mm")
-            draw_delta_cell(draw, (delta_x, yy, delta_x + 100, yy + 23), values[-1] - values[0], 1.2, FONT_TINY, confidence=True)
+    turn_labels = ["Initial", "T1", "T2", "T3"]
+
+    def confidence_row(branch, model, category, turn):
+        return row_lookup(rows, branch=branch, model=model, category=category, turn=turn)
+
+    def weighted_mean(branch, category, turn):
+        subset = [row for row in rows if row["branch"] == branch and row["category"] == category and row["turn"] == turn]
+        denom = sum(row.get("n", 0) for row in subset)
+        if denom <= 0:
+            return 0.0
+        return sum(row["mean_confidence"] * row.get("n", 0) for row in subset) / denom
+
+    chart_x, chart_y = 190, 165
+    chart_w, chart_h = 1180, 315
+    y_min, y_max = 2.4, 5.0
+    draw.rectangle((chart_x, chart_y, chart_x + chart_w, chart_y + chart_h), fill="#FBFCFE", outline="#D9E0E8", width=2)
+    draw_text(draw, (chart_x + 24, chart_y + 22), "Mean confidence trajectory", FONT_PANEL, INK)
+
+    plot_x, plot_y = chart_x + 95, chart_y + 78
+    plot_w, plot_h = chart_w - 255, chart_h - 145
+
+    def x_pos(turn_index):
+        return plot_x + plot_w * turn_index / 3
+
+    def y_pos(value):
+        return plot_y + plot_h - plot_h * (value - y_min) / (y_max - y_min)
+
+    for tick in [2.5, 3.0, 3.5, 4.0, 4.5, 5.0]:
+        yy = y_pos(tick)
+        draw.line((plot_x, yy, plot_x + plot_w, yy), fill="#E7EDF3", width=1)
+        draw_text(draw, (plot_x - 16, yy), f"{tick:.1f}", FONT_SMALL, MUTED, anchor="rm")
+    for i, label in enumerate(turn_labels):
+        xx = x_pos(i)
+        draw.line((xx, plot_y, xx, plot_y + plot_h), fill="#EEF2F6", width=1)
+        draw_text(draw, (xx, plot_y + plot_h + 34), label, FONT_AXIS_BOLD, INK, anchor="ma")
+    draw.line((plot_x, plot_y + plot_h, plot_x + plot_w, plot_y + plot_h), fill="#9AA7B7", width=3)
+    draw.line((plot_x, plot_y, plot_x, plot_y + plot_h), fill="#9AA7B7", width=3)
+    draw_text(draw, (plot_x + plot_w / 2, chart_y + chart_h - 24), "Turn", FONT_AXIS_BOLD, INK, anchor="ma")
+    draw_text(draw, (plot_x, plot_y - 28), "Confidence (1-5)", FONT_SMALL, MUTED, anchor="la")
+
+    for branch, category, label, color in outcomes:
+        values = [weighted_mean(branch, category, turn) for turn in turns]
+        points = [(x_pos(i), y_pos(value)) for i, value in enumerate(values)]
+        draw.line(points, fill=color, width=7)
+        for xx, yy in points:
+            draw.rounded_rectangle((xx - 7, yy - 7, xx + 7, yy + 7), radius=3, fill=color, outline="white", width=2)
+
+    legend_x, legend_y = 1410, chart_y + 84
+    draw_text(draw, (legend_x, legend_y), "Outcome split", FONT_AXIS_BOLD, INK, anchor="lm")
+    for i, (_, _, label, color) in enumerate(outcomes):
+        yy = legend_y + 42 + i * 34
+        draw.line((legend_x, yy, legend_x + 50, yy), fill=color, width=7)
+        draw_text(draw, (legend_x + 66, yy), label, FONT_SMALL, INK, anchor="lm")
+
+    heat_x, heat_y = 95, 545
+    model_x = heat_x + 24
+    cell_x = heat_x + 275
+    row_h = 42
+    cell_w = 290
+    cell_h = 31
+    gap = 14
+    table_w = 275 + 4 * cell_w + 3 * gap + 28
+    table_h = 120 + len(MODELS) * row_h + 28
+    draw.rectangle((heat_x, heat_y, heat_x + table_w, heat_y + table_h), fill="#FBFCFE", outline="#D9E0E8", width=2)
+    draw_text(draw, (heat_x + 24, heat_y + 22), "Model-level confidence change", FONT_PANEL, INK)
+    draw_text(draw, (heat_x + table_w - 26, heat_y + 33), "T3 - initial", FONT_SMALL, MUTED, anchor="rm")
+
+    for ci, (_, _, label, _) in enumerate(outcomes):
+        x = cell_x + ci * (cell_w + gap)
+        draw_wrapped(draw, label, x, heat_y + 68, cell_w, FONT_AXIS_BOLD, INK, anchor_center=True)
+
+    for ri, model in enumerate(MODELS):
+        yy = heat_y + 115 + ri * row_h
+        badge = make_badge(model)
+        badge.thumbnail((34, 34), RESAMPLE_LANCZOS)
+        im.paste(badge, (model_x, int(yy - 2)), badge)
+        draw = ImageDraw.Draw(im)
+        draw_text(draw, (model_x + 44, yy + 17), model_display(model), FONT_SMALL, INK, anchor="lm")
+        for ci, (branch, category, _, _) in enumerate(outcomes):
+            initial = confidence_row(branch, model, category, 0)["mean_confidence"]
+            final = confidence_row(branch, model, category, 3)["mean_confidence"]
+            x = cell_x + ci * (cell_w + gap)
+            draw_delta_cell(draw, (x, yy, x + cell_w, yy + cell_h), final - initial, 1.6, FONT_AXIS_BOLD, confidence=True)
+
+    draw_text(draw, (cell_x + 2 * (cell_w + gap), heat_y + table_h - 18), "green = confidence increased; red = confidence declined", FONT_TINY, MUTED, anchor="ma")
     save_tight(im, path)
 
 
@@ -1619,7 +1676,7 @@ def main():
                 "- `trigger_static_vs_adaptive.png`: per-model static vs adaptive GT and NGT rates.",
                 "- `trigger_temporal_pressure.png`: per-model adaptive single, same-family escalation, heterogeneous temporal pressure, and mixed-minus-single deltas.",
                 "- `trigger_dynamics_summary.png`: 1x2 main-text scatter comparing single-follow-up and mixed three-turn movement by model for GT and NGT.",
-                "- `trigger_confidence_trajectory.png`: per-model confidence over turns for preserved/departed GT and held/switched NGT trajectories, with T3-minus-initial deltas.",
+                "- `trigger_confidence_trajectory.png`: aggregate confidence trajectories plus a compact per-model T3-minus-initial delta matrix.",
                 "",
                 "The CSV files in this directory contain the exact plotted aggregates.",
                 "",
