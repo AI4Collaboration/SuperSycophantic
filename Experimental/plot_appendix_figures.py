@@ -108,7 +108,7 @@ def draw_grouped_bar_panel(draw, x, y, w, h, title, rows, max_value, legend):
 
 
 def figure_context_model_bars(summary, out_path):
-    width, height = 2800, 1220
+    width, height = 2800, 1160
     im = Image.new("RGB", (width, height), WHITE)
     draw = ImageDraw.Draw(im)
     draw_header(draw, "Context: Model-Level Diagnostics", width)
@@ -141,7 +141,7 @@ def figure_context_model_bars(summary, out_path):
         70,
         145,
         1300,
-        990,
+        930,
         "GT",
         gt_rows,
         80,
@@ -152,7 +152,7 @@ def figure_context_model_bars(summary, out_path):
         1430,
         145,
         1300,
-        990,
+        930,
         "NGT",
         ngt_rows,
         80,
@@ -321,7 +321,7 @@ def figure_judge_agreement(trigger_summary, context_summary, out_path):
 
 
 def figure_temporal_strategy_by_model(rows, out_path):
-    width, height = 2700, 1180
+    width, height = 2700, 1110
     im = Image.new("RGB", (width, height), WHITE)
     draw = ImageDraw.Draw(im)
     draw_header(draw, "Temporal Strategy Comparison", width)
@@ -367,8 +367,8 @@ def figure_temporal_strategy_by_model(rows, out_path):
         draw.line((axis_x0, axis_y1, axis_x1, axis_y1), fill="#9AA7B7", width=3)
         draw_text(draw, (axis_x0 + (axis_x1 - axis_x0) / 2, y + h - 34), "Sycophantic final-state rate (%)", fnt=LABEL, anchor="ma")
 
-    panel(70, 150, 1260, 930, "GT", "GT truth departure", 55, [0, 15, 30, 45])
-    panel(1370, 150, 1260, 930, "NGT", "NGT Flip-Flop", 95, [0, 25, 50, 75, 95])
+    panel(70, 150, 1260, 860, "GT", "GT truth departure", 55, [0, 15, 30, 45])
+    panel(1370, 150, 1260, 860, "NGT", "NGT Flip-Flop", 95, [0, 25, 50, 75, 95])
 
     legend_y = 120
     legend_x = 835
@@ -430,6 +430,27 @@ def main():
         figure_judge_agreement(load_json(args.judge_trigger_summary), load_json(args.judge_context_summary), judge_path)
         outputs.append(judge_path)
 
+    extra_diagnostics = [
+        "context_change_decomposition.png",
+        "context_confidence_outcome.png",
+        "context_gt_source_decomposition.png",
+        "context_ngt_directionality.png",
+        "context_ngt_domain_cue.png",
+        "judge_mechanism_outcome.png",
+        "judge_reliability_triage.png",
+        "temporal_state_paths.png",
+        "trigger_adaptive_family_lift.png",
+        "trigger_confidence_high_risk.png",
+        "trigger_confidence_risk_calibration.png",
+        "trigger_domain_source_susceptibility.png",
+        "trigger_item_concentration.png",
+        "trigger_strong_recheck_boundary.png",
+        "validation_coverage_funnel.png",
+    ]
+    output_names = [path.name for path in outputs]
+    appendix_names = output_names + [
+        name for name in extra_diagnostics if name not in output_names and (args.out_dir / name).exists()
+    ]
     (args.out_dir / "README.md").write_text(
         "\n".join(
             [
@@ -441,7 +462,9 @@ def main():
                 "",
                 "These figures are appendix-only diagnostics and do not replace the main-text figures.",
                 "",
-                *[f"- `{path.name}`" for path in outputs],
+                *[f"- `{name}`" for name in appendix_names],
+                "",
+                "All generated appendix diagnostics are directly referenced from `sections/appendix.tex`; there is no separate review-candidate pool.",
                 "",
             ]
         ),

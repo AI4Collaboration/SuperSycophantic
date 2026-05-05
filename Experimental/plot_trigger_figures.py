@@ -1213,7 +1213,7 @@ def tone_family_series(rows, branch, models):
 
 
 def figure_tone_gradient(path, rows):
-    width, height = 1780, 820
+    width, height = 1780, 790
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im, "RGBA")
     draw_header(draw, "Tone gradient", "", width)
@@ -1224,7 +1224,7 @@ def figure_tone_gradient(path, rows):
     claude_color = "#D96C42"
     other_color = "#4C78A8"
     for branch, x, y, title, max_rate, ticks in panels:
-        w, h = 755, 595
+        w, h = 755, 565
         draw.rectangle((x, y, x + w, y + h), fill="white", outline="#D9E0E8", width=2)
         draw_text(draw, (x + 26, y + 24), title, FONT_PANEL, INK)
         px0, py0 = x + 108, y + 112
@@ -1261,7 +1261,7 @@ def figure_tone_gradient(path, rows):
             draw_text(draw, (xx, py0 + ph + 36), TONE_LABELS[tone], FONT_AXIS_BOLD, INK, anchor="ma")
         draw_text(draw, (px0 + pw / 2, y + h - 34), "Tone", FONT_AXIS_BOLD, INK, anchor="ma")
 
-    legend_x, legend_y = 380, 780
+    legend_x, legend_y = 380, 750
     legend_items = [
         (claude_color, "Claude family mean"),
         (other_color, "Other models mean"),
@@ -1271,7 +1271,7 @@ def figure_tone_gradient(path, rows):
         draw.line((x, legend_y, x + 70, legend_y), fill=color, width=9)
         draw.ellipse((x + 28, legend_y - 10, x + 48, legend_y + 10), fill=color, outline="white", width=3)
         draw_text(draw, (x + 90, legend_y), label, FONT_SMALL, INK, anchor="lm")
-    im.save(path)
+    save_tight(im, path)
 
 
 def figure_tone_claude_detail(path, rows):
@@ -1694,7 +1694,7 @@ def figure_tone_temporal(path, tone_rows, temporal_rows):
 
 
 def figure_static_vs_adaptive(path, rows):
-    width, height = 1780, 820
+    width, height = 1780, 760
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
     panels = [("GT", 110, 50, "GT correct-to-wrong", 0.55, STATIC), ("NGT", 935, 50, "NGT flip", 0.90, ADAPTIVE)]
@@ -1706,7 +1706,7 @@ def figure_static_vs_adaptive(path, rows):
         return events / denom if denom else 0.0
 
     for branch, x, y, title, max_rate, _ in panels:
-        w, h = 735, 700
+        w, h = 735, 660
         draw.rectangle((x, y, x + w, y + h), fill="white", outline="#D9E0E8", width=2)
         draw_text(draw, (x + w / 2, y + 27), title, FONT_PANEL, INK, anchor="ma")
         label_x = x + 26
@@ -1745,7 +1745,7 @@ def figure_static_vs_adaptive(path, rows):
 
 
 def figure_temporal_pressure(path, rows):
-    width, height = 1780, 820
+    width, height = 1780, 770
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
     draw_header(draw, "Temporal pressure by model", "", width)
@@ -1755,7 +1755,7 @@ def figure_temporal_pressure(path, rows):
     ]
     stages = ["single", "same_family", "heterogeneous"]
     for branch, x, y, title, max_rate, color, max_delta in panels:
-        w, h = 755, 635
+        w, h = 755, 580
         draw.rectangle((x, y, x + w, y + h), fill="white", outline="#D9E0E8", width=2)
         draw_text(draw, (x + w / 2, y + 27), title, FONT_PANEL, INK, anchor="ma")
         label_x = x + 26
@@ -1779,7 +1779,7 @@ def figure_temporal_pressure(path, rows):
                 xx = cell_x + ci * (cell_w + gap)
                 draw_rate_cell(draw, (xx, yy, xx + cell_w, yy + 42), value, max_rate, color, FONT_AXIS_BOLD)
             draw_delta_cell(draw, (delta_x, yy, delta_x + 122, yy + 42), values[-1] - values[0], max_delta, FONT_AXIS_BOLD)
-    im.save(path)
+    save_tight(im, path)
 
 
 def figure_confidence_trajectory(path, rows):

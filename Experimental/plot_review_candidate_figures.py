@@ -224,7 +224,7 @@ def draw_inline_confidence_legend(draw, width, y, colors):
 
 
 def figure_temporal_state_paths(records, out_path):
-    width, height = 2500, 980
+    width, height = 2500, 890
     im = Image.new("RGB", (width, height), WHITE)
     draw = ImageDraw.Draw(im)
     draw_header(draw, "Temporal state paths and recovery", width)
@@ -279,10 +279,10 @@ def figure_temporal_state_paths(records, out_path):
         draw,
         [("never", colors["Never moved"]), ("recovered", colors["Recovered"]), ("final moved", colors["Final moved"])],
         x0,
-        height - 86,
+        height - 54,
         gap=230,
     )
-    draw_text(draw, ((x0 + x1) / 2, height - 42), "share of temporal trials (%)", FONT_LABEL, anchor="mm")
+    draw_text(draw, ((x0 + x1) / 2, height - 22), "share of temporal trials (%)", FONT_LABEL, anchor="mm")
     save(im, out_path)
 
 
@@ -454,7 +454,7 @@ def figure_context_ngt_directionality(summary, out_path):
 
 
 def figure_validation_coverage(records, context_summary, trigger_judge_summary, context_judge_summary, out_path):
-    width, height = 2250, 960
+    width, height = 2250, 900
     im = Image.new("RGB", (width, height), WHITE)
     draw = ImageDraw.Draw(im)
     draw_header(draw, "Validation and coverage checks", width)
@@ -495,12 +495,12 @@ def figure_validation_coverage(records, context_summary, trigger_judge_summary, 
                 color = "#F0F4F8"
             draw.rounded_rectangle((x, y, x + cell_w - 16, y + cell_h), radius=14, fill=color)
             draw_text(draw, (x + cell_w / 2 - 8, y + cell_h / 2), f"{value:,}", FONT_CELL, INK, anchor="mm")
-    draw_text(draw, (width / 2, height - 48), "GT outcome denominators use initially correct trials; NGT uses eligible parsed trials.", FONT, MUTED, anchor="mm")
+    draw_text(draw, (width / 2, height - 38), "GT outcome denominators use initially correct trials; NGT uses eligible parsed trials.", FONT, MUTED, anchor="mm")
     save(im, out_path)
 
 
 def figure_item_concentration(records, out_path):
-    width, height = 2450, 1180
+    width, height = 2450, 1100
     im = Image.new("RGB", (width, height), WHITE)
     draw = ImageDraw.Draw(im)
     draw_header(draw, "Item-level susceptibility is broadly distributed", width)
@@ -550,7 +550,7 @@ def figure_item_concentration(records, out_path):
             draw_text(draw, (bx + bar_w / 2, ybase + 14), label, FONT_SMALL, MUTED, anchor="ma")
         ge50 = sum(1 for v in rates if v >= 50)
         draw_text(draw, (x + w - 70, y + 78), f"{ge50}/{len(rates)} items >=50%", FONT_LABEL, color, anchor="ra")
-    draw_text(draw, (width / 2, height - 42), "item-level outcome rate bins under adaptive pressure (%)", FONT_LABEL, anchor="mm")
+    draw_text(draw, (width / 2, height - 34), "item-level outcome rate bins under adaptive pressure (%)", FONT_LABEL, anchor="mm")
     save(im, out_path)
 
 
@@ -613,7 +613,7 @@ def figure_trigger_domain_source(records, out_path):
 
 
 def figure_adaptive_family_lift(records, out_path):
-    width, height = 2500, 1120
+    width, height = 2500, 1010
     im = Image.new("RGB", (width, height), WHITE)
     draw = ImageDraw.Draw(im)
     draw_header(draw, "Adaptive lift varies by trigger family", width)
@@ -633,7 +633,7 @@ def figure_adaptive_family_lift(records, out_path):
     for pi, branch in enumerate(["GT", "NGT"]):
         x = 90 + pi * 1200
         y = 160
-        w, h = 1120, 830
+        w, h = 1120, 760
         draw.rounded_rectangle((x, y, x + w, y + h), radius=18, fill=WHITE, outline="#D8E0EA", width=2)
         draw_text(draw, (x + w / 2, y + 36), "GT truth departure" if branch == "GT" else "NGT Flip-Flop", FONT_PANEL, anchor="ma")
         x0, x1 = x + 300, x + w - 70
@@ -652,7 +652,7 @@ def figure_adaptive_family_lift(records, out_path):
             draw.ellipse((xa - 11, yy - 11, xa + 11, yy + 11), fill=ADAPTIVE)
             delta = adaptive - static
             draw_text(draw, (x1 + 10, yy), f"{delta:+.1f}", FONT_SMALL, ADAPTIVE if delta >= 0 else NGT, anchor="lm")
-    draw_legend(draw, [("static", STATIC), ("adaptive", ADAPTIVE)], 1000, height - 66, gap=175)
+    draw_legend(draw, [("static", STATIC), ("adaptive", ADAPTIVE)], 1000, height - 44, gap=175)
     save(im, out_path)
 
 
@@ -739,7 +739,7 @@ def figure_strong_recheck_boundary(records, judge_rows, judge_meta, out_path):
 
 
 def figure_confidence_risk_calibration(records, out_path):
-    width, height = 2400, 1000
+    width, height = 2400, 940
     im = Image.new("RGB", (width, height), WHITE)
     draw = ImageDraw.Draw(im)
     draw_header(draw, "Initial confidence does not eliminate later switching", width)
@@ -761,7 +761,7 @@ def figure_confidence_risk_calibration(records, out_path):
     for pi, (source, title) in enumerate([("single", "Single follow-up"), ("temporal", "Three-turn final")]):
         x = 90 + pi * 1130
         y = 160
-        w, h = 1040, 740
+        w, h = 1040, 690
         draw.rounded_rectangle((x, y, x + w, y + h), radius=18, fill=WHITE, outline="#D8E0EA", width=2)
         draw_text(draw, (x + w / 2, y + 36), title, FONT_PANEL, anchor="ma")
         x0, x1, y0, y1 = x + 120, x + w - 70, y + 120, y + h - 105
@@ -783,7 +783,7 @@ def figure_confidence_risk_calibration(records, out_path):
                 draw.ellipse((xx - 10, yy - 10, xx + 10, yy + 10), fill=color)
                 draw_text(draw, (xx + 13, yy), f"{value:.0f}", FONT_SMALL, color, anchor="lm")
         draw_legend(draw, [("GT", GT), ("NGT", NGT)], x + 360, y + h - 44, gap=110)
-    draw_text(draw, (width / 2, height - 42), "outcome rate by initial self-reported confidence (%)", FONT_LABEL, anchor="mm")
+    draw_text(draw, (width / 2, height - 36), "outcome rate by initial self-reported confidence (%)", FONT_LABEL, anchor="mm")
     save(im, out_path)
 
 
@@ -977,7 +977,7 @@ def figure_context_confidence_outcome(gt_pairs, ngt_pairs, out_path):
 
 
 def figure_judge_reliability_triage(trigger_summary, context_summary, out_path):
-    width, height = 2500, 1180
+    width, height = 2500, 1085
     im = Image.new("RGB", (width, height), WHITE)
     draw = ImageDraw.Draw(im)
     draw_header(draw, "Judge reliability differs by diagnostic dimension", width)
@@ -1012,8 +1012,8 @@ def figure_judge_reliability_triage(trigger_summary, context_summary, out_path):
         draw.line((xt, y, xc, y), fill=GRID, width=4)
         draw.ellipse((xt - 8, y - 8, xt + 8, y + 8), fill=ADAPTIVE)
         draw.ellipse((xc - 8, y - 8, xc + 8, y + 8), fill=GT)
-    draw_legend(draw, [("trigger", ADAPTIVE), ("context", GT)], 1120, height - 58, gap=160)
-    draw_text(draw, ((x0 + x1) / 2, height - 28), "kappa or Pearson reliability", FONT_LABEL, anchor="mm")
+    draw_legend(draw, [("trigger", ADAPTIVE), ("context", GT)], 1120, height - 46, gap=160)
+    draw_text(draw, ((x0 + x1) / 2, height - 20), "kappa or Pearson reliability", FONT_LABEL, anchor="mm")
     save(im, out_path)
 
 

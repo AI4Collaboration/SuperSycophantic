@@ -148,7 +148,7 @@ def draw_model_label(im, draw, model, cx, y):
 
 
 def draw_figure(rows, out_path):
-    width, height = 3900, 1248
+    width, height = 3900, 1160
     im = Image.new("RGB", (width, height), PAPER)
     draw = ImageDraw.Draw(im)
 
@@ -193,7 +193,7 @@ def draw_figure(rows, out_path):
             tone_step(draw, x + bar_w / 2, y_mild, y_moderate, y_strong)
         draw_model_label(im, draw, model, cx, bottom + 54)
 
-    draw_legend(draw, 300, 1165)
+    draw_legend(draw, 300, 1095)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     trigger_plot.save_tight(im, out_path, padding=10)
 
