@@ -34,11 +34,11 @@ CELL = font(30, True)
 MODEL_ORDER = context_plot.MODEL_ORDER
 MODEL_LABELS = {model: context_plot.SHORT_LABELS[model].replace("\n", " ") for model in MODEL_ORDER}
 TONE_COLORS = {
-    "gt": "#B8443F",
-    "ngt": "#2B8A66",
-    "neutral": "#4C78A8",
-    "change": "#D07A45",
-    "direction": "#6E59C9",
+    "gt": "#D55E00",
+    "ngt": "#009E73",
+    "neutral": "#0072B2",
+    "change": "#CC79A7",
+    "direction": "#E69F00",
 }
 
 
@@ -278,14 +278,14 @@ def figure_judge_agreement(trigger_summary, context_summary, out_path):
         for ri, row in enumerate(rows):
             yc = axis_y0 + ri * row_h + row_h / 2
             draw_text(draw, (x + 25, yc), row["label"], fnt=SMALL, anchor="lm")
-            for bi, (key, color, offset) in enumerate([("trigger", "#B8443F", -10), ("context", "#2B8A66", 16)]):
+            for bi, (key, color, offset) in enumerate([("trigger", "#CC79A7", -10), ("context", "#009E73", 16)]):
                 value = row[key]
                 yy = yc + offset
                 xx = axis_x0 + (axis_x1 - axis_x0) * value / max_value
                 draw.rounded_rectangle((axis_x0, yy - 10, xx, yy + 10), radius=5, fill=color)
                 draw_text(draw, (xx + 8, yy), f"{value:.2f}", fill=color, fnt=SMALL, anchor="lm")
         legend_y = y + h - 38
-        for lx, label, color in [(axis_x0, "Trigger", "#B8443F"), (axis_x0 + 185, "Context", "#2B8A66")]:
+        for lx, label, color in [(axis_x0, "Trigger", "#CC79A7"), (axis_x0 + 185, "Context", "#009E73")]:
             draw.rounded_rectangle((lx, legend_y - 10, lx + 32, legend_y + 10), radius=5, fill=color)
             draw_text(draw, (lx + 42, legend_y), label, fnt=SMALL, anchor="lm")
 
@@ -327,9 +327,9 @@ def figure_temporal_strategy_by_model(rows, out_path):
     draw_header(draw, "Temporal Strategy Comparison", width)
 
     stages = [
-        ("single", "Single", "#5B7DB8"),
-        ("same_family", "Same-family x3", "#D08A2E"),
-        ("heterogeneous", "Mixed x3", "#C64B4B"),
+        ("single", "Single", "#0072B2"),
+        ("same_family", "Same-family x3", "#009E73"),
+        ("heterogeneous", "Mixed x3", "#CC79A7"),
     ]
 
     def lookup(branch, model, stage):

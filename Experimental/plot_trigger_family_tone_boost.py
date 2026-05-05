@@ -30,20 +30,20 @@ FAMILY_LABELS = {
     "unity": "Unity",
 }
 FAMILY_COLORS = {
-    "authority": "#4B8B6A",
-    "social_proof": "#2D86B8",
-    "consistency": "#22A699",
-    "liking": "#F2A340",
-    "reciprocity": "#E64B3C",
-    "scarcity": "#8E63B6",
-    "unity": "#D8B13F",
+    "authority": "#0072B2",
+    "social_proof": "#009E73",
+    "consistency": "#CC79A7",
+    "liking": "#E69F00",
+    "reciprocity": "#D55E00",
+    "scarcity": "#56B4E9",
+    "unity": "#6A3D9A",
 }
 INK = "#17202A"
 MUTED = "#637083"
 GRID = "#E4E9F0"
 PAPER = "#FFFFFF"
-BOOST_MODERATE = "#F2C300"
-BOOST_STRONG = "#C83E2D"
+BOOST_MODERATE = "#0072B2"
+BOOST_STRONG = "#CC79A7"
 
 
 def font(size, bold=False):
