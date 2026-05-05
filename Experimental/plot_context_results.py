@@ -77,18 +77,18 @@ MODEL_SIZE_TIER = {
 }
 
 SIZE_TIER_STYLE = {
-    "small": {"fill": "#C8F3E0", "outline": "#2EAA74"},
-    "medium": {"fill": "#9BCBFF", "outline": "#2D6FDA"},
-    "large": {"fill": "#B9A2FF", "outline": "#5942D3"},
+    "small": {"fill": (250, 204, 21, 78), "outline": (202, 138, 4, 230)},
+    "medium": {"fill": (249, 115, 22, 76), "outline": (194, 65, 12, 230)},
+    "large": {"fill": (168, 85, 247, 86), "outline": (109, 40, 217, 230)},
 }
 
-BADGE_PX = 112
+BADGE_PX = 134
 LOGO_FILL = {
-    "openai": 0.56,
-    "anthropic": 0.62,
-    "google": 0.58,
-    "mistralai": 0.60,
-    "cohere": 0.64,
+    "openai": 0.49,
+    "anthropic": 0.54,
+    "google": 0.50,
+    "mistralai": 0.52,
+    "cohere": 0.55,
 }
 
 # Offsets move dense logo clusters slightly apart. Thin hairlines keep the
@@ -96,7 +96,7 @@ LOGO_FILL = {
 SCATTER_OFFSETS = {
     "openai/gpt-5.4": (-70, -12),
     "anthropic/claude-opus-4.5": (-82, 58),
-    "anthropic/claude-sonnet-4.5": (73, -20),
+    "anthropic/claude-sonnet-4.5": (148, -110),
     "anthropic/claude-haiku-4.5": (90, 36),
     "google/gemini-3.1-flash-lite-preview": (-20, -78),
     "mistralai/mistral-medium-3.1": (118, -18),
@@ -206,16 +206,16 @@ def make_badge(model: str) -> Image.Image:
     style = SIZE_TIER_STYLE[tier]
     badge = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(badge)
-    shadow_offset = max(4, size // 24)
+    shadow_offset = max(4, size // 28)
     draw.ellipse(
-        [8, 10 + shadow_offset, size - 9, size - 7 + shadow_offset],
-        fill=(15, 23, 42, 34),
+        [5, 8 + shadow_offset, size - 6, size - 5 + shadow_offset],
+        fill=(15, 23, 42, 22),
     )
     draw.ellipse(
-        [7, 7, size - 8, size - 8],
+        [4, 4, size - 5, size - 5],
         fill=style["fill"],
         outline=style["outline"],
-        width=5,
+        width=6,
     )
     logo = load_provider_logo(provider)
     logo = fit_image(logo, round(size * LOGO_FILL[provider]))

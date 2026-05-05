@@ -1025,7 +1025,7 @@ def figure_scatter(path, headline):
             if dx or dy:
                 draw.line((x, y, bx, by), fill="#AEB8C6", width=1)
             badge = make_badge(row["model"])
-            badge.thumbnail((62, 62), RESAMPLE_LANCZOS)
+            badge.thumbnail((78, 78), RESAMPLE_LANCZOS)
             im.paste(badge, (int(bx - badge.width / 2), int(by - badge.height / 2)), badge)
             draw = ImageDraw.Draw(im)
 
@@ -1089,7 +1089,7 @@ def figure_model_comparison(path, rows):
         if dx or dy:
             draw.line((x, y, bx, by), fill="#AEB8C6", width=2)
         badge = make_badge(model)
-        badge.thumbnail((78, 78), RESAMPLE_LANCZOS)
+        badge.thumbnail((96, 96), RESAMPLE_LANCZOS)
         im.paste(badge, (int(bx - badge.width / 2), int(by - badge.height / 2)), badge)
         draw = ImageDraw.Draw(im)
 
@@ -1346,7 +1346,7 @@ def figure_model_tone(path, model_rows, tone_rows):
         if dx or dy:
             draw.line((x, y, bx, by), fill="#AEB8C6", width=2)
         badge = make_badge(model)
-        badge.thumbnail((112, 112), RESAMPLE_LANCZOS)
+        badge.thumbnail((132, 132), RESAMPLE_LANCZOS)
         im.paste(badge, (int(bx - badge.width / 2), int(by - badge.height / 2)), badge)
         draw = ImageDraw.Draw(im)
 
@@ -1516,7 +1516,7 @@ def figure_trigger_dynamics(path, tone_rows, temporal_rows, confidence_rows):
             if abs(dx) > 8 or abs(dy) > 8:
                 draw.line((px, py, cx, cy), fill="#AEB8C6", width=2)
             badge = make_badge(model)
-            badge.thumbnail((82, 82), RESAMPLE_LANCZOS)
+            badge.thumbnail((98, 98), RESAMPLE_LANCZOS)
             im.alpha_composite(badge, (int(cx - badge.width / 2), int(cy - badge.height / 2)))
 
         draw_text(draw, (plot_x + plot_w / 2, panel_y + panel_h - 62), "Single-follow-up movement (%)", axis_bold, INK, anchor="ma")

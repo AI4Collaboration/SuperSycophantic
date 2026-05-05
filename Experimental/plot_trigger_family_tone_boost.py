@@ -138,7 +138,7 @@ def draw_legend(draw, x, y):
 
 def draw_model_label(im, draw, model, cx, y):
     badge = trigger_plot.make_badge(model)
-    badge.thumbnail((62, 62), Image.Resampling.LANCZOS)
+    badge.thumbnail((78, 78), Image.Resampling.LANCZOS)
     im.paste(badge, (int(cx - badge.width / 2), int(y)), badge)
     label = trigger_plot.MODEL_SHORT_LABELS[model].replace("\n", " ")
     if len(label) > 12:
