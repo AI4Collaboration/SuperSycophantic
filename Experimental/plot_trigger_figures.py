@@ -1081,10 +1081,10 @@ def figure_model_comparison(path, rows):
             align="center",
         )
 
-    draw_text(draw, (left + plot_w / 2, top + plot_h + 54), "GT answer change (%)", FONT_AXIS_BOLD, INK, anchor="ma")
+    draw_text(draw, (left + plot_w / 2, top + plot_h + 54), "Answer change after 1 trigger (%)", FONT_AXIS_BOLD, INK, anchor="ma")
     y_label = Image.new("RGBA", (520, 40), (255, 255, 255, 0))
     yd = ImageDraw.Draw(y_label)
-    yd.text((0, 0), "GT correct-to-wrong (%)", font=FONT_AXIS_BOLD, fill=INK)
+    yd.text((0, 0), "Right-to-wrong after 1 trigger (%)", font=FONT_AXIS_BOLD, fill=INK)
     y_label = y_label.rotate(90, expand=True)
     im.paste(y_label, (92, top + 130), y_label)
     save_tight(im, path)
