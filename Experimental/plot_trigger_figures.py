@@ -1643,11 +1643,10 @@ def figure_tone_temporal(path, tone_rows, temporal_rows):
 
 
 def figure_static_vs_adaptive(path, rows):
-    width, height = 1780, 940
+    width, height = 1780, 820
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
-    draw_header(draw, "Static vs. adaptive by model", "", width)
-    panels = [("GT", 110, 150, "GT correct-to-wrong", 0.55, STATIC), ("NGT", 935, 150, "NGT flip", 0.90, ADAPTIVE)]
+    panels = [("GT", 110, 50, "GT correct-to-wrong", 0.55, STATIC), ("NGT", 935, 50, "NGT flip", 0.90, ADAPTIVE)]
 
     def pooled_rate(branch, mode):
         subset = [row for row in rows if row["branch"] == branch and row["mode"] == mode]
