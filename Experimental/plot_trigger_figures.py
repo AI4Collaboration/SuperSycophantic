@@ -141,7 +141,6 @@ def load_font(size, bold=False):
 
 
 FONT_TITLE = load_font(46, True)
-FONT_SUBTITLE = load_font(27)
 FONT_PANEL = load_font(27, True)
 FONT_AXIS = load_font(22)
 FONT_AXIS_BOLD = load_font(22, True)
@@ -234,14 +233,25 @@ def draw_wrapped(draw, text, x, y, max_width, font, fill=INK, line_gap=3, anchor
     return y
 
 
-def draw_header(draw, title, subtitle, width):
-    draw_text(draw, (width / 2, 38), title, FONT_TITLE, anchor="ma")
-    if subtitle:
-        draw_text(draw, (width / 2, 94), subtitle, FONT_SUBTITLE, MUTED, anchor="ma")
-        line_y = 145
+def draw_rotated_label(im, center, text, font, fill=INK, angle=90, pad_x=18, pad_y=14):
+    scratch = Image.new("RGBA", (1, 1), (255, 255, 255, 0))
+    scratch_draw = ImageDraw.Draw(scratch)
+    box = scratch_draw.textbbox((0, 0), str(text), font=font)
+    text_w, text_h = box[2] - box[0], box[3] - box[1]
+    label = Image.new("RGBA", (text_w + 2 * pad_x, text_h + 2 * pad_y), (255, 255, 255, 0))
+    label_draw = ImageDraw.Draw(label)
+    label_draw.text((pad_x - box[0], pad_y - box[1]), str(text), font=font, fill=fill)
+    label = label.rotate(angle, expand=True)
+    xy = (int(center[0] - label.width / 2), int(center[1] - label.height / 2))
+    if im.mode == "RGBA":
+        im.alpha_composite(label, xy)
     else:
-        line_y = 122
-    draw.line((65, line_y, width - 65, line_y), fill=LIGHT_GRID, width=3)
+        im.paste(label, xy, label)
+
+
+def draw_header(draw, title, _subtitle, width):
+    draw_text(draw, (width / 2, 38), title, FONT_TITLE, anchor="ma")
+    draw.line((65, 122, width - 65, 122), fill=LIGHT_GRID, width=3)
 
 
 def save_tight(im, path, padding=16):
@@ -683,10 +693,9 @@ def build_trigger_figure_tables(records):
     }
 
 
-def draw_dumbbell_panel(draw, rows, x, y, w, h, title, subtitle, max_rate=1.0, show_labels=False):
+def draw_dumbbell_panel(draw, rows, x, y, w, h, title, _subtitle, max_rate=1.0, show_labels=False):
     draw.rounded_rectangle((x, y, x + w, y + h), radius=14, fill=PANEL_BG, outline=LIGHT_GRID, width=2)
     draw_text(draw, (x + 30, y + 25), title, FONT_PANEL)
-    draw_text(draw, (x + 30, y + 60), subtitle, FONT_SMALL, MUTED)
     axis_x = x + (235 if show_labels else 36)
     axis_y = y + 122
     axis_w = w - (285 if show_labels else 92)
@@ -811,11 +820,7 @@ def figure_tone_gradient(path, tone_rows):
             xx = px0 + i * pw / 2
             draw_text(draw, (xx, py0 + ph + 34), TONE_LABELS[tone], FONT_AXIS_BOLD, INK, anchor="ma")
         draw_text(draw, (px0 + pw / 2, y + h - 34), "Tone", FONT_AXIS_BOLD, INK, anchor="ma")
-        y_label = Image.new("RGBA", (210, 34), (255, 255, 255, 0))
-        yd = ImageDraw.Draw(y_label)
-        yd.text((0, 0), "Rate (%)", font=FONT_AXIS_BOLD, fill=INK)
-        y_label = y_label.rotate(90, expand=True)
-        im.paste(y_label, (x + 20, y + 245), y_label)
+        draw_rotated_label(im, (x + 42, py0 + ph / 2), "Rate (%)", FONT_AXIS_BOLD)
         draw = ImageDraw.Draw(im)
     save_tight(im, path)
 
@@ -889,7 +894,7 @@ def figure_temporal_sequences(path, sequence_rows):
     draw_header(
         draw,
         "Three-turn trajectories amplify pressure accommodation",
-        "NGT temporal answer-switch rate by sequence; same-family and mixed-family sequences share the same mild -> moderate -> strong tone ramp.",
+        "",
         width,
     )
     x0, y0 = 610, 220
@@ -998,11 +1003,7 @@ def figure_scatter(path, headline):
         draw.multiline_text((x + dx, y + dy), row["label"], font=FONT_SMALL, fill=INK, anchor=anchor, spacing=2, align="center")
 
     draw_text(draw, (left + plot_w / 2, top + plot_h + 80), "Wrong turns on factual questions (%)", FONT_AXIS_BOLD, INK, anchor="ma")
-    y_label = Image.new("RGBA", (430, 42), (255, 255, 255, 0))
-    yd = ImageDraw.Draw(y_label)
-    yd.text((0, 0), "Decision shifts (%)", font=FONT_AXIS_BOLD, fill=INK)
-    y_label = y_label.rotate(90, expand=True)
-    im.paste(y_label, (72, top + 170), y_label)
+    draw_rotated_label(im, (92, top + plot_h / 2), "Decision shifts (%)", FONT_AXIS_BOLD)
     save_tight(im, path)
 
 
@@ -1089,11 +1090,7 @@ def figure_model_comparison(path, rows):
         )
 
     draw_text(draw, (left + plot_w / 2, top + plot_h + 54), "Answer change after 1 trigger (%)", FONT_AXIS_BOLD, INK, anchor="ma")
-    y_label = Image.new("RGBA", (520, 40), (255, 255, 255, 0))
-    yd = ImageDraw.Draw(y_label)
-    yd.text((0, 0), "Right-to-wrong after 1 trigger (%)", font=FONT_AXIS_BOLD, fill=INK)
-    y_label = y_label.rotate(90, expand=True)
-    im.paste(y_label, (92, top + 130), y_label)
+    draw_rotated_label(im, (112, top + plot_h / 2), "Right-to-wrong after 1 trigger (%)", FONT_AXIS_BOLD)
     save_tight(im, path)
 
 
@@ -1316,11 +1313,7 @@ def figure_model_tone(path, model_rows, tone_rows):
         INK,
         anchor="ma",
     )
-    y_label = Image.new("RGBA", (720, 50), (255, 255, 255, 0))
-    yd = ImageDraw.Draw(y_label)
-    yd.text((0, 0), "Right-to-wrong after 1 trigger (%)", font=axis_bold, fill=INK)
-    y_label = y_label.rotate(90, expand=True)
-    im.paste(y_label, (int(left - 128), int(top + plot_h / 2 - y_label.height / 2)), y_label)
+    draw_rotated_label(im, (left - 96, top + plot_h / 2), "Right-to-wrong after 1 trigger (%)", axis_bold)
 
     # Right panel: tone gradient, stacked to avoid the quarter-page mini-panel problem.
     right_x, right_y, right_w, right_h = 1840, 70, 1980, 1290
@@ -1506,11 +1499,7 @@ def figure_trigger_dynamics(path, tone_rows, temporal_rows, confidence_rows):
             )
 
         draw_text(draw, (plot_x + plot_w / 2, panel_y + panel_h - 62), "Single-follow-up movement (%)", axis_bold, INK, anchor="ma")
-        y_label = Image.new("RGBA", (560, 44), (255, 255, 255, 0))
-        yd = ImageDraw.Draw(y_label)
-        yd.text((0, 0), "Mixed three-turn movement (%)", font=axis_bold, fill=INK)
-        y_label = y_label.rotate(90, expand=True)
-        im.alpha_composite(y_label, (int(panel_x + 52), int(plot_y + 125)))
+        draw_rotated_label(im, (panel_x + 82, plot_y + plot_h / 2), "Mixed three-turn movement (%)", axis_bold)
 
     for spec in panel_specs:
         scatter_panel(*spec)
@@ -1688,11 +1677,10 @@ def figure_temporal_pressure(path, rows):
 
 
 def figure_confidence_trajectory(path, rows):
-    width, height = 3900, 1125
+    width, height = 3900, 1045
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
     title_font = load_font(58, True)
-    subtitle_font = load_font(30)
     panel_font = load_font(37, True)
     axis_font = load_font(27)
     axis_bold = load_font(29, True)
@@ -1707,10 +1695,9 @@ def figure_confidence_trajectory(path, rows):
             return 0.0
         return sum(row["mean_confidence"] * row.get("n", 0) for row in subset) / denom
 
-    draw_text(draw, (width / 2, 48), "Confidence as an indicator", title_font, INK, anchor="ma")
-    draw_text(draw, (width / 2, 104), "Self-reported confidence trends under temporal trigger pressure", subtitle_font, MUTED, anchor="ma")
+    draw_text(draw, (width / 2, 50), "Confidence as an indicator", title_font, INK, anchor="ma")
 
-    def draw_line_panel(panel_x, panel_y, panel_w, panel_h, title, subtitle, line_defs, show_y_label=False):
+    def draw_line_panel(panel_x, panel_y, panel_w, panel_h, title, line_defs, show_y_label=False):
         draw.rounded_rectangle(
             (panel_x, panel_y, panel_x + panel_w, panel_y + panel_h),
             radius=22,
@@ -1718,13 +1705,12 @@ def figure_confidence_trajectory(path, rows):
             outline="#D9E0E8",
             width=2,
         )
-        draw_text(draw, (panel_x + panel_w / 2, panel_y + 42), title, panel_font, INK, anchor="ma")
-        draw_text(draw, (panel_x + panel_w / 2, panel_y + 88), subtitle, axis_font, MUTED, anchor="ma")
+        draw_text(draw, (panel_x + panel_w / 2, panel_y + 48), title, panel_font, INK, anchor="ma")
 
         plot_x = panel_x + 145
-        plot_y = panel_y + 170
+        plot_y = panel_y + 138
         plot_w = panel_w - 355
-        plot_h = panel_h - 330
+        plot_h = panel_h - 280
         y_min, y_max = 2.4, 5.0
 
         def x_pos(turn_index):
@@ -1758,19 +1744,14 @@ def figure_confidence_trajectory(path, rows):
 
         draw_text(draw, (plot_x + plot_w / 2, panel_y + panel_h - 55), "Assistant turn", axis_bold, INK, anchor="ma")
         if show_y_label:
-            y_label = Image.new("RGBA", (740, 50), (255, 255, 255, 0))
-            yd = ImageDraw.Draw(y_label)
-            yd.text((0, 0), "Mean self-rated confidence (1-5)", font=axis_bold, fill=INK)
-            y_label = y_label.rotate(90, expand=True)
-            im.paste(y_label, (int(plot_x - 118), int(plot_y + plot_h / 2 - y_label.height / 2)), y_label)
+            draw_rotated_label(im, (plot_x - 82, plot_y + plot_h / 2), "Mean self-rated confidence (1-5)", axis_bold)
 
     draw_line_panel(
         65,
-        145,
+        110,
         1215,
-        960,
+        900,
         "Branch trend",
-        "All temporal runs",
         [
             ("GT all", lambda row: row["branch"] == "GT", GT, 10),
             ("NGT all", lambda row: row["branch"] == "NGT", NGT, 10),
@@ -1779,11 +1760,10 @@ def figure_confidence_trajectory(path, rows):
     )
     draw_line_panel(
         1342,
-        145,
+        110,
         1215,
-        960,
+        900,
         "Mode trend",
-        "Static versus adaptive",
         [
             ("Static", lambda row: row["mode"] == "static", STATIC, 10, -20),
             ("Adaptive", lambda row: row["mode"] == "adaptive", ADAPTIVE, 10, 16),
@@ -1791,11 +1771,10 @@ def figure_confidence_trajectory(path, rows):
     )
     draw_line_panel(
         2619,
-        145,
+        110,
         1215,
-        960,
+        900,
         "Sycophancy trend",
-        "Stable versus moved",
         [
             (
                 "Stable",
