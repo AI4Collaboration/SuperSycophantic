@@ -1033,17 +1033,6 @@ def figure_model_comparison(path, rows):
     draw.line((x_pos(diag_start), y_pos(diag_start), x_pos(diag_end), y_pos(diag_end)), fill="#AEB8C6", width=3)
     draw_text(draw, (x_pos(0.36) - 18, y_pos(0.36) + 22), "y = x", FONT_TINY, MUTED, anchor="rm")
 
-    draw_text(draw, (left + 28, top + 30), "GT: movement vs. truth loss", FONT_PANEL, INK)
-    draw_text(draw, (left + 28, top + 67), "Bubble size encodes NGT flip rate", FONT_SMALL, MUTED)
-
-    ngt_values = [row["ngt_rate"] for row in rows]
-    min_ngt, max_ngt = min(ngt_values), max(ngt_values)
-
-    def bubble_radius(value):
-        if max_ngt <= min_ngt:
-            return 42
-        return 30 + 24 * (value - min_ngt) / (max_ngt - min_ngt)
-
     label_specs = {
         "openai/gpt-5.4": (30, -54, "lm"),
         "openai/gpt-5.4-mini": (-36, -72, "ma"),
@@ -1060,12 +1049,8 @@ def figure_model_comparison(path, rows):
         model = row["model"]
         x = x_pos(row["gt_change_rate"])
         y = y_pos(row["gt_rate"])
-        radius = bubble_radius(row["ngt_rate"])
-        color = MODEL_COLORS[model]
-        fill = blend_color(color, 0.28 + 0.42 * row["ngt_rate"] / max_ngt)
-        draw.ellipse((x - radius, y - radius, x + radius, y + radius), fill=fill, outline=color, width=5)
         badge = make_badge(model)
-        badge.thumbnail((62, 62), RESAMPLE_LANCZOS)
+        badge.thumbnail((78, 78), RESAMPLE_LANCZOS)
         im.paste(badge, (int(x - badge.width / 2), int(y - badge.height / 2)), badge)
         draw = ImageDraw.Draw(im)
 
@@ -1084,21 +1069,12 @@ def figure_model_comparison(path, rows):
             align="center",
         )
 
-    legend_x, legend_y = left + plot_w - 250, top + plot_h - 122
-    draw_text(draw, (legend_x, legend_y - 28), "Bubble = NGT flip", FONT_TINY, MUTED)
-    for i, value in enumerate([0.40, 0.80]):
-        rr = bubble_radius(value)
-        cx = legend_x + 45 + i * 120
-        cy = legend_y + 36
-        draw.ellipse((cx - rr, cy - rr, cx + rr, cy + rr), fill="#EEF2F6", outline="#8FA0B5", width=3)
-        draw_text(draw, (cx, cy + rr + 16), f"{int(value * 100)}%", FONT_TINY, MUTED, anchor="ma")
-
-    draw_text(draw, (left + plot_w / 2, top + plot_h + 82), "GT answer change (%)", FONT_AXIS_BOLD, INK, anchor="ma")
+    draw_text(draw, (left + plot_w / 2, top + plot_h + 54), "GT answer change (%)", FONT_AXIS_BOLD, INK, anchor="ma")
     y_label = Image.new("RGBA", (520, 40), (255, 255, 255, 0))
     yd = ImageDraw.Draw(y_label)
     yd.text((0, 0), "GT correct-to-wrong (%)", font=FONT_AXIS_BOLD, fill=INK)
     y_label = y_label.rotate(90, expand=True)
-    im.paste(y_label, (68, top + 155), y_label)
+    im.paste(y_label, (92, top + 155), y_label)
     save_tight(im, path)
 
 
@@ -1632,7 +1608,7 @@ def main():
                 "This directory is the single canonical location for trigger figure candidates.",
                 "All figures are Python-generated PNG charts from the official pass@1-clean result files.",
                 "",
-                "- `trigger_model_comparison.png`: GT answer change versus GT correct-to-wrong by model, with NGT flip encoded by bubble size.",
+                "- `trigger_model_comparison.png`: GT answer change versus GT correct-to-wrong by model.",
                 "- `trigger_tone_gradient_opus.png`: model-separated mild/moderate/strong tone gradients with Claude-family reversals highlighted.",
                 "- `trigger_static_vs_adaptive.png`: per-model static vs adaptive GT and NGT rates.",
                 "- `trigger_temporal_pressure.png`: per-model adaptive single, same-family escalation, heterogeneous temporal pressure, and mixed-minus-single deltas.",
