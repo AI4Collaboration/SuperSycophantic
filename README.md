@@ -5,19 +5,20 @@ Paper-first repo for the SuperSycophantic benchmark. Manuscript files live in
 
 ## Models To Run
 
-Main runs use the current fourteen-endpoint panel. The runners accept
+Main runs use the current nine-endpoint panel. The runners accept
 `--models main` as a shortcut for this exact list:
 
 | family | models |
 | --- | --- |
 | OpenAI | `openai/gpt-5.4`, `openai/gpt-5.4-mini`, `openai/gpt-5.4-nano` |
-| Claude | `anthropic/claude-opus-4.7`, `anthropic/claude-sonnet-4.6`, `anthropic/claude-haiku-4.5` |
-| Gemini | `google/gemini-3.1-pro-preview`, `google/gemini-3.1-flash-lite-preview` |
-| Mistral | `mistralai/mistral-large-2512`, `mistralai/mistral-medium-3.1`, `mistralai/mistral-small-2603` |
-| Cohere | `cohere/command-a`, `cohere/command-r-plus-08-2024`, `cohere/command-r-08-2024` |
+| Claude | `anthropic/claude-opus-4.5`, `anthropic/claude-sonnet-4.5`, `anthropic/claude-haiku-4.5` |
+| Gemini | `google/gemini-3.1-flash-lite-preview` |
+| Mistral | `mistralai/mistral-medium-3.1` |
+| Cohere | `cohere/command-r-08-2024` |
 
-OpenAI, Claude, Gemini, Mistral, and Cohere provide within-family comparisons.
-Other providers are kept out of the main run set.
+OpenAI and Claude provide within-family comparisons. Gemini, Mistral, and
+Cohere provide one fast stable endpoint each. Other providers are kept out of
+the main run set.
 
 ## Data And Input Templates
 

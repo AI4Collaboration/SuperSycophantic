@@ -204,12 +204,14 @@ def main():
     parser.add_argument("--results-dir", type=Path, default=REPO_ROOT / "Experimental" / "results")
     parser.add_argument("--mode", choices=["static", "adaptive", "all"], default="all")
     parser.add_argument("--out-png", type=Path, default=REPO_ROOT / "images" / "results" / "trigger_family_tone_boost.png")
-    parser.add_argument("--out-pdf", type=Path, default=REPO_ROOT / "images" / "results" / "trigger_family_tone_boost.pdf")
+    parser.add_argument("--out-pdf", type=Path)
     args = parser.parse_args()
 
     rows = aggregate_tone(args.results_dir, args.run_id, args.mode)
     draw_figure(rows, args.out_png)
-    Image.open(args.out_png).convert("RGB").save(args.out_pdf)
+    if args.out_pdf:
+        args.out_pdf.parent.mkdir(parents=True, exist_ok=True)
+        Image.open(args.out_png).convert("RGB").save(args.out_pdf)
 
 
 if __name__ == "__main__":
