@@ -775,7 +775,7 @@ def figure_headline(path, headline):
     panels = [
         (grid_x, grid_y, "GT", "single", "GT: wrong turns", "#B8443F"),
         (grid_x + col_w + gutter_x, grid_y, "GT", "temporal", "GT: after pressure", "#B8443F"),
-        (grid_x, grid_y + row_h + gutter_y, "NGT", "single", "NGT: decision shifts", "#2870A8"),
+        (grid_x, grid_y + row_h + gutter_y, "NGT", "single", "NGT: answer changes", "#2870A8"),
         (grid_x + col_w + gutter_x, grid_y + row_h + gutter_y, "NGT", "temporal", "NGT: after pressure", "#2870A8"),
     ]
     for args in panels:
@@ -794,8 +794,8 @@ def figure_tone_gradient(path, tone_rows):
         width,
     )
     panels = [
-        ("GT", 115, 210, "Wrong turns on factual questions", 0.35, [0, 0.1, 0.2, 0.3]),
-        ("NGT", 955, 210, "Decision shifts", 1.0, [0, 0.25, 0.5, 0.75, 1.0]),
+        ("GT", 115, 210, "Model changes from right to wrong", 0.35, [0, 0.1, 0.2, 0.3]),
+        ("NGT", 955, 210, "Model changes answer", 1.0, [0, 0.25, 0.5, 0.75, 1.0]),
     ]
     mode_specs = [("static", "Static", STATIC), ("adaptive", "Adaptive", ADAPTIVE)]
     for branch, x, y, title, max_rate, ticks in panels:
@@ -877,7 +877,7 @@ def figure_family_heatmap(path, family_rows):
         draw.rectangle((avg_x, y, avg_x + avg_w * averages[trigger], y + cell_h - 4), fill=ACCENT)
         draw_text(draw, (avg_x + avg_w + 14, y + cell_h / 2), fmt_pct(averages[trigger]), FONT_AXIS_BOLD, INK, anchor="lm")
     draw_text(draw, (left + len(ordered_models) * cell_w + 18, top - 54), "Mean", FONT_AXIS_BOLD, INK, anchor="lm")
-    draw_text(draw, (left + (len(ordered_models) * cell_w) / 2, height - 55), "Darker cells indicate more NGT decision shifts", FONT_SMALL, MUTED, anchor="ma")
+    draw_text(draw, (left + (len(ordered_models) * cell_w) / 2, height - 55), "Darker cells indicate more model answer changes", FONT_SMALL, MUTED, anchor="ma")
     save_tight(im, path)
 
 
@@ -933,17 +933,11 @@ def figure_temporal_sequences(path, sequence_rows):
 
 
 def figure_scatter(path, headline):
-    width, height = 2440, 1120
+    width, height = 2440, 980
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
-    draw_header(
-        draw,
-        "Model comparison",
-        "",
-        width,
-    )
 
-    top = 182
+    top = 38
     panel_w, panel_h = 1025, 790
     panel_gap = 115
     panel_lefts = [145, 145 + panel_w + panel_gap]
@@ -1053,12 +1047,12 @@ def figure_scatter(path, headline):
         draw_text(
             draw,
             (left + plot_w / 2, plot_top + plot_h + 70),
-            "GT truth departure after 1 trigger (%)",
+            "Model changes from right to wrong after 1 trigger (%)",
             FONT_AXIS_BOLD,
             INK,
             anchor="ma",
         )
-        draw_rotated_label(im, (panel_left + 31, plot_top + plot_h / 2), "NGT Flip-Flop after 1 trigger (%)", FONT_AXIS_BOLD)
+        draw_rotated_label(im, (panel_left + 31, plot_top + plot_h / 2), "Model changes answer after 1 trigger (%)", FONT_AXIS_BOLD)
         draw = ImageDraw.Draw(im)
 
     draw_panel(panel_lefts[0], "static", "Static")
@@ -1070,9 +1064,8 @@ def figure_model_comparison(path, rows):
     width, height = 1780, 980
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
-    draw_header(draw, "Model comparison", "", width)
 
-    left, top = 185, 170
+    left, top = 185, 70
     plot_w, plot_h = 1280, 640
     min_x, max_x = 0.10, 0.55
     min_y, max_y = 0.00, 0.36
@@ -1355,7 +1348,7 @@ def figure_model_tone(path, model_rows, tone_rows):
         outline="#D9E0E8",
         width=2,
     )
-    draw_text(draw, (panel_x + panel_w / 2, panel_y + 44), "Model comparison", panel_title, INK, anchor="ma")
+    draw_text(draw, (panel_x + panel_w / 2, panel_y + 44), "Single-follow-up model changes", panel_title, INK, anchor="ma")
 
     left, top = panel_x + 170, panel_y + 150
     plot_w, plot_h = 1425, 900
@@ -1529,8 +1522,8 @@ def figure_trigger_dynamics(path, tone_rows, temporal_rows, confidence_rows):
     panel_h = 1145
     panel_w = (width - 2 * margin - gap) / 2
     panel_specs = [
-        ("GT", margin, "GT Truth Departure", 0.0, 0.50, [0.0, 0.10, 0.20, 0.30, 0.40, 0.50], STATIC),
-        ("NGT", margin + panel_w + gap, "NGT Flip-Flop", 0.25, 0.95, [0.25, 0.40, 0.55, 0.70, 0.85, 0.95], ADAPTIVE),
+        ("GT", margin, "Model changes from right to wrong", 0.0, 0.50, [0.0, 0.10, 0.20, 0.30, 0.40, 0.50], STATIC),
+        ("NGT", margin + panel_w + gap, "Model changes answer", 0.25, 0.95, [0.25, 0.40, 0.55, 0.70, 0.85, 0.95], ADAPTIVE),
     ]
 
     def color_alpha(hex_color, alpha):
@@ -1694,10 +1687,13 @@ def figure_tone_temporal(path, tone_rows, temporal_rows):
 
 
 def figure_static_vs_adaptive(path, rows):
-    width, height = 1780, 760
+    width, height = 1780, 820
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
-    panels = [("GT", 110, 50, "GT correct-to-wrong", 0.55, STATIC), ("NGT", 935, 50, "NGT flip", 0.90, ADAPTIVE)]
+    panels = [
+        ("GT", 110, 50, "Model changes from right to wrong", 0.55, STATIC),
+        ("NGT", 935, 50, "Model changes answer", 0.90, ADAPTIVE),
+    ]
 
     def pooled_rate(branch, mode):
         subset = [row for row in rows if row["branch"] == branch and row["mode"] == mode]
@@ -1706,17 +1702,27 @@ def figure_static_vs_adaptive(path, rows):
         return events / denom if denom else 0.0
 
     for branch, x, y, title, max_rate, _ in panels:
-        w, h = 735, 660
+        w, h = 735, 710
         draw.rectangle((x, y, x + w, y + h), fill="white", outline="#D9E0E8", width=2)
         draw_text(draw, (x + w / 2, y + 27), title, FONT_PANEL, INK, anchor="ma")
         label_x = x + 26
         cell_x = x + 285
-        top = y + 100
+        top = y + 135
         row_h = 54
         cell_w = 148
         gap = 9
-        for ci, mode in enumerate(["static", "adaptive"]):
-            draw_text(draw, (cell_x + ci * (cell_w + gap) + cell_w / 2, top - 30), mode.capitalize(), FONT_AXIS_BOLD, INK, anchor="ma")
+        for ci, mode in enumerate(["Static", "Adaptive"]):
+            draw_wrapped(
+                draw,
+                mode,
+                cell_x + ci * (cell_w + gap) - 8,
+                top - 48,
+                cell_w + 16,
+                FONT_AXIS_BOLD,
+                INK,
+                line_gap=0,
+                anchor_center=True,
+            )
         delta_x = cell_x + 2 * (cell_w + gap) + 8
         draw_text(draw, (delta_x + 56, top - 30), "Delta pp", FONT_AXIS_BOLD, INK, anchor="ma")
         display_rows = [{"model": model, "label": model_display(model), "aggregate": False} for model in MODELS]
@@ -1749,8 +1755,8 @@ def figure_temporal_pressure(path, rows):
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
     panels = [
-        ("GT", 105, 40, "GT final correct-to-wrong", 0.55, STATIC, 0.14),
-        ("NGT", 920, 40, "NGT final flip", 0.90, ADAPTIVE, 0.40),
+        ("GT", 105, 40, "Final changes from right to wrong", 0.55, STATIC, 0.14),
+        ("NGT", 920, 40, "Final answer changes", 0.90, ADAPTIVE, 0.40),
     ]
     stages = ["single", "same_family", "heterogeneous"]
     for branch, x, y, title, max_rate, color, max_delta in panels:
@@ -1975,7 +1981,7 @@ def main():
                 "All figures are Python-generated PNG charts from the official pass@1-clean result files.",
                 "",
                 "- `trigger_model_comparison.png`: main-text model-level GT answer change versus right-to-wrong movement.",
-                "- `trigger_model_quadrant.png`: main-text static/adaptive model-level GT truth departure versus NGT Flip-Flop quadrant view.",
+                "- `trigger_model_quadrant.png`: main-text static/adaptive model-level changes from right to wrong versus answer changes quadrant view.",
                 "- `trigger_tone_gradient.png`: main-text Claude-family versus other-model tone-gradient comparison.",
                 "- `trigger_tone_claude_detail.png`: appendix endpoint-level Claude tone-gradient view.",
                 "- `trigger_model_tone.png`: appendix compact composite combining model-level rates with model-separated tone gradients.",

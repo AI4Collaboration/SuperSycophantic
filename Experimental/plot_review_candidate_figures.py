@@ -5,7 +5,7 @@ import json
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageColor, ImageDraw
 
 try:
     import plot_context_results as context_plot
@@ -578,7 +578,7 @@ def figure_trigger_domain_source(records, out_path):
     x, y = 80, 160
     w, h = 1160, 700
     draw.rounded_rectangle((x, y, x + w, y + h), radius=18, fill=WHITE, outline="#D8E0EA", width=2)
-    draw_text(draw, (x + w / 2, y + 36), "GT truth departure", FONT_PANEL, anchor="ma")
+    draw_text(draw, (x + w / 2, y + 36), "Model changes from right to wrong", FONT_PANEL, anchor="ma")
     sources = ["MMLU-Pro", "HLE-Verified"]
     cell_w, cell_h = 260, 118
     gx, gy = x + 390, y + 150
@@ -597,7 +597,7 @@ def figure_trigger_domain_source(records, out_path):
     # NGT bars
     x = 1350
     draw.rounded_rectangle((x, y, x + w, y + h), radius=18, fill=WHITE, outline="#D8E0EA", width=2)
-    draw_text(draw, (x + w / 2, y + 36), "NGT Flip-Flop", FONT_PANEL, anchor="ma")
+    draw_text(draw, (x + w / 2, y + 36), "Model changes answer", FONT_PANEL, anchor="ma")
     x0, x1 = x + 280, x + w - 70
     y0 = y + 155
     draw_percent_axis(draw, x0, y0 - 25, x1, y0 + 4 * 110)
@@ -635,7 +635,7 @@ def figure_adaptive_family_lift(records, out_path):
         y = 160
         w, h = 1120, 760
         draw.rounded_rectangle((x, y, x + w, y + h), radius=18, fill=WHITE, outline="#D8E0EA", width=2)
-        draw_text(draw, (x + w / 2, y + 36), "GT truth departure" if branch == "GT" else "NGT Flip-Flop", FONT_PANEL, anchor="ma")
+        draw_text(draw, (x + w / 2, y + 36), "Model changes from right to wrong" if branch == "GT" else "Model changes answer", FONT_PANEL, anchor="ma")
         x0, x1 = x + 300, x + w - 70
         y0 = y + 112
         row_h = 86
@@ -738,6 +738,216 @@ def figure_strong_recheck_boundary(records, judge_rows, judge_meta, out_path):
     save(im, out_path)
 
 
+def figure_tone_recheck_combo(records, judge_rows, judge_meta, out_path):
+    width, height = 3000, 720
+    im = Image.new("RGB", (width, height), WHITE)
+    draw = ImageDraw.Draw(im, "RGBA")
+    claude_color = "#D96C42"
+    other_color = STATIC
+    panel_font = font(34, True)
+    axis_font = font(25)
+    axis_bold = font(28, True)
+    value_font = font(22, True)
+    legend_font = font(27, True)
+
+    def group(model):
+        return "Claude" if model and model.startswith("anthropic/") else "Other"
+
+    def branch_values(branch, grp):
+        model_values = []
+        for model in MODELS:
+            if group(model) != grp:
+                continue
+            values = []
+            for tone in TONES:
+                subset = [
+                    row
+                    for row in records["single"]
+                    if row["_branch"] == branch
+                    and is_cialdini(row)
+                    and denom_ok(row, branch)
+                    and row["model"] == model
+                    and row.get("tone") == tone
+                ]
+                denom = len(subset)
+                events = sum(int(single_event(row, branch)) for row in subset)
+                values.append(events / denom if denom else 0.0)
+            model_values.append(values)
+        means = [sum(values[i] for values in model_values) / len(model_values) for i in range(len(TONES))]
+        lows = [min(values[i] for values in model_values) for i in range(len(TONES))]
+        highs = [max(values[i] for values in model_values) for i in range(len(TONES))]
+        return means, lows, highs
+
+    adaptive_outcome = defaultdict(lambda: [0, 0])
+    for row in records["single"]:
+        if row["_mode"] != "adaptive" or not is_cialdini(row) or not denom_ok(row, row["_branch"]):
+            continue
+        key = (group(row["model"]), row["_branch"], row.get("tone"))
+        adaptive_outcome[key][0] += 1
+        adaptive_outcome[key][1] += int(single_event(row, row["_branch"]))
+
+    redo = defaultdict(lambda: [0.0, 0])
+    for row in judge_rows:
+        meta = judge_meta.get(row["transcript_key"])
+        if not meta or meta["source_kind"] != "single" or meta.get("trigger") not in CIALDINI:
+            continue
+        value = judge_mean(row, "redo_question_by_reasoning_or_calculation")
+        if value is None:
+            continue
+        key = (group(meta["model"]), meta.get("tone"))
+        redo[key][0] += value
+        redo[key][1] += 1
+
+    def outcome_series(grp):
+        values = []
+        for tone in TONES:
+            setting_rates = []
+            for branch in ["GT", "NGT"]:
+                denom, events = adaptive_outcome[(grp, branch, tone)]
+                if denom:
+                    setting_rates.append(events / denom)
+            values.append(sum(setting_rates) / len(setting_rates) if setting_rates else 0.0)
+        return values
+
+    def redo_series(grp):
+        values = []
+        for tone in TONES:
+            total, n = redo[(grp, tone)]
+            values.append(total / n if n else 0.0)
+        return values
+
+    def draw_panel_shell(x, y, w, h, title):
+        draw.rounded_rectangle((x, y, x + w, y + h), radius=16, fill=WHITE, outline="#D8E0EA", width=2)
+        draw_text(draw, (x + w / 2, y + 33), title, panel_font, INK, anchor="ma")
+
+    def draw_line(points, color, width_line=7, dashed=False):
+        if not dashed:
+            for a, b in zip(points, points[1:]):
+                draw.line((a[0], a[1], b[0], b[1]), fill=color, width=width_line)
+            return
+        dash, gap = 22, 12
+        for a, b in zip(points, points[1:]):
+            x0, y0 = a
+            x1, y1 = b
+            dx, dy = x1 - x0, y1 - y0
+            dist = (dx * dx + dy * dy) ** 0.5
+            pos = 0.0
+            while pos < dist:
+                end = min(dist, pos + dash)
+                sx = x0 + dx * pos / dist
+                sy = y0 + dy * pos / dist
+                ex = x0 + dx * end / dist
+                ey = y0 + dy * end / dist
+                draw.line((sx, sy, ex, ey), fill=color, width=width_line)
+                pos += dash + gap
+
+    def draw_tone_panel(x, y, w, h, branch, title, max_rate, ticks):
+        draw_panel_shell(x, y, w, h, title)
+        px0, px1 = x + 112, x + w - 52
+        py0, py1 = y + 105, y + h - 136
+
+        def x_at(i):
+            return px0 + (px1 - px0) * i / 2
+
+        def y_at(value):
+            return py1 - (py1 - py0) * value / max_rate
+
+        for tick in ticks:
+            yy = y_at(tick)
+            draw.line((px0, yy, px1, yy), fill=LIGHT, width=1)
+            draw_text(draw, (px0 - 16, yy), str(int(tick * 100)), axis_font, MUTED, anchor="rm")
+        draw.line((px0, py1, px1, py1), fill=GRID, width=2)
+
+        for grp, line_color, band_rgba, width_line in [
+            ("Other", other_color, (*ImageColor.getrgb(other_color), 42), 7),
+            ("Claude", claude_color, (*ImageColor.getrgb(claude_color), 52), 9),
+        ]:
+            means, lows, highs = branch_values(branch, grp)
+            upper = [(x_at(i), y_at(highs[i])) for i in range(len(TONES))]
+            lower = [(x_at(i), y_at(lows[i])) for i in range(len(TONES) - 1, -1, -1)]
+            draw.polygon(upper + lower, fill=band_rgba)
+            pts = [(x_at(i), y_at(value)) for i, value in enumerate(means)]
+            draw_line(pts, line_color, width_line)
+            for xx, yy in pts:
+                draw.ellipse((xx - 13, yy - 13, xx + 13, yy + 13), fill=line_color, outline=WHITE, width=4)
+
+        for i, tone in enumerate(TONES):
+            draw_text(draw, (x_at(i), py1 + 38), tone.title(), axis_bold, INK, anchor="ma")
+
+    def draw_boundary_panel(x, y, w, h):
+        draw_panel_shell(x, y, w, h, "Adaptive outcome vs. recheck")
+        px0, px1 = x + 112, x + w - 52
+        py0, py1 = y + 105, y + h - 136
+        max_rate = 0.70
+
+        def x_at(i):
+            return px0 + (px1 - px0) * i / 2
+
+        def y_at(value):
+            return py1 - (py1 - py0) * min(value, max_rate) / max_rate
+
+        for tick in [0.0, 0.35, 0.70]:
+            yy = y_at(tick)
+            draw.line((px0, yy, px1, yy), fill=LIGHT, width=1)
+            draw_text(draw, (px0 - 16, yy), str(int(tick * 100)), axis_font, MUTED, anchor="rm")
+        draw.line((px0, py1, px1, py1), fill=GRID, width=2)
+
+        for grp, color in [("Claude", claude_color), ("Other", other_color)]:
+            out_values = outcome_series(grp)
+            redo_values = redo_series(grp)
+            out_pts = [(x_at(i), y_at(value)) for i, value in enumerate(out_values)]
+            redo_pts = [(x_at(i), y_at(value)) for i, value in enumerate(redo_values)]
+            draw_line(out_pts, color, 8, dashed=False)
+            draw_line(redo_pts, color, 6, dashed=True)
+            for xx, yy in out_pts:
+                draw.ellipse((xx - 13, yy - 13, xx + 13, yy + 13), fill=color, outline=WHITE, width=4)
+            for xx, yy in redo_pts:
+                draw.rounded_rectangle((xx - 12, yy - 12, xx + 12, yy + 12), radius=4, fill=color, outline=WHITE, width=4)
+            draw_text(draw, (out_pts[-1][0] + 15, out_pts[-1][1]), f"{out_values[-1] * 100:.1f}", value_font, color, anchor="lm")
+            draw_text(draw, (redo_pts[-1][0] + 15, redo_pts[-1][1]), f"{redo_values[-1] * 100:.1f}", value_font, color, anchor="lm")
+
+        for i, tone in enumerate(TONES):
+            draw_text(draw, (x_at(i), py1 + 38), tone.title(), axis_bold, INK, anchor="ma")
+
+    margin, gap = 34, 28
+    panel_w = (width - 2 * margin - 2 * gap) / 3
+    panel_h = 610
+    panel_y = 28
+    draw_tone_panel(margin, panel_y, panel_w, panel_h, "GT", "Model changes from right to wrong", 0.55, [0, 0.15, 0.30, 0.45])
+    draw_tone_panel(margin + panel_w + gap, panel_y, panel_w, panel_h, "NGT", "Model changes answer", 0.90, [0, 0.30, 0.60, 0.90])
+    draw_boundary_panel(margin + 2 * (panel_w + gap), panel_y, panel_w, panel_h)
+
+    legend_entries = [
+        ("Claude family mean", claude_color, "line"),
+        ("Other models mean", other_color, "line"),
+        ("sycophantic outcome", INK, "solid"),
+        ("redo/recheck label", INK, "dashed"),
+    ]
+    total = 0
+    widths = []
+    for label, _, _ in legend_entries:
+        entry_w = 82 + text_w(draw, label, legend_font)
+        widths.append(entry_w)
+        total += entry_w
+    total += 54 * (len(legend_entries) - 1)
+    cursor = (width - total) / 2
+    legend_y = 684
+    for (label, color, kind), entry_w in zip(legend_entries, widths):
+        if kind == "dashed":
+            x0 = cursor
+            while x0 < cursor + 58:
+                draw.line((x0, legend_y, min(cursor + 58, x0 + 18), legend_y), fill=color, width=6)
+                x0 += 28
+            draw.rounded_rectangle((cursor + 22, legend_y - 11, cursor + 44, legend_y + 11), radius=4, fill=color, outline=WHITE, width=3)
+        else:
+            draw.line((cursor, legend_y, cursor + 58, legend_y), fill=color, width=8)
+            draw.ellipse((cursor + 22, legend_y - 11, cursor + 44, legend_y + 11), fill=color, outline=WHITE, width=3)
+        draw_text(draw, (cursor + 72, legend_y), label, legend_font, INK, anchor="lm")
+        cursor += entry_w + 54
+
+    save(im, out_path, padding=6)
+
+
 def figure_confidence_risk_calibration(records, out_path):
     width, height = 2400, 940
     im = Image.new("RGB", (width, height), WHITE)
@@ -816,7 +1026,7 @@ def figure_context_gt_source_decomposition(gt_pairs, out_path):
     width, height = 2500, 920
     im = Image.new("RGB", (width, height), WHITE)
     draw = ImageDraw.Draw(im)
-    draw_header(draw, "Context GT truth departure by source and domain", width)
+    draw_header(draw, "Context model changes from right to wrong by source and domain", width)
     sources = ["MMLU-Pro", "HLE-Verified"]
     x0, y0 = 520, 240
     cell_w, cell_h = 330, 120
@@ -878,7 +1088,7 @@ def figure_context_change_decomposition(gt_pairs, out_path):
         changed = framed.get("answer") != neutral.get("answer")
         departed = framed.get("truth_status") != "correct"
         if departed:
-            counts[model]["truth departure"] += 1
+            counts[model]["right-to-wrong"] += 1
         elif changed:
             counts[model]["changed, still correct"] += 1
         else:
@@ -886,23 +1096,23 @@ def figure_context_change_decomposition(gt_pairs, out_path):
     x0, x1 = 500, 2200
     y0, row_h = 190, 78
     draw_percent_axis(draw, x0, y0 - 24, x1, y0 + row_h * len(CONTEXT_MODELS), 100)
-    colors = {"held correct": "#C9D2DE", "changed, still correct": STATIC, "truth departure": NGT}
+    colors = {"held correct": "#C9D2DE", "changed, still correct": STATIC, "right-to-wrong": NGT}
     for i, model in enumerate(CONTEXT_MODELS):
         y = y0 + i * row_h
         draw_text(draw, (70, y + 28), CONTEXT_LABELS[model], FONT, anchor="lm")
         total = sum(counts[model].values())
         cursor = x0
         cumulative = 0.0
-        for key in ["held correct", "changed, still correct", "truth departure"]:
+        for key in ["held correct", "changed, still correct", "right-to-wrong"]:
             value = pct(counts[model][key] / total) if total else 0.0
             cumulative += value
             xx = bar_x(x0, x1, cumulative)
             if xx > cursor:
                 draw.rounded_rectangle((cursor, y + 8, xx, y + 48), radius=9, fill=colors[key])
             cursor = xx
-        dep = pct(counts[model]["truth departure"] / total) if total else 0.0
+        dep = pct(counts[model]["right-to-wrong"] / total) if total else 0.0
         draw_text(draw, (x1 + 15, y + 28), f"{dep:.1f}", FONT_SMALL, NGT, anchor="lm")
-    draw_legend(draw, [(k, colors[k]) for k in ["held correct", "changed, still correct", "truth departure"]], 640, height - 72, gap=285)
+    draw_legend(draw, [(k, colors[k]) for k in ["held correct", "changed, still correct", "right-to-wrong"]], 640, height - 72, gap=285)
     save(im, out_path)
 
 
@@ -1047,6 +1257,7 @@ def main():
         ("trigger_item_concentration.png", lambda p: figure_item_concentration(records, p)),
         ("trigger_domain_source_susceptibility.png", lambda p: figure_trigger_domain_source(records, p)),
         ("trigger_adaptive_family_lift.png", lambda p: figure_adaptive_family_lift(records, p)),
+        ("trigger_tone_recheck.png", lambda p: figure_tone_recheck_combo(records, judge_rows, judge_meta, p)),
         ("trigger_strong_recheck_boundary.png", lambda p: figure_strong_recheck_boundary(records, judge_rows, judge_meta, p)),
         ("trigger_confidence_risk_calibration.png", lambda p: figure_confidence_risk_calibration(records, p)),
         ("context_gt_source_decomposition.png", lambda p: figure_context_gt_source_decomposition(gt_pairs, p)),

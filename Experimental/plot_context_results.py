@@ -320,7 +320,7 @@ def draw_axes(draw: ImageDraw.ImageDraw, rect: tuple[int, int, int, int]) -> Non
         draw.text((x0 - 26 - (bbox[2] - bbox[0]), y - 20), label, font=F_TICK, fill=MUTED)
     draw.line([(x0, y1), (x1, y1)], fill="#758294", width=4)
     draw.line([(x0, y0), (x0, y1)], fill="#758294", width=4)
-    x_label = "GT Truth Departure (%)"
+    x_label = "Model changes from right to wrong (%)"
     bbox = draw.textbbox((0, 0), x_label, font=F_AXIS)
     draw.text((x0 + (x1 - x0 - (bbox[2] - bbox[0])) / 2, y1 + 74), x_label, font=F_AXIS, fill=INK)
 
@@ -378,7 +378,7 @@ def draw_heatmap(
 ) -> list[tuple[str, tuple[int, int, int, int]]]:
     x0, y0, x1, y1 = rect
     draw.rounded_rectangle([x0 - 34, y0 - 88, x1 + 30, y1 + 52], radius=28, fill=PANEL_BG)
-    title = "Framing Effect by Branch"
+    title = "Framing Effect by GT/NGT"
     bbox = draw.textbbox((0, 0), title, font=F_TITLE)
     draw.text((x0 + (x1 - x0 - (bbox[2] - bbox[0])) / 2, y0 - 70), title, font=F_TITLE, fill=INK)
 
