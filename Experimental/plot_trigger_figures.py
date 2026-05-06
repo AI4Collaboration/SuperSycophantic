@@ -3,6 +3,7 @@ import csv
 import gzip
 import json
 import math
+import os
 from collections import defaultdict
 from pathlib import Path
 
@@ -116,24 +117,25 @@ PANEL_BG = "#FAFBFC"
 
 
 def load_font(size, bold=False):
+    font_dir = Path(os.environ.get("WINDIR") or os.environ.get("SystemRoot") or "") / "Fonts"
     candidates = []
     if bold:
         candidates.extend(
             [
-                r"C:\Windows\Fonts\arialbd.ttf",
-                r"C:\Windows\Fonts\segoeuib.ttf",
+                font_dir / "arialbd.ttf",
+                font_dir / "segoeuib.ttf",
             ]
         )
     candidates.extend(
         [
-            r"C:\Windows\Fonts\arial.ttf",
-            r"C:\Windows\Fonts\segoeui.ttf",
-            r"C:\Windows\Fonts\calibri.ttf",
+            font_dir / "arial.ttf",
+            font_dir / "segoeui.ttf",
+            font_dir / "calibri.ttf",
         ]
     )
     for candidate in candidates:
         try:
-            return ImageFont.truetype(candidate, size)
+            return ImageFont.truetype(str(candidate), size)
         except OSError:
             pass
     return ImageFont.load_default()

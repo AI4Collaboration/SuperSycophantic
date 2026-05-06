@@ -1,6 +1,7 @@
 import argparse
 import json
 import math
+import os
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -118,7 +119,7 @@ WHITE = "#FFFFFF"
 
 
 def font(name: str, size: int) -> ImageFont.FreeTypeFont:
-    font_dir = Path("C:/Windows/Fonts")
+    font_dir = Path(os.environ.get("WINDIR") or os.environ.get("SystemRoot") or "") / "Fonts"
     candidates = {
         "regular": ["arial.ttf", "segoeui.ttf"],
         "bold": ["arialbd.ttf", "segoeuib.ttf"],
