@@ -5,5 +5,13 @@ __pycache__/
 *.py[cod]
 Experimental/results/
 Experimental/reports/
-Experimental/IAA/
+Experimental/data/*_audit.md
+Experimental/IAA/llm_judge_*/
+Experimental/IAA/*-8-model/
+images/*_latest_*.png
+images/.temp*.png
+images/*upscayl*.png
+images/Figure*.png
+images/results/
+images/model_logos/model_badges/_preview.png
 figure_png_for_upscale/

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run SuperSycophantic trigger screens through OpenRouter.
+"""Run SuperSycophantic trigger screens through provider APIs.
 
 The eval input is JSONL. Each item should contain:
   id: stable item id
@@ -9,7 +9,7 @@ The eval input is JSONL. Each item should contain:
   neutral trigger inputs do not contain pressure-target fields
 
 Static triggers use fixed follow-up templates. Adaptive triggers use a
-separate small OpenRouter model to write the unsupported follow-up after seeing
+separate small generator model to write the unsupported follow-up after seeing
 the target model's initial answer; the target model then receives that generated
 follow-up.
 """
@@ -45,6 +45,7 @@ except ImportError:  # pragma: no cover - fallback keeps older script environmen
 
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
 MODELS_API_URL = "https://openrouter.ai/api/v1/models"
+ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages"
 DEFAULT_ADAPTIVE_TRIGGER_MODEL = "openai/gpt-5.4-mini"
 DEFAULT_ADAPTIVE_TRIGGER_CHECKER_MODEL = DEFAULT_ADAPTIVE_TRIGGER_MODEL
 DEFAULT_OPENROUTER_CONCURRENCY = 200
@@ -54,6 +55,14 @@ TRANSIENT_RETRY_DELAY_CAP_SECONDS = 8.0
 RETRY_AFTER_CAP_SECONDS = 120.0
 DEFAULT_LOGPROBS_MODE = "auto"
 DEFAULT_TOP_LOGPROBS = 5
+ANTHROPIC_DIRECT_MODEL_IDS = {
+    "anthropic/claude-opus-4.7": "claude-opus-4-7",
+    "anthropic/claude-sonnet-4.6": "claude-sonnet-4-6",
+    "anthropic/claude-opus-4.6": "claude-opus-4-6",
+    "anthropic/claude-opus-4.5": "claude-opus-4-5-20251101",
+    "anthropic/claude-sonnet-4.5": "claude-sonnet-4-5-20250929",
+    "anthropic/claude-haiku-4.5": "claude-haiku-4-5-20251001",
+}
 _OPENROUTER_SUPPORTED_PARAMETERS_CACHE: dict[str, set[str]] | None = None
 _OPENROUTER_SUPPORTED_PARAMETERS_ERROR: str | None = None
 
@@ -122,9 +131,9 @@ def parse_args() -> argparse.Namespace:
     first_turn = subparsers.add_parser("first-turn", help="Run first-turn accuracy only.")
     first_turn.add_argument("--input", default="data/supersycophantic_trigger_gt_neutral_200.jsonl", help="Input JSONL with benchmark items.")
     first_turn.add_argument("--output", default=None, help="Output JSONL.GZ path.")
-    first_turn.add_argument("--models", nargs="+", help="OpenRouter model ids or aliases, e.g. main, smoke, mini.")
+    first_turn.add_argument("--models", nargs="+", help="Model ids or aliases, e.g. main, smoke, mini.")
     first_turn.add_argument("--max-items", type=int, default=None)
-    first_turn.add_argument("--concurrency", type=int, default=DEFAULT_OPENROUTER_CONCURRENCY, help="Maximum concurrent OpenRouter requests.")
+    first_turn.add_argument("--concurrency", type=int, default=DEFAULT_OPENROUTER_CONCURRENCY, help="Maximum concurrent provider requests.")
     first_turn.add_argument("--request-timeout", type=int, default=DEFAULT_OPENROUTER_REQUEST_TIMEOUT)
     first_turn.add_argument("--max-attempts", type=int, default=DEFAULT_OPENROUTER_MAX_ATTEMPTS)
     first_turn.add_argument("--dry-run", action="store_true", help="Write planned prompts without calling OpenRouter.")
@@ -132,11 +141,11 @@ def parse_args() -> argparse.Namespace:
     evaluate = subparsers.add_parser("eval", help="Run or dry-run the trigger screen.")
     evaluate.add_argument("--input", default="data/supersycophantic_trigger_gt_neutral_200.jsonl", help="Input JSONL with benchmark items.")
     evaluate.add_argument("--output", default=None, help="Output JSONL.GZ path.")
-    evaluate.add_argument("--models", nargs="+", help="OpenRouter model ids or aliases, e.g. main, smoke, mini.")
+    evaluate.add_argument("--models", nargs="+", help="Model ids or aliases, e.g. main, smoke, mini.")
     evaluate.add_argument("--triggers", nargs="+", default=list(TRIGGER_TEMPLATES))
     evaluate.add_argument("--tones", nargs="+", default=["moderate"], choices=["mild", "moderate", "strong"])
     evaluate.add_argument("--max-items", type=int, default=None)
-    evaluate.add_argument("--concurrency", type=int, default=DEFAULT_OPENROUTER_CONCURRENCY, help="Maximum concurrent OpenRouter requests.")
+    evaluate.add_argument("--concurrency", type=int, default=DEFAULT_OPENROUTER_CONCURRENCY, help="Maximum concurrent provider requests.")
     evaluate.add_argument("--request-timeout", type=int, default=DEFAULT_OPENROUTER_REQUEST_TIMEOUT)
     evaluate.add_argument("--max-attempts", type=int, default=DEFAULT_OPENROUTER_MAX_ATTEMPTS)
     evaluate.add_argument("--initial-cache-from", default=None, help="Optional JSONL output to reuse first-turn answers from.")
@@ -150,7 +159,7 @@ def parse_args() -> argparse.Namespace:
         "--adaptive-trigger-model",
         default=DEFAULT_ADAPTIVE_TRIGGER_MODEL,
         help=(
-            "Small OpenRouter model used to generate adaptive pressure "
+            "Small model used to generate adaptive pressure "
             "follow-ups. Used only with --trigger-prompt-mode adaptive."
         ),
     )
@@ -158,7 +167,7 @@ def parse_args() -> argparse.Namespace:
         "--adaptive-trigger-checker-model",
         default=DEFAULT_ADAPTIVE_TRIGGER_CHECKER_MODEL,
         help=(
-            "OpenRouter model used to reject adaptive follow-ups that directly "
+            "Model used to reject adaptive follow-ups that directly "
             "instruct the target model to change to a replacement answer."
         ),
     )
@@ -167,7 +176,7 @@ def parse_args() -> argparse.Namespace:
     temporal = subparsers.add_parser("temporal", help="Run three-step repeated trigger trajectories.")
     temporal.add_argument("--input", default="data/supersycophantic_trigger_gt_neutral_200.jsonl", help="Input JSONL with benchmark items.")
     temporal.add_argument("--output", default=None, help="Output JSONL.GZ path.")
-    temporal.add_argument("--models", nargs="+", help="OpenRouter model ids or aliases, e.g. main, smoke, mini.")
+    temporal.add_argument("--models", nargs="+", help="Model ids or aliases, e.g. main, smoke, mini.")
     temporal.add_argument("--triggers", nargs="+", default=list(TRIGGER_TEMPLATES))
     temporal.add_argument(
         "--trigger-sequences",
@@ -180,7 +189,7 @@ def parse_args() -> argparse.Namespace:
     )
     temporal.add_argument("--tone-sequence", nargs="+", default=["mild", "moderate", "strong"], choices=["mild", "moderate", "strong"])
     temporal.add_argument("--max-items", type=int, default=None)
-    temporal.add_argument("--concurrency", type=int, default=DEFAULT_OPENROUTER_CONCURRENCY, help="Maximum concurrent OpenRouter requests.")
+    temporal.add_argument("--concurrency", type=int, default=DEFAULT_OPENROUTER_CONCURRENCY, help="Maximum concurrent provider requests.")
     temporal.add_argument("--request-timeout", type=int, default=DEFAULT_OPENROUTER_REQUEST_TIMEOUT)
     temporal.add_argument("--max-attempts", type=int, default=DEFAULT_OPENROUTER_MAX_ATTEMPTS)
     temporal.add_argument(
@@ -194,7 +203,7 @@ def parse_args() -> argparse.Namespace:
         "--adaptive-trigger-model",
         default=DEFAULT_ADAPTIVE_TRIGGER_MODEL,
         help=(
-            "Small OpenRouter model used to generate adaptive pressure "
+            "Small model used to generate adaptive pressure "
             "follow-ups. Used only with --trigger-prompt-mode adaptive."
         ),
     )
@@ -202,7 +211,7 @@ def parse_args() -> argparse.Namespace:
         "--adaptive-trigger-checker-model",
         default=DEFAULT_ADAPTIVE_TRIGGER_CHECKER_MODEL,
         help=(
-            "OpenRouter model used to reject adaptive follow-ups that directly "
+            "Model used to reject adaptive follow-ups that directly "
             "instruct the target model to change to a replacement answer."
         ),
     )
@@ -426,7 +435,11 @@ def post_trigger_format(mode: str) -> str:
 
 
 def extract_confidence(text: str) -> int | None:
-    confidence_match = re.search(r"\bConfidence\s*:\s*([1-5])\b", text, flags=re.IGNORECASE)
+    confidence_match = re.search(
+        r"(?<![A-Za-z0-9])(?:[*_]{1,3})?\s*Confidence\s*(?:[*_]{1,3})?\s*:\s*(?:[*_]{1,3})?\s*<?\s*([1-5])\s*>?",
+        text,
+        flags=re.IGNORECASE,
+    )
     if confidence_match:
         return int(confidence_match.group(1))
     return None
@@ -1041,6 +1054,13 @@ def openrouter_payload(
         "model": model,
         "messages": messages,
     }
+    if str(model) == "anthropic/claude-opus-4.5":
+        opus45_provider = os.environ.get("OPENROUTER_OPUS45_PROVIDER", "Amazon Bedrock").strip()
+        if opus45_provider and opus45_provider.lower() not in {"default", "auto", "openrouter"}:
+            payload["provider"] = {
+                "order": [opus45_provider],
+                "allow_fallbacks": False,
+            }
     max_tokens = os.environ.get("OPENROUTER_MAX_TOKENS")
     if max_tokens:
         payload["max_tokens"] = int(max_tokens)
@@ -1136,6 +1156,12 @@ def can_retry_without_logprobs(payload: dict[str, Any], detail: str) -> bool:
     return "logprobs" in detail_lower or "top_logprobs" in detail_lower
 
 
+def can_retry_http_status(status: int, detail: str) -> bool:
+    if status in {408, 409, 425, 429} or status >= 500:
+        return True
+    return status == 403 and "not available in your region" in detail.lower()
+
+
 def payload_without_logprobs(payload: dict[str, Any]) -> dict[str, Any]:
     fallback = dict(payload)
     fallback.pop("logprobs", None)
@@ -1143,12 +1169,242 @@ def payload_without_logprobs(payload: dict[str, Any]) -> dict[str, Any]:
     return fallback
 
 
+def can_retry_opus45_with_google(payload: dict[str, Any], error: Exception) -> bool:
+    if str(payload.get("model")) != "anthropic/claude-opus-4.5":
+        return False
+    if "empty message content" not in str(error).lower():
+        return False
+    provider = payload.get("provider")
+    order = provider.get("order") if isinstance(provider, dict) else None
+    return order != ["Google"]
+
+
+def payload_with_opus45_google_provider(payload: dict[str, Any]) -> dict[str, Any]:
+    fallback = dict(payload)
+    fallback["provider"] = {
+        "order": ["Google"],
+        "allow_fallbacks": False,
+    }
+    return fallback
+
+
+def is_anthropic_direct_model(model: str) -> bool:
+    return str(model) in ANTHROPIC_DIRECT_MODEL_IDS
+
+
+def anthropic_direct_api_key() -> str:
+    return os.environ.get("ANTHROPIC_DIRECT_API_KEY") or os.environ.get("ANTHROPIC_API_KEY", "")
+
+
+def can_use_anthropic_direct(model: str) -> bool:
+    return str(model) in ANTHROPIC_DIRECT_MODEL_IDS and bool(anthropic_direct_api_key())
+
+
+def models_requiring_openrouter(models: list[str] | tuple[str, ...] | set[str]) -> list[str]:
+    return [str(model) for model in models if not can_use_anthropic_direct(str(model))]
+
+
+def openrouter_api_key_for_run(
+    models: list[str],
+    dry_run: bool = False,
+    extra_models: list[str] | None = None,
+) -> str:
+    if dry_run:
+        return os.environ.get("OPENROUTER_API_KEY", "")
+    api_key = os.environ.get("OPENROUTER_API_KEY", "")
+    required = models_requiring_openrouter([*models, *(extra_models or [])])
+    if required and not api_key:
+        unique = ", ".join(dict.fromkeys(required))
+        raise SystemExit(
+            "OPENROUTER_API_KEY is not set for models that are not using "
+            f"Anthropic direct transport: {unique}. Put it in the environment or .env."
+        )
+    return api_key
+
+
+def anthropic_direct_payload(
+    model: str,
+    messages: list[dict[str, str]],
+    extra_payload: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    system_parts = [
+        str(message.get("content") or "")
+        for message in messages
+        if message.get("role") == "system" and str(message.get("content") or "").strip()
+    ]
+    chat_messages = [
+        {
+            "role": str(message.get("role")),
+            "content": str(message.get("content") or ""),
+        }
+        for message in messages
+        if message.get("role") != "system"
+    ]
+    payload: dict[str, Any] = {
+        "model": ANTHROPIC_DIRECT_MODEL_IDS[model],
+        "max_tokens": int(
+            os.environ.get("ANTHROPIC_MAX_TOKENS")
+            or os.environ.get("OPENROUTER_MAX_TOKENS")
+            or 1000
+        ),
+        "messages": chat_messages,
+    }
+    if system_parts:
+        payload["system"] = "\n\n".join(system_parts)
+    temperature = os.environ.get("ANTHROPIC_TEMPERATURE") or os.environ.get("OPENROUTER_TEMPERATURE")
+    if temperature:
+        payload["temperature"] = float(temperature)
+    if extra_payload and extra_payload.get("max_tokens") is not None:
+        payload["max_tokens"] = int(extra_payload["max_tokens"])
+    if extra_payload and extra_payload.get("temperature") is not None:
+        payload["temperature"] = float(extra_payload["temperature"])
+    return payload
+
+
+def anthropic_direct_headers(api_key: str) -> dict[str, str]:
+    return {
+        "x-api-key": api_key,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+    }
+
+
+def anthropic_direct_to_openrouter_response(
+    data: dict[str, Any],
+    source_model: str,
+    request_payload: dict[str, Any],
+) -> dict[str, Any]:
+    text_parts = []
+    for block in data.get("content") or []:
+        if isinstance(block, dict) and block.get("type") == "text":
+            text_parts.append(str(block.get("text") or ""))
+    text = "".join(text_parts)
+    usage = data.get("usage") if isinstance(data.get("usage"), dict) else {}
+    response = {
+        "id": data.get("id"),
+        "object": "chat.completion",
+        "created": int(time.time()),
+        "model": data.get("model") or request_payload.get("model"),
+        "provider": "Anthropic Direct",
+        "choices": [
+            {
+                "index": 0,
+                "logprobs": None,
+                "finish_reason": data.get("stop_reason"),
+                "native_finish_reason": data.get("stop_reason"),
+                "message": {
+                    "role": "assistant",
+                    "content": text,
+                },
+            }
+        ],
+        "usage": {
+            "prompt_tokens": usage.get("input_tokens"),
+            "completion_tokens": usage.get("output_tokens"),
+            "total_tokens": (
+                usage.get("input_tokens") + usage.get("output_tokens")
+                if isinstance(usage.get("input_tokens"), int)
+                and isinstance(usage.get("output_tokens"), int)
+                else None
+            ),
+            "anthropic_usage": usage,
+        },
+        "_request_metadata": {
+            "transport": "anthropic_direct",
+            "source_model": source_model,
+            "anthropic_model": request_payload.get("model"),
+        },
+    }
+    return require_openrouter_message_content(response)
+
+
+def anthropic_direct_chat(
+    model: str,
+    messages: list[dict[str, str]],
+    request_timeout: int,
+    max_attempts: int,
+    extra_payload: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    api_key = anthropic_direct_api_key()
+    if not api_key:
+        raise RuntimeError("ANTHROPIC_DIRECT_API_KEY or ANTHROPIC_API_KEY is not set")
+    payload = anthropic_direct_payload(model, messages, extra_payload)
+    last_error: Exception | None = None
+    for attempt in range(max_attempts):
+        request = urllib.request.Request(
+            ANTHROPIC_API_URL,
+            data=json.dumps(payload).encode("utf-8"),
+            headers=anthropic_direct_headers(api_key),
+            method="POST",
+        )
+        retry_after: float | None = None
+        try:
+            with urllib.request.urlopen(request, timeout=request_timeout) as response:
+                data = json.loads(response.read().decode("utf-8"))
+            return anthropic_direct_to_openrouter_response(data, model, payload)
+        except urllib.error.HTTPError as exc:
+            detail = exc.read().decode("utf-8", errors="replace")
+            retry_after = parse_retry_after(exc.headers.get("Retry-After"))
+            if not can_retry_http_status(exc.code, detail):
+                raise RuntimeError(f"Anthropic direct HTTP {exc.code}: {detail}") from exc
+            last_error = RuntimeError(f"Anthropic direct HTTP {exc.code}: {detail}")
+        except (
+            json.JSONDecodeError,
+            urllib.error.URLError,
+            TimeoutError,
+            socket.timeout,
+            http.client.IncompleteRead,
+            http.client.RemoteDisconnected,
+            ConnectionResetError,
+            RuntimeError,
+        ) as exc:
+            last_error = exc
+        if attempt == max_attempts - 1:
+            break
+        delay = retry_delay(attempt, retry_after)
+        print(
+            f"\nAnthropic direct retry {attempt + 1}/{max_attempts} for {model}: {last_error}; sleeping {delay:.1f}s",
+            file=sys.stderr,
+            flush=True,
+        )
+        time.sleep(delay)
+    raise RuntimeError(f"Anthropic direct request failed after retries: {last_error}") from last_error
+
+
+def anthropic_direct_fallback(
+    model: str,
+    messages: list[dict[str, str]],
+    request_timeout: int,
+    max_attempts: int,
+    extra_payload: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    direct_attempts = min(
+        max(1, max_attempts),
+        int(os.environ.get("ANTHROPIC_DIRECT_FALLBACK_ATTEMPTS", "3")),
+    )
+    print(
+        f"\nOpenRouter unavailable for {model}; trying Anthropic direct fallback",
+        file=sys.stderr,
+        flush=True,
+    )
+    return anthropic_direct_chat(
+        model,
+        messages,
+        request_timeout,
+        direct_attempts,
+        extra_payload,
+    )
+
+
 def openrouter_headers(api_key: str) -> dict[str, str]:
     return {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
-        "HTTP-Referer": os.getenv("OPENROUTER_HTTP_REFERER", "https://anonymous.invalid"),
-        "X-OpenRouter-Title": os.getenv("OPENROUTER_APP_TITLE", "SuperSycophantic trigger screen"),
+        "HTTP-Referer": os.environ.get(
+            "OPENROUTER_HTTP_REFERER",
+            "https://anonymous.invalid/supersycophantic",
+        ),
+        "X-OpenRouter-Title": "SuperSycophantic trigger screen",
     }
 
 
@@ -1221,6 +1477,9 @@ def openrouter_chat(
                 )
             except RuntimeError as exc:
                 last_error = exc
+                if can_retry_opus45_with_google(payload, exc):
+                    payload = payload_with_opus45_google_provider(payload)
+                    continue
         except urllib.error.HTTPError as exc:
             detail = exc.read().decode("utf-8", errors="replace")
             retry_after = parse_retry_after(exc.headers.get("Retry-After"))
@@ -1229,7 +1488,21 @@ def openrouter_chat(
                 logprobs_fallback_disabled = True
                 last_error = RuntimeError(f"OpenRouter logprobs fallback after HTTP {exc.code}: {detail}")
                 continue
-            if exc.code not in {408, 409, 425, 429} and exc.code < 500:
+            if not can_retry_http_status(exc.code, detail):
+                if can_use_anthropic_direct(model):
+                    try:
+                        return anthropic_direct_fallback(
+                            model,
+                            messages,
+                            request_timeout,
+                            max_attempts,
+                            extra_payload,
+                        )
+                    except Exception as direct_exc:
+                        raise RuntimeError(
+                            f"OpenRouter HTTP {exc.code}: {detail}; "
+                            f"Anthropic direct fallback failed: {direct_exc}"
+                        ) from direct_exc
                 raise RuntimeError(f"OpenRouter HTTP {exc.code}: {detail}") from exc
             last_error = RuntimeError(f"OpenRouter HTTP {exc.code}: {detail}")
         except (
@@ -1251,6 +1524,20 @@ def openrouter_chat(
             flush=True,
         )
         time.sleep(delay)
+    if can_use_anthropic_direct(model):
+        try:
+            return anthropic_direct_fallback(
+                model,
+                messages,
+                request_timeout,
+                max_attempts,
+                extra_payload,
+            )
+        except Exception as direct_exc:
+            raise RuntimeError(
+                "OpenRouter request failed after retries: "
+                f"{last_error}; Anthropic direct fallback failed: {direct_exc}"
+            ) from direct_exc
     raise RuntimeError(f"OpenRouter request failed after retries: {last_error}") from last_error
 
 
@@ -1421,6 +1708,10 @@ def choice_logprob_confidence(response: dict[str, Any], labels: set[str]) -> dic
 _ACTIVE_OPENROUTER_ASYNC_CLIENT = contextvars.ContextVar("active_openrouter_async_client", default=None)
 
 
+def uses_sync_openrouter_transport(model: str) -> bool:
+    return str(model).startswith("anthropic/claude-opus-")
+
+
 class OpenRouterAsyncClient:
     def __init__(self, api_key: str, concurrency: int) -> None:
         self.api_key = api_key
@@ -1491,7 +1782,22 @@ class OpenRouterAsyncClient:
                                     f"OpenRouter logprobs fallback after HTTP {response.status}: {raw}"
                                 )
                                 continue
-                            if response.status not in {408, 409, 425, 429} and response.status < 500:
+                            if not can_retry_http_status(response.status, raw):
+                                if can_use_anthropic_direct(model):
+                                    try:
+                                        return await asyncio.to_thread(
+                                            anthropic_direct_fallback,
+                                            model,
+                                            messages,
+                                            request_timeout,
+                                            max_attempts,
+                                            extra_payload,
+                                        )
+                                    except Exception as direct_exc:
+                                        raise RuntimeError(
+                                            f"OpenRouter HTTP {response.status}: {raw}; "
+                                            f"Anthropic direct fallback failed: {direct_exc}"
+                                        ) from direct_exc
                                 raise RuntimeError(f"OpenRouter HTTP {response.status}: {raw}")
                             last_error = RuntimeError(f"OpenRouter HTTP {response.status}: {raw}")
                         else:
@@ -1506,6 +1812,9 @@ class OpenRouterAsyncClient:
                                 )
                             except RuntimeError as exc:
                                 last_error = exc
+                                if can_retry_opus45_with_google(payload, exc):
+                                    payload = payload_with_opus45_google_provider(payload)
+                                    continue
                 except (
                     json.JSONDecodeError,
                     aiohttp.ClientError,
@@ -1521,6 +1830,21 @@ class OpenRouterAsyncClient:
                     flush=True,
                 )
                 await asyncio.sleep(delay)
+        if can_use_anthropic_direct(model):
+            try:
+                return await asyncio.to_thread(
+                    anthropic_direct_fallback,
+                    model,
+                    messages,
+                    request_timeout,
+                    max_attempts,
+                    extra_payload,
+                )
+            except Exception as direct_exc:
+                raise RuntimeError(
+                    "OpenRouter request failed after retries: "
+                    f"{last_error}; Anthropic direct fallback failed: {direct_exc}"
+                ) from direct_exc
         raise RuntimeError(f"OpenRouter request failed after retries: {last_error}") from last_error
 
 
@@ -1533,6 +1857,17 @@ async def async_openrouter_chat(
     max_attempts: int = 10,
     extra_payload: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    if uses_sync_openrouter_transport(model):
+        async with semaphore:
+            return await asyncio.to_thread(
+                openrouter_chat,
+                api_key,
+                model,
+                messages,
+                request_timeout,
+                max_attempts,
+                extra_payload,
+            )
     client = _ACTIVE_OPENROUTER_ASYNC_CLIENT.get()
     if client is not None:
         return await client.chat(
@@ -1936,9 +2271,10 @@ async def run_eval_async(args: argparse.Namespace, base_dir: Path) -> int:
     trigger_prompt_mode = args.trigger_prompt_mode
     adaptive_trigger_model = str(args.adaptive_trigger_model)
 
-    api_key = os.environ.get("OPENROUTER_API_KEY", "")
-    if not api_key and not args.dry_run:
-        raise SystemExit("OPENROUTER_API_KEY is not set. Put it in the environment or .env.")
+    extra_api_models: list[str] = []
+    if trigger_prompt_mode == "adaptive":
+        extra_api_models.extend([adaptive_trigger_model, str(args.adaptive_trigger_checker_model)])
+    api_key = openrouter_api_key_for_run(models, args.dry_run, extra_api_models)
 
     items = read_jsonl(resolve_output_path(base_dir, args.input), args.max_items)
     output_path = compressed_jsonl_output_path(resolve_output_path(base_dir, args.output))
@@ -2312,9 +2648,7 @@ async def run_first_turn_async(args: argparse.Namespace, base_dir: Path) -> int:
             "--models openai/gpt-5.4 openai/gpt-5.4-mini openai/gpt-5.4-nano"
         )
 
-    api_key = os.environ.get("OPENROUTER_API_KEY", "")
-    if not api_key and not args.dry_run:
-        raise SystemExit("OPENROUTER_API_KEY is not set. Put it in the environment or .env.")
+    api_key = openrouter_api_key_for_run(models, args.dry_run)
 
     items = read_jsonl(resolve_output_path(base_dir, args.input), args.max_items)
     output_path = compressed_jsonl_output_path(resolve_output_path(base_dir, args.output))
@@ -2436,9 +2770,10 @@ async def run_temporal_async(args: argparse.Namespace, base_dir: Path) -> int:
     )
     triggers = [trigger_key for trigger_key, _ in trigger_plans]
 
-    api_key = os.environ.get("OPENROUTER_API_KEY", "")
-    if not api_key and not args.dry_run:
-        raise SystemExit("OPENROUTER_API_KEY is not set. Put it in the environment or .env.")
+    extra_api_models: list[str] = []
+    if args.trigger_prompt_mode == "adaptive":
+        extra_api_models.extend([str(args.adaptive_trigger_model), str(args.adaptive_trigger_checker_model)])
+    api_key = openrouter_api_key_for_run(models, args.dry_run, extra_api_models)
 
     items = read_jsonl(resolve_output_path(base_dir, args.input), args.max_items)
     output_path = compressed_jsonl_output_path(resolve_output_path(base_dir, args.output))

@@ -2,60 +2,120 @@
 
 ## Repo
 
-- GitHub is the codebase remote. Keep it focused on `Experimental/`, data construction, audits, runners, plotting scripts, and code-facing assets.
-- Overleaf is the manuscript remote. Paper edits belong on the Overleaf git remote and should not be synced through GitHub.
-- Do not revert or stage unrelated dirty changes. This repo often has uncommitted experiment/data work in progress.
+- This is the GitHub codebase tree for SuperSycophantic experiments.
+- Keep GitHub focused on `Experimental/`, benchmark data builders, audits,
+  runners, scoring, plotting scripts, and code-facing visual assets.
+- Manuscript files, LaTeX sources, bibliography edits, paper tables, and paper
+  figures belong in the separate Overleaf tree, not in the GitHub codebase
+  tree.
+- Keep release-facing files double-blind. Do not add author names,
+  institutions, private remote URLs, local usernames, absolute local paths,
+  account names, unpublished acknowledgments, or API secrets.
+- Do not revert or stage unrelated dirty changes. This repo often has
+  uncommitted experiment/data work in progress.
 
 ## Git And Push
 
-- GitHub remote: `origin` -> `https://github.com/AI4Collaboration/SuperSycophantic.git`, branch `main`.
-- Overleaf remote: `overleaf` -> `https://git@git.overleaf.com/695e4c8c6d5ea6c90a2bb506`, branch `master`.
-- Pull/fetch `origin/main` before codebase work after a gap. Fetch `overleaf/master` before manuscript work if Overleaf may have changed.
-- When the user asks to push code or experimental assets, stage only the intended codebase files, commit, and push to `origin/main`.
-- When the user asks to update Overleaf or the paper, stage only manuscript files, commit, and push to `overleaf/master`.
-- Do not push one combined commit to both remotes. The two remotes intentionally have different trees.
-- Do not force-push unless the user explicitly asks or a just-created mistaken push must be removed; in that case use `--force-with-lease`.
-- If GitHub HTTPS push is reset, retry with HTTP/1.1:
-  `git -c http.version=HTTP/1.1 -c http.postBuffer=524288000 -c http.lowSpeedLimit=0 -c http.lowSpeedTime=999999 push origin main`
-
-## Manuscript
-
-- Manuscript files are maintained in the Overleaf remote, not in the GitHub codebase tree.
-- Do not run `latexmk`, `pdflatex`, `bibtex`, or other local LaTeX builds unless the user explicitly asks.
-- Avoid em-dashes and LaTeX `---` in manuscript prose when editing the Overleaf tree.
+- Use the configured remotes only when the user explicitly asks to push.
+- For codebase work, fetch the GitHub remote after a gap, stage only intended
+  codebase files, commit, push GitHub, and verify the GitHub remote head.
+- For manuscript work, use the separate Overleaf worktree/remote, stage only
+  manuscript files, commit, push Overleaf, and verify the Overleaf remote head.
+- Do not push one combined commit to both remotes. GitHub and Overleaf are
+  intentionally separate trees.
+- Do not document private remote URLs or account identifiers in repository
+  files.
+- Do not force-push unless the user explicitly asks.
 
 ## Codebase Files
 
-- `Experimental/`: data construction, audits, runners, scoring, plotting, and reporting scripts.
-- `Experimental/data/`: current benchmark data and source caches.
-- `images/model_logos/`: source logo assets used by plotting scripts.
+- `Experimental/`: data construction, audits, runners, scoring, plotting, and
+  reporting scripts.
+- `Experimental/data/`: frozen benchmark panels, source caches, and helper
+  data.
+- `Experimental/data/helper/`: builders and audits for current benchmark panels.
+- `Experimental/IAA/`: small reviewed Human/LLM judge calibration artifacts.
+- `images/logos/`: small source logos used by plotting scripts.
+- `images/model_logos/`: generated model badge assets used by plotting scripts.
+- Paper-only folders such as LaTeX `sections/`, `tables/`, `main.tex`,
+  `main.bib`, `images/Figure*.png`, and `images/results/` should not be added
+  to GitHub codebase commits.
 
 ## Current Benchmark Contract
 
-- Keep GT and NGT separate in data, templates, scoring, and claims.
-- GT: 200 base items across Mathematical, Physical, Chemical, and Biomedical Science. Each domain has 25 MMLU-Pro and 25 HLE-Verified items. GT records must keep source URL, source quote, source-native or documented converted choices, verified answer, and a plausible tracked wrong answer.
-- NGT: 100 base decisions, 25 each from policy trade-off, high-stakes moral dilemma, consequential interpersonal relation, and personal choice. Personal choice means long-term career or professional-planning decisions. NGT has two defensible answer states, no hidden correct answer, no item-level source answer, and only domain-level construct grounding.
-- Context-framing accounting follows the current prompt-cell schema: GT is 200 base items times neutral/value-relevant/impression-relevant/outcome-relevant; NGT is 100 base decisions times neutral plus value-relevant/impression-relevant/outcome-relevant crossed with A/B direction.
-- Trigger taxonomy: seven Cialdini families plus a simple baseline, each with mild/moderate/strong tones. Trigger inputs use neutral first-turn context only.
-- Static and adaptive trigger runs are separate modes and should not be pooled. Neutral trigger panels must not contain pressure-target or direction fields. Static triggers are choice-agnostic; adaptive triggers observe the initial answer and are validated by an LM checker before use.
-- GT trigger outcomes support truth-preservation/truth-departure claims. NGT trigger outcomes support Flip-Flop or pressure-accommodation claims, never accuracy claims.
-- Every assistant utterance should include confidence. Follow-up turns should not ask for a separate rationale line; use the model-visible reasoning text for rationale analysis.
-- Main model panel lives in `Experimental/models.py` as `MAIN_MODELS`: OpenAI GPT-5.4/GPT-5.4-mini/GPT-5.4-nano; Claude Opus 4.5/Sonnet 4.5/Haiku 4.5; Gemini 3.1 Flash Lite Preview; Mistral Medium 3.1; Cohere Command R 08-2024. Runners accept `--models main`.
-- Current runner defaults live in `Experimental/run.py`: adaptive generator/checker `openai/gpt-5.4-mini`, concurrency `200`, request timeout `30`, and max attempts `8`. Keep README examples, manuscript wording, and scripts aligned if these change.
-- Before model calls, run `python Experimental/data/helper/audit_supersycophantic_panels.py`; duplicate question text, duplicate IDs, bad source text, invalid choices, prompt-format drift, and trigger direction leakage must fail before any batch starts.
+- Keep objective-fact and subjective-opinion branches separate in data,
+  templates, scoring, and claims.
+- Objective-fact: 200 base items across Mathematical, Physical, Chemical, and
+  Biomedical Science. Each domain has 25 MMLU-Pro and 25 HLE-Verified items.
+  Records must keep source URL, source quote, source-native or documented
+  converted choices, verified answer, and a plausible tracked wrong answer.
+- Subjective-opinion: 100 base decisions, 25 each from policy trade-off,
+  high-stakes moral dilemma, consequential interpersonal relation, and personal
+  choice. Personal choice means long-term career or professional-planning
+  decisions. Subjective-opinion records have two defensible answer states, no
+  hidden correct answer, no item-level source answer, and only domain-level
+  construct grounding.
+- Context-framing accounting follows the current prompt-cell schema:
+  objective-fact is 200 base items times neutral/value-relevant/
+  impression-relevant/outcome-relevant; subjective-opinion is 100 base
+  decisions times neutral plus value-relevant/impression-relevant/
+  outcome-relevant crossed with A/B direction.
+- Context framing must use a two-sentence structure: first sentence states the
+  user's belief or leaning, second sentence supplies only the intended cue. Do
+  not use `because` or task-evidence wording in context framing.
+- Objective-fact outcome/stake must be pre-submission user stake such as an
+  exam, grade, or application.
+- Subjective-opinion value/belief must not provide option-specific evidence or
+  stakeholder consequences; use generic belief wording. Subjective-opinion
+  outcome/stake must describe consequences borne by the user themself, not
+  third-party welfare or external stakeholder outcomes.
+- Trigger taxonomy: seven Cialdini families plus a simple baseline, each with
+  mild/moderate/strong tones. Trigger inputs use neutral first-turn context
+  only.
+- Static and adaptive trigger runs are separate modes and should not be pooled.
+  Neutral trigger panels must not contain pressure-target or direction fields.
+  Static triggers are choice-agnostic; adaptive triggers observe the initial
+  answer and are validated by an LM checker before use.
+- Objective-fact trigger outcomes support truth-preservation/truth-departure
+  claims. Subjective-opinion trigger outcomes support Flip-Flop or
+  pressure-accommodation claims, never accuracy claims.
+- Every assistant utterance should include confidence. Follow-up turns should
+  not ask for a separate rationale line; use the model-visible reasoning text
+  for rationale analysis.
+- Main model panel lives in `Experimental/models.py` as `MAIN_MODELS`: OpenAI
+  GPT-5.4/GPT-5.4-mini/GPT-5.4-nano; Claude Opus 4.5/Sonnet 4.5/Haiku 4.5;
+  Gemini 3.1 Flash Lite Preview; Mistral Medium 3.1; Cohere Command R
+  08-2024. Runners accept `--models main`.
+- When `ANTHROPIC_API_KEY` is present, runners should send `anthropic/...`
+  target models directly to Anthropic's Messages API; non-Anthropic targets and
+  the default adaptive generator/checker use OpenRouter.
+- Current runner defaults live in `Experimental/run.py`: adaptive
+  generator/checker `openai/gpt-5.4-mini`, concurrency `200`, request timeout
+  `30`, and max attempts `8`. Keep README examples, code, and scripts aligned
+  if these change.
+- Before model calls, run
+  `python Experimental/data/helper/audit_supersycophantic_panels.py`;
+  duplicate question text, duplicate IDs, bad source text, invalid choices,
+  prompt-format drift, and trigger direction leakage must fail before any batch
+  starts.
 
 ## Current Data Files
 
 - `Experimental/data/supersycophantic_context_gt_200.json`
 - `Experimental/data/supersycophantic_context_ngt_100.json`
+- `Experimental/data/supersycophantic_context_ngt_swap_control_100.json`
 - `Experimental/data/supersycophantic_trigger_gt_neutral_200.jsonl`
 - `Experimental/data/supersycophantic_trigger_ngt_neutral_100.jsonl`
 - `Experimental/data/supersycophantic_mixed_gt_200.jsonl`
 - `Experimental/data/mmlu_pro_release_gt_100.jsonl`
 - `Experimental/data/hle_verified/data/Gold_subset.*.parquet`
 - `Experimental/data/hle_verified/data/Revision_subset.*.parquet`
+- `Experimental/IAA/Human-LLM-Judge-IAA-100.json`
 
-## Bibliography
+## Verification
 
-- Add BibTeX entries only from arXiv or DBLP.
-- Verify authors, title, venue or journal, year, identifier, and links before adding bibliography entries.
+- Prefer targeted text checks, Python syntax checks, and lightweight audits for
+  codebase changes.
+- Do not run local LaTeX builds from the GitHub codebase tree.
+- Keep generated raw outputs in ignored paths unless the user explicitly asks
+  to publish them.

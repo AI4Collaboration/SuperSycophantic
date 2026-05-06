@@ -64,45 +64,50 @@ LOGO_FILES = {
     "cohere": REPO_ROOT / "images" / "logos" / "cohere.png",
 }
 
-MODEL_SIZE_TIER = {
-    "openai/gpt-5.4": "large",
-    "openai/gpt-5.4-mini": "medium",
-    "openai/gpt-5.4-nano": "small",
-    "anthropic/claude-opus-4.5": "large",
-    "anthropic/claude-sonnet-4.5": "medium",
-    "anthropic/claude-haiku-4.5": "small",
-    "google/gemini-3.1-flash-lite-preview": "small",
-    "mistralai/mistral-medium-3.1": "medium",
-    "cohere/command-r-08-2024": "medium",
+PROVIDER_COLORS = {
+    "openai": "#6E59C9",
+    "anthropic": "#C86A45",
+    "google": "#3B78E7",
+    "mistralai": "#D45A2A",
+    "cohere": "#2F6659",
 }
 
-SIZE_TIER_STYLE = {
-    "small": {"fill": (59, 130, 246, 82), "outline": (29, 78, 216, 230)},
-    "medium": {"fill": (20, 184, 166, 78), "outline": (13, 148, 136, 230)},
-    "large": {"fill": (168, 85, 247, 86), "outline": (109, 40, 217, 230)},
+BADGE_PX = {
+    "openai/gpt-5.4": 150,
+    "openai/gpt-5.4-mini": 136,
+    "openai/gpt-5.4-nano": 122,
+    "anthropic/claude-opus-4.5": 148,
+    "anthropic/claude-sonnet-4.5": 138,
+    "anthropic/claude-haiku-4.5": 122,
+    "google/gemini-3.1-flash-lite-preview": 126,
+    "mistralai/mistral-medium-3.1": 132,
+    "cohere/command-r-08-2024": 132,
 }
 
-BADGE_PX = 134
 LOGO_FILL = {
-    "openai": 0.49,
-    "anthropic": 0.54,
-    "google": 0.50,
-    "mistralai": 0.52,
-    "cohere": 0.55,
+    "openai/gpt-5.4": 0.76,
+    "openai/gpt-5.4-mini": 0.67,
+    "openai/gpt-5.4-nano": 0.58,
+    "anthropic/claude-opus-4.5": 0.76,
+    "anthropic/claude-sonnet-4.5": 0.69,
+    "anthropic/claude-haiku-4.5": 0.58,
+    "google/gemini-3.1-flash-lite-preview": 0.60,
+    "mistralai/mistral-medium-3.1": 0.68,
+    "cohere/command-r-08-2024": 0.66,
 }
 
-# Offsets move dense logo clusters slightly apart. Thin hairlines keep the
-# plotted metric anchor unambiguous while avoiding overlapping logo badges.
+# Offsets move large labels away from dense metric clusters. Thin hairlines keep
+# the plotted metric anchor unambiguous while avoiding overlapping logos.
 SCATTER_OFFSETS = {
-    "openai/gpt-5.4": (-70, -12),
-    "anthropic/claude-opus-4.5": (-82, 58),
-    "anthropic/claude-sonnet-4.5": (148, -110),
-    "anthropic/claude-haiku-4.5": (90, 36),
-    "google/gemini-3.1-flash-lite-preview": (-20, -78),
-    "mistralai/mistral-medium-3.1": (118, -18),
-    "openai/gpt-5.4-mini": (80, -62),
-    "openai/gpt-5.4-nano": (68, -10),
-    "cohere/command-r-08-2024": (-52, -66),
+    "openai/gpt-5.4": (-210, -10),
+    "anthropic/claude-opus-4.5": (-210, 160),
+    "anthropic/claude-sonnet-4.5": (158, 92),
+    "anthropic/claude-haiku-4.5": (188, 70),
+    "google/gemini-3.1-flash-lite-preview": (-20, -170),
+    "mistralai/mistral-medium-3.1": (240, 10),
+    "openai/gpt-5.4-mini": (210, -154),
+    "openai/gpt-5.4-nano": (118, -58),
+    "cohere/command-r-08-2024": (-102, -122),
 }
 
 INK = "#1D2733"
@@ -147,38 +152,6 @@ def trim_alpha(img: Image.Image) -> Image.Image:
     return img.crop(bbox) if bbox else img
 
 
-def drop_near_white_background(img: Image.Image) -> Image.Image:
-    rgba = img.convert("RGBA")
-    pixels = rgba.load()
-    for y in range(rgba.height):
-        for x in range(rgba.width):
-            r, g, b, a = pixels[x, y]
-            if a and r >= 245 and g >= 245 and b >= 245:
-                pixels[x, y] = (r, g, b, 0)
-    return rgba
-
-
-def trim_white(img: Image.Image, padding: int = 28) -> Image.Image:
-    rgb = img.convert("RGB")
-    pix = rgb.load()
-    width, height = rgb.size
-
-    def nonwhite_pixel(x: int, y: int) -> bool:
-        return pix[x, y] != (255, 255, 255)
-
-    top = next((y for y in range(height) if any(nonwhite_pixel(x, y) for x in range(width))), 0)
-    bottom = next((y for y in range(height - 1, -1, -1) if any(nonwhite_pixel(x, y) for x in range(width))), height - 1)
-    left = next((x for x in range(width) if any(nonwhite_pixel(x, y) for y in range(height))), 0)
-    right = next((x for x in range(width - 1, -1, -1) if any(nonwhite_pixel(x, y) for y in range(height))), width - 1)
-    crop = (
-        max(0, left - padding),
-        max(0, top - padding),
-        min(width, right + padding + 1),
-        min(height, bottom + padding + 1),
-    )
-    return rgb.crop(crop)
-
-
 def load_provider_logo(provider: str) -> Image.Image:
     path = LOGO_FILES[provider]
     img = Image.open(path)
@@ -190,7 +163,7 @@ def load_provider_logo(provider: str) -> Image.Image:
             if candidate.width * candidate.height > best.width * best.height:
                 best = candidate
         img = best
-    return trim_alpha(drop_near_white_background(img))
+    return trim_alpha(img)
 
 
 def fit_image(img: Image.Image, max_side: int) -> Image.Image:
@@ -200,25 +173,26 @@ def fit_image(img: Image.Image, max_side: int) -> Image.Image:
 
 
 def make_badge(model: str) -> Image.Image:
-    size = BADGE_PX
+    size = BADGE_PX[model]
     provider = PROVIDER[model]
-    tier = MODEL_SIZE_TIER[model]
-    style = SIZE_TIER_STYLE[tier]
     badge = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(badge)
-    shadow_offset = max(4, size // 28)
-    draw.ellipse(
-        [5, 8 + shadow_offset, size - 6, size - 5 + shadow_offset],
-        fill=(15, 23, 42, 22),
+    radius = max(16, size // 7)
+    draw.rounded_rectangle(
+        [3, 3, size - 4, size - 4],
+        radius=radius,
+        fill=WHITE,
+        outline="#D7DFE8",
+        width=3,
     )
-    draw.ellipse(
-        [4, 4, size - 5, size - 5],
-        fill=style["fill"],
-        outline=style["outline"],
-        width=6,
+    draw.rounded_rectangle(
+        [6, 6, size - 7, size - 7],
+        radius=max(12, radius - 4),
+        outline=PROVIDER_COLORS[provider],
+        width=3,
     )
     logo = load_provider_logo(provider)
-    logo = fit_image(logo, round(size * LOGO_FILL[provider]))
+    logo = fit_image(logo, round(size * LOGO_FILL[model]))
     badge.alpha_composite(logo, ((size - logo.width) // 2, (size - logo.height) // 2))
     return badge
 
@@ -232,15 +206,6 @@ def text_size(draw: ImageDraw.ImageDraw, text: str, fnt: ImageFont.FreeTypeFont)
         widths.append(bbox[2] - bbox[0])
         heights.append(bbox[3] - bbox[1])
     return max(widths) if widths else 0, sum(heights) + max(0, len(lines) - 1) * 6
-
-
-def rotated_label(img: Image.Image, xy: tuple[int, int], text: str, fnt: ImageFont.FreeTypeFont, fill: str) -> None:
-    bbox = ImageDraw.Draw(Image.new("RGBA", (1, 1))).textbbox((0, 0), text, font=fnt)
-    label = Image.new("RGBA", (bbox[2] - bbox[0] + 8, bbox[3] - bbox[1] + 8), (0, 0, 0, 0))
-    label_draw = ImageDraw.Draw(label)
-    label_draw.text((4 - bbox[0], 4 - bbox[1]), text, font=fnt, fill=fill)
-    label = label.rotate(270, expand=True)
-    img.alpha_composite(label, xy)
 
 
 def draw_centered_text(
@@ -325,9 +290,15 @@ def draw_axes(draw: ImageDraw.ImageDraw, rect: tuple[int, int, int, int]) -> Non
         draw.text((x0 - 26 - (bbox[2] - bbox[0]), y - 20), label, font=F_TICK, fill=MUTED)
     draw.line([(x0, y1), (x1, y1)], fill="#758294", width=4)
     draw.line([(x0, y0), (x0, y1)], fill="#758294", width=4)
-    x_label = "Model changes from right to wrong (%)"
+    x_label = "GT Truth Departure (%)"
     bbox = draw.textbbox((0, 0), x_label, font=F_AXIS)
     draw.text((x0 + (x1 - x0 - (bbox[2] - bbox[0])) / 2, y1 + 74), x_label, font=F_AXIS, fill=INK)
+    y_label = "NGT User-View Lift (%)"
+    y_img = Image.new("RGBA", (560, 76), (0, 0, 0, 0))
+    yd = ImageDraw.Draw(y_img)
+    yd.text((0, 0), y_label, font=F_AXIS, fill=INK)
+    y_img = y_img.rotate(90, expand=True)
+    draw.bitmap((x0 - 168, y0 + (y1 - y0 - y_img.height) // 2), y_img, fill=None)
 
 
 def draw_scatter(
@@ -337,11 +308,11 @@ def draw_scatter(
     rect: tuple[int, int, int, int],
 ) -> list[tuple[str, tuple[int, int, int, int]]]:
     x0, y0, x1, y1 = rect
+    title = "Model-level Context Susceptibility"
+    bbox = draw.textbbox((0, 0), title, font=F_TITLE)
+    draw.text((x0 + (x1 - x0 - (bbox[2] - bbox[0])) / 2, 58), title, font=F_TITLE, fill=INK)
+
     draw_axes(draw, rect)
-    y_label = "NGT User-View Lift (%)"
-    label_box = ImageDraw.Draw(Image.new("RGBA", (1, 1))).textbbox((0, 0), y_label, font=F_AXIS)
-    label_h = label_box[2] - label_box[0] + 8
-    rotated_label(base, (x0 - 164, y0 + (y1 - y0 - label_h) // 2), y_label, F_AXIS, INK)
     metrics = metric_bundle(summary)
     bboxes = []
 
@@ -358,15 +329,20 @@ def draw_scatter(
         cx = int(max(x0 + 84, min(x1 - 84, mx + dx)))
         cy = int(max(y0 + 88, min(y1 - 50, my + dy)))
         badge = make_badge(model)
-        left = cx - badge.width // 2
-        top = cy - badge.height // 2
-        right = left + badge.width
-        bottom = top + badge.height
+        label = SHORT_LABELS[model]
+        label_w, label_h = text_size(draw, label, F_MODEL)
+        total_w = max(badge.width, label_w)
+        total_h = badge.height + 12 + label_h
+        left = cx - total_w // 2
+        top = cy - total_h // 2
+        right = cx + math.ceil(total_w / 2)
+        bottom = top + total_h
 
         if abs(cx - mx) > 24 or abs(cy - my) > 24:
-            draw.line([(mx, my), (cx, cy)], fill="#B5C0CE", width=2)
+            draw.line([(mx, my), (cx, top + badge.height / 2)], fill="#B5C0CE", width=2)
 
-        base.alpha_composite(badge, (int(left), int(top)))
+        base.alpha_composite(badge, (int(cx - badge.width / 2), int(top)))
+        draw_centered_text(draw, cx, int(top + badge.height + 12), label, F_MODEL, fill=INK)
         bboxes.append((model, (int(left), int(top), int(right), int(bottom))))
     return bboxes
 
@@ -377,10 +353,12 @@ def draw_heatmap(
     rect: tuple[int, int, int, int],
 ) -> list[tuple[str, tuple[int, int, int, int]]]:
     x0, y0, x1, y1 = rect
-    draw.rounded_rectangle([x0 - 34, y0 - 88, x1 + 30, y1 + 52], radius=28, fill=PANEL_BG)
-    title = "Framing Effect by GT/NGT"
+    title = "Framing Effect by Branch"
     bbox = draw.textbbox((0, 0), title, font=F_TITLE)
-    draw.text((x0 + (x1 - x0 - (bbox[2] - bbox[0])) / 2, y0 - 70), title, font=F_TITLE, fill=INK)
+    draw.text((x0 + (x1 - x0 - (bbox[2] - bbox[0])) / 2, 58), title, font=F_TITLE, fill=INK)
+    sub = "Change from neutral, percentage points"
+    bbox = draw.textbbox((0, 0), sub, font=F_TICK)
+    draw.text((x0 + (x1 - x0 - (bbox[2] - bbox[0])) / 2, 126), sub, font=F_TICK, fill=MUTED)
 
     row_label_w = 250
     top_label_h = 110
@@ -426,18 +404,22 @@ def draw_shift_panel(
     summary: dict,
     rect: tuple[int, int, int, int],
     title: str,
+    subtitle: str,
     branch: str,
     x_min: float,
     x_max: float,
 ) -> list[tuple[str, tuple[int, int, int, int]]]:
     x0, y0, x1, y1 = rect
-    draw.rounded_rectangle([x0 - 18, y0 - 22, x1 + 18, y1 + 66], radius=26, fill=PANEL_BG)
     title_box = draw.textbbox((0, 0), title, font=F_SHIFT_TITLE)
-    draw.text((x0 + (x1 - x0 - (title_box[2] - title_box[0])) / 2, y0 + 18), title, font=F_SHIFT_TITLE, fill=INK)
+    draw.text((x0 + (x1 - x0 - (title_box[2] - title_box[0])) / 2, y0 - 128), title, font=F_SHIFT_TITLE, fill=INK)
+    sub_box = draw.textbbox((0, 0), subtitle, font=F_SHIFT_SUB)
+    draw.text((x0 + (x1 - x0 - (sub_box[2] - sub_box[0])) / 2, y0 - 64), subtitle, font=F_SHIFT_SUB, fill=MUTED)
+
+    draw.rounded_rectangle([x0 - 18, y0 - 22, x1 + 18, y1 + 66], radius=26, fill=PANEL_BG)
 
     plot_left = x0 + 230
     plot_right = x1 - 34
-    plot_top = y0 + 96
+    plot_top = y0 + 40
     row_gap = (y1 - plot_top - 80) / (len(MODEL_ORDER) - 1)
 
     def x_map(v: float) -> float:
@@ -500,16 +482,20 @@ def draw_shift_panel(
     return boxes
 
 
-def save_shift_plot(summary: dict, out_png: Path, out_pdf: Path) -> None:
-    width, height = 3300, 1190
+def save_shift_plot(summary: dict, out_png: Path | None, out_pdf: Path | None) -> None:
+    width, height = 3300, 1450
     img = Image.new("RGBA", (width, height), WHITE)
     draw = ImageDraw.Draw(img)
+    title = "Neutral-to-Framed Movement"
+    box = draw.textbbox((0, 0), title, font=F_TITLE)
+    draw.text((width / 2 - (box[2] - box[0]) / 2, 54), title, font=F_TITLE, fill=INK)
 
     left_boxes = draw_shift_panel(
         draw,
         summary,
-        (120, 58, 1575, 1026),
+        (120, 270, 1575, 1260),
         "GT",
+        "Neutral accuracy to framed accuracy",
         "gt",
         0,
         75,
@@ -517,8 +503,9 @@ def save_shift_plot(summary: dict, out_png: Path, out_pdf: Path) -> None:
     right_boxes = draw_shift_panel(
         draw,
         summary,
-        (1715, 58, 3170, 1026),
+        (1715, 270, 3170, 1260),
         "NGT",
+        "Neutral user-view rate to framed user-view rate",
         "ngt",
         45,
         90,
@@ -526,7 +513,7 @@ def save_shift_plot(summary: dict, out_png: Path, out_pdf: Path) -> None:
     assert_no_overlap("shift-left", left_boxes)
     assert_no_overlap("shift-right", right_boxes)
 
-    legend_y = 1120
+    legend_y = 1346
     legend_x = 1210
     draw.ellipse([legend_x, legend_y - 14, legend_x + 28, legend_y + 14], fill="#4C78A8", outline=WHITE, width=3)
     draw.text((legend_x + 42, legend_y - 20), "Neutral", font=F_SHIFT_LEGEND, fill=INK)
@@ -537,10 +524,15 @@ def save_shift_plot(summary: dict, out_png: Path, out_pdf: Path) -> None:
     draw.ellipse([legend_x, legend_y - 14, legend_x + 28, legend_y + 14], fill="#2BAE66", outline=WHITE, width=3)
     draw.text((legend_x + 42, legend_y - 20), "NGT framed", font=F_SHIFT_LEGEND, fill=INK)
 
-    out_png.parent.mkdir(parents=True, exist_ok=True)
-    rgb = trim_white(img, padding=8)
-    rgb.save(out_png, dpi=(360, 360), optimize=True)
-    rgb.save(out_pdf, resolution=360)
+    output_parent = (out_png or out_pdf).parent if (out_png or out_pdf) else None
+    if output_parent is None:
+        return
+    output_parent.mkdir(parents=True, exist_ok=True)
+    rgb = img.convert("RGB")
+    if out_png:
+        rgb.save(out_png, dpi=(360, 360), optimize=True)
+    if out_pdf:
+        rgb.save(out_pdf, resolution=360)
 
 
 def overlaps(a: tuple[int, int, int, int], b: tuple[int, int, int, int], pad: int = 8) -> bool:
@@ -565,12 +557,13 @@ def main() -> None:
         default=REPO_ROOT / "Experimental" / "results" / "context_20260504_184050_context_main_summary.json",
         type=Path,
     )
-    parser.add_argument("--out-png", default=REPO_ROOT / "images" / "results" / "context_results.png", type=Path)
-    parser.add_argument("--out-pdf", default=REPO_ROOT / "images" / "results" / "context_results.pdf", type=Path)
+    parser.add_argument("--out-png", default=None, type=Path, help="Optional legacy composite PNG output.")
+    parser.add_argument("--out-pdf", default=None, type=Path, help="Optional legacy composite PDF output.")
     parser.add_argument(
         "--out-shift-png",
-        default=REPO_ROOT / "images" / "results" / "context_neutral_shift.png",
+        default=None,
         type=Path,
+        help="Optional PNG copy of the current context shift figure.",
     )
     parser.add_argument(
         "--out-shift-pdf",
@@ -584,23 +577,31 @@ def main() -> None:
     if missing:
         raise RuntimeError(f"Summary missing models: {missing}")
 
-    width, height = 3900, 1500
-    img = Image.new("RGBA", (width, height), WHITE)
-    draw = ImageDraw.Draw(img)
-    scatter_boxes = draw_scatter(img, draw, summary, (300, 240, 1640, 1300))
-    heat_boxes = draw_heatmap(draw, summary, (1785, 250, 3810, 1312))
-    assert_no_overlap("scatter", scatter_boxes)
-    assert_no_overlap("heatmap", heat_boxes)
+    scatter_boxes = []
+    heat_boxes = []
+    if args.out_png or args.out_pdf:
+        width, height = 3900, 1500
+        img = Image.new("RGBA", (width, height), WHITE)
+        draw = ImageDraw.Draw(img)
+        scatter_boxes = draw_scatter(img, draw, summary, (300, 240, 1640, 1300))
+        heat_boxes = draw_heatmap(draw, summary, (1785, 250, 3810, 1312))
+        assert_no_overlap("scatter", scatter_boxes)
+        assert_no_overlap("heatmap", heat_boxes)
 
-    args.out_png.parent.mkdir(parents=True, exist_ok=True)
-    rgb = trim_white(img, padding=26)
-    rgb.save(args.out_png, dpi=(360, 360), optimize=True)
-    rgb.save(args.out_pdf, resolution=360)
+        output_parent = (args.out_png or args.out_pdf).parent
+        output_parent.mkdir(parents=True, exist_ok=True)
+        rgb = img.convert("RGB")
+        if args.out_png:
+            rgb.save(args.out_png, dpi=(360, 360), optimize=True)
+            print(f"Wrote {args.out_png}")
+        if args.out_pdf:
+            rgb.save(args.out_pdf, resolution=360)
+            print(f"Wrote {args.out_pdf}")
     save_shift_plot(summary, args.out_shift_png, args.out_shift_pdf)
-    print(f"Wrote {args.out_png}")
-    print(f"Wrote {args.out_pdf}")
-    print(f"Wrote {args.out_shift_png}")
-    print(f"Wrote {args.out_shift_pdf}")
+    if args.out_shift_png:
+        print(f"Wrote {args.out_shift_png}")
+    if args.out_shift_pdf:
+        print(f"Wrote {args.out_shift_pdf}")
     print(f"Overlap checks passed: scatter={len(scatter_boxes)} labels, heatmap={len(heat_boxes)} cells")
 
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run context-framing screens through OpenRouter.
+"""Run context-framing screens through provider APIs.
 
 Context runs are first-turn only: each model sees one context variant prompt and
 must answer with a boxed final answer. Trigger family, tone, temporal schedule,
@@ -11,7 +11,6 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
-import os
 import random
 from collections import defaultdict
 from pathlib import Path
@@ -29,6 +28,7 @@ from run import (
     extract_answer,
     extract_answer_by_choice_text,
     load_dotenv,
+    openrouter_api_key_for_run,
     open_text,
     response_metadata,
     response_text,
@@ -247,6 +247,25 @@ def record_key(record: dict[str, Any]) -> tuple[str, str, str, str]:
     )
 
 
+def is_complete_record(record: dict[str, Any]) -> bool:
+    if record.get("response_error"):
+        return False
+    if not str(record.get("response_text") or "").strip():
+        return False
+    if not record.get("answer"):
+        return False
+    if record.get("confidence") is None:
+        return False
+    if record.get("response_metadata") is None:
+        return False
+    branch = str(record.get("branch"))
+    if branch == "GT" and record.get("truth_status") == "unparsed":
+        return False
+    if branch == "NGT" and str(record.get("answer_state")) not in {"A", "B"}:
+        return False
+    return True
+
+
 def completed_keys(path: Path) -> set[tuple[str, str, str, str]]:
     path = existing_jsonl_path(path)
     if not path.exists():
@@ -257,9 +276,28 @@ def completed_keys(path: Path) -> set[tuple[str, str, str, str]]:
             if not line.strip():
                 continue
             record = json.loads(line)
-            if all(field in record for field in ["model", "branch", "item_id", "variant"]):
+            if all(field in record for field in ["model", "branch", "item_id", "variant"]) and is_complete_record(record):
                 keys.add(record_key(record))
     return keys
+
+
+def dedupe_records(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    by_key: dict[tuple[str, str, str, str], dict[str, Any]] = {}
+    order: list[tuple[str, str, str, str]] = []
+    for record in records:
+        if not all(field in record for field in ["model", "branch", "item_id", "variant"]):
+            continue
+        key = record_key(record)
+        current = by_key.get(key)
+        if current is None:
+            order.append(key)
+            by_key[key] = record
+            continue
+        current_complete = is_complete_record(current)
+        record_complete = is_complete_record(record)
+        if record_complete or not current_complete:
+            by_key[key] = record
+    return [by_key[key] for key in order]
 
 
 def build_item_lookup(
@@ -628,9 +666,7 @@ async def run_context(args: argparse.Namespace, base_dir: Path) -> int:
     if args.dry_run:
         return 0
 
-    api_key = os.environ.get("OPENROUTER_API_KEY", "")
-    if not api_key:
-        raise SystemExit("OPENROUTER_API_KEY is not set.")
+    api_key = openrouter_api_key_for_run(models, args.dry_run)
 
     semaphore = asyncio.Semaphore(max(1, args.concurrency))
     write_lock = asyncio.Lock()
@@ -699,6 +735,7 @@ async def run_context(args: argparse.Namespace, base_dir: Path) -> int:
         for line in handle:
             if line.strip():
                 records.append(reparse_existing_record(json.loads(line), item_lookup))
+    records = dedupe_records(records)
     with open_text(output_path, "wt", encoding="utf-8") as handle:
         for record in records:
             handle.write(json.dumps(record, ensure_ascii=False) + "\n")
