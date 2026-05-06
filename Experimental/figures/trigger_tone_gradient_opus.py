@@ -11,7 +11,7 @@ import plot_trigger_figures as trigger_plot
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Generate Claude-vs-other trigger tone trajectory figure.")
+    parser = argparse.ArgumentParser(description="Generate Claude-vs-all-model-baseline trigger tone trajectory figure.")
     parser.add_argument("--run-id", default=DEFAULT_TRIGGER_RUN_ID)
     parser.add_argument("--results-dir", type=Path, default=Path("Experimental/results"))
     parser.add_argument("--out", type=Path)

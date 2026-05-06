@@ -1165,24 +1165,23 @@ def draw_confidence_cell(draw, rect, value, font=FONT_SMALL):
 
 
 def figure_tone_opus(path, rows):
-    width, height = 1780, 1036
+    width, height = 1780, 820
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
-    draw_header(draw, "Claude shows that strong pressure can trigger rechecking", "", width)
     panels = [
-        ("GT", 130, 205, "OBJ right-to-wrong", 0.55, [0, 0.15, 0.30, 0.45]),
-        ("NGT", 950, 205, "SUB switching", 0.9, [0, 0.3, 0.6, 0.9]),
+        ("GT", 130, 70, "OBJ", 0.55, [0, 0.15, 0.30, 0.45]),
+        ("NGT", 950, 70, "SUB", 0.9, [0, 0.3, 0.6, 0.9]),
     ]
 
-    def other_mean(branch, tone):
-        subset = [row for row in rows if row["branch"] == branch and row["tone"] == tone and row["model"] in OTHER_MODELS]
+    def all_model_mean(branch, tone):
+        subset = [row for row in rows if row["branch"] == branch and row["tone"] == tone and row["model"] in MODELS]
         denom = sum(row.get("denom", 0) for row in subset)
         if denom <= 0:
-            raise ValueError(f"Missing non-Claude tone rows for branch={branch}, tone={tone}")
+            raise ValueError(f"Missing tone rows for branch={branch}, tone={tone}")
         return sum(row["rate"] * row.get("denom", 0) for row in subset) / denom
 
     line_specs = [
-        ("Other-model mean", "#17202A", 8, 13, None),
+        ("All-model baseline", "#17202A", 8, 13, None),
         ("Opus 4.5", MODEL_COLORS["anthropic/claude-opus-4.5"], 8, 13, "anthropic/claude-opus-4.5"),
         ("Sonnet 4.5", MODEL_COLORS["anthropic/claude-sonnet-4.5"], 6, 10, "anthropic/claude-sonnet-4.5"),
         ("Haiku 4.5", MODEL_COLORS["anthropic/claude-haiku-4.5"], 6, 10, "anthropic/claude-haiku-4.5"),
@@ -1191,13 +1190,7 @@ def figure_tone_opus(path, rows):
     for branch, x, y, title, max_rate, ticks in panels:
         w, h = 700, 610
         draw.rectangle((x, y, x + w, y + h), fill="white", outline="#D9E0E8", width=2)
-        draw_text(draw, (x + 26, y + 24), title, FONT_PANEL, INK)
-        legend_x, legend_y = x + w - 260, y + 64
-        for li, (label, color, line_w, dot_r, _) in enumerate(line_specs):
-            yy = legend_y + li * 28
-            draw.line((legend_x, yy, legend_x + 42, yy), fill=color, width=max(4, line_w - 2))
-            draw.ellipse((legend_x + 17, yy - 5, legend_x + 27, yy + 5), fill=color, outline="white", width=2)
-            draw_text(draw, (legend_x + 54, yy), label, FONT_TINY, color if li else INK, anchor="lm")
+        draw_text(draw, (x + w / 2, y + 36), title, load_font(33, True), INK, anchor="ma")
         px0, py0 = x + 108, y + 112
         pw, ph = w - 178, h - 225
         for tick in ticks:
@@ -1207,7 +1200,7 @@ def figure_tone_opus(path, rows):
         for label, color, line_w, dot_r, model in line_specs:
             pts = []
             for i, tone in enumerate(TONES):
-                value = other_mean(branch, tone) if model is None else row_lookup(rows, branch=branch, model=model, tone=tone)["rate"]
+                value = all_model_mean(branch, tone) if model is None else row_lookup(rows, branch=branch, model=model, tone=tone)["rate"]
                 xx = px0 + i * pw / 2
                 yy = py0 + ph - ph * value / max_rate
                 pts.append((xx, yy))
@@ -1679,7 +1672,7 @@ def main():
                 "",
                 "- `trigger_model_quadrant.png`: main-text static/adaptive changes from right to wrong versus answer changes quadrant view.",
                 "- `trigger_model_comparison.png`: side-by-side GT correct-to-wrong and NGT Flip-Flop rates by model.",
-                "- `trigger_tone_gradient_opus.png`: Claude mild/moderate/strong tone gradients against the denominator-weighted other-model mean.",
+                "- `trigger_tone_gradient_opus.png`: Claude mild/moderate/strong tone gradients against the denominator-weighted all-model baseline.",
                 "- `trigger_static_vs_adaptive.png`: per-model static vs adaptive GT and NGT rates.",
                 "- `trigger_temporal_pressure.png`: per-model adaptive single, same-family escalation, heterogeneous temporal pressure, and mixed-minus-single deltas.",
                 "- `trigger_tone_temporal.png`: compact main-text composite of per-model tone gradients and adaptive temporal pressure.",
