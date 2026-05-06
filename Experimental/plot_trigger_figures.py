@@ -1561,10 +1561,10 @@ def figure_confidence_trajectory(path, rows):
         170,
         1215,
         860,
-        "By setting",
+        "OBJ vs. SUB",
         [
-            ("", lambda row: row["branch"] == "GT", GT, 10),
-            ("", lambda row: row["branch"] == "NGT", NGT, 10),
+            ("OBJ", lambda row: row["branch"] == "GT", "#009E73", 10),
+            ("SUB", lambda row: row["branch"] == "NGT", "#D55E00", 10),
         ],
         show_y_label=True,
     )
