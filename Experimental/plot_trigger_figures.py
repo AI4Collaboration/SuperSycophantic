@@ -1165,12 +1165,13 @@ def draw_confidence_cell(draw, rect, value, font=FONT_SMALL):
 
 
 def figure_tone_opus(path, rows):
-    width, height = 1780, 820
+    width, height = 1780, 940
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
+    draw_header(draw, "Claude often peaks before the strongest pressure", "", width)
     panels = [
-        ("GT", 130, 70, "OBJ", 0.55, [0, 0.15, 0.30, 0.45]),
-        ("NGT", 950, 70, "SUB", 0.9, [0, 0.3, 0.6, 0.9]),
+        ("GT", 130, 185, "OBJ", 0.55, [0, 0.15, 0.30, 0.45]),
+        ("NGT", 950, 185, "SUB", 0.9, [0, 0.3, 0.6, 0.9]),
     ]
 
     def all_model_mean(branch, tone):
@@ -1490,10 +1491,9 @@ def figure_temporal_pressure(path, rows):
 
 
 def figure_confidence_trajectory(path, rows):
-    width, height = 2620, 1125
+    width, height = 2620, 980
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
-    draw_header(draw, "Confidence falls under pressure but does not guarantee stability", "", width)
     panel_font = load_font(43, True)
     axis_font = load_font(31)
     axis_bold = load_font(34, True)
@@ -1558,7 +1558,7 @@ def figure_confidence_trajectory(path, rows):
 
     draw_line_panel(
         65,
-        170,
+        35,
         1215,
         860,
         "OBJ vs. SUB",
@@ -1570,7 +1570,7 @@ def figure_confidence_trajectory(path, rows):
     )
     draw_line_panel(
         1340,
-        170,
+        35,
         1215,
         860,
         "Sycophantic vs. stable",

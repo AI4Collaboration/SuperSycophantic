@@ -84,17 +84,13 @@ def load_confidence_rows(path: Path):
 
 
 def figure_from_appendix(rows, out_path: Path) -> None:
-    width, height = 2500, 1040
+    width, height = 2500, 910
     im = Image.new("RGB", (width, height), "white")
     draw = ImageDraw.Draw(im)
-    title = trigger_plot.load_font(60, True)
     panel_title = trigger_plot.load_font(45, True)
     axis_font = trigger_plot.load_font(33)
     axis_bold = trigger_plot.load_font(35, True)
     label_font = trigger_plot.load_font(34, True)
-
-    draw_text(draw, (width / 2, 58), "Confidence falls more when answers move under pressure", title, anchor="ma")
-    draw.line((65, 130, width - 65, 130), fill="#EEF2F6", width=4)
 
     colors = {
         "Preserved": "#2D8B57",
@@ -161,8 +157,8 @@ def figure_from_appendix(rows, out_path: Path) -> None:
         )
         draw = ImageDraw.Draw(im)
 
-    panel(70, 165, 1150, 785, "OBJ", ["Preserved", "Departed"])
-    panel(1280, 165, 1150, 785, "SUB", ["Held", "Switched"])
+    panel(70, 30, 1150, 785, "OBJ", ["Preserved", "Departed"])
+    panel(1280, 30, 1150, 785, "SUB", ["Held", "Switched"])
 
     trigger_plot.save_tight(im, out_path, padding=8)
 
