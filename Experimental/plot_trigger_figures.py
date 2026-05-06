@@ -777,9 +777,9 @@ def figure_headline(path, headline):
 
     panels = [
         (grid_x, grid_y, "GT", "single", "GT: wrong turns", "#B8443F"),
-        (grid_x + col_w + gutter_x, grid_y, "GT", "temporal", "GT: after pressure", "#B8443F"),
+        (grid_x + col_w + gutter_x, grid_y, "GT", "temporal", "GT: cave over time", "#B8443F"),
         (grid_x, grid_y + row_h + gutter_y, "NGT", "single", "NGT: decision shifts", "#2870A8"),
-        (grid_x + col_w + gutter_x, grid_y + row_h + gutter_y, "NGT", "temporal", "NGT: after pressure", "#2870A8"),
+        (grid_x + col_w + gutter_x, grid_y + row_h + gutter_y, "NGT", "temporal", "NGT: cave over time", "#2870A8"),
     ]
     for args in panels:
         panel(*args)

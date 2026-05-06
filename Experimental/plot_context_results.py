@@ -143,7 +143,6 @@ F_SHIFT_TITLE = font("bold", 60)
 F_SHIFT_SUB = font("regular", 36)
 F_SHIFT_LABEL = font("bold", 36)
 F_SHIFT_TICK = font("regular", 34)
-F_SHIFT_LEGEND = font("regular", 34)
 
 
 def trim_alpha(img: Image.Image) -> Image.Image:
@@ -484,7 +483,7 @@ def draw_shift_panel(
 
 
 def save_shift_plot(summary: dict, out_png: Path | None, out_pdf: Path | None) -> None:
-    width, height = 3300, 1450
+    width, height = 3300, 1320
     img = Image.new("RGBA", (width, height), WHITE)
     draw = ImageDraw.Draw(img)
     title = "First-turn framing shifts both factual and subjective answers"
@@ -513,17 +512,6 @@ def save_shift_plot(summary: dict, out_png: Path | None, out_pdf: Path | None) -
     )
     assert_no_overlap("shift-left", left_boxes)
     assert_no_overlap("shift-right", right_boxes)
-
-    legend_y = 1346
-    legend_x = 1210
-    draw.ellipse([legend_x, legend_y - 14, legend_x + 28, legend_y + 14], fill="#4C78A8", outline=WHITE, width=3)
-    draw.text((legend_x + 42, legend_y - 20), "Neutral", font=F_SHIFT_LEGEND, fill=INK)
-    legend_x += 230
-    draw.ellipse([legend_x, legend_y - 14, legend_x + 28, legend_y + 14], fill="#CB4B47", outline=WHITE, width=3)
-    draw.text((legend_x + 42, legend_y - 20), "OBJ framed", font=F_SHIFT_LEGEND, fill=INK)
-    legend_x += 270
-    draw.ellipse([legend_x, legend_y - 14, legend_x + 28, legend_y + 14], fill="#2BAE66", outline=WHITE, width=3)
-    draw.text((legend_x + 42, legend_y - 20), "SUB framed", font=F_SHIFT_LEGEND, fill=INK)
 
     output_parent = (out_png or out_pdf).parent if (out_png or out_pdf) else None
     if output_parent is None:

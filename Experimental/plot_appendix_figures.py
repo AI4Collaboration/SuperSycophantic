@@ -444,7 +444,6 @@ def main():
         "trigger_confidence_risk_calibration.png",
         "trigger_domain_source_susceptibility.png",
         "trigger_item_concentration.png",
-        "trigger_strong_recheck_boundary.png",
         "validation_coverage_funnel.png",
     ]
     output_names = [path.name for path in outputs]
