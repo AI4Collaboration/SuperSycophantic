@@ -11,10 +11,14 @@ from typing import Any
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-DEFAULT_PROJECT_7 = SCRIPT_DIR / "project-7-at-2026-05-06-00-06-dd1a3816.json"
-DEFAULT_PROJECT_11 = SCRIPT_DIR / "project-11-at-2026-05-06-09-42-654c7fca.json"
+DEFAULT_REVIEWER_A = SCRIPT_DIR / "label_studio_export_reviewer_a.json"
+DEFAULT_REVIEWER_B = SCRIPT_DIR / "label_studio_export_reviewer_b.json"
 DEFAULT_OUTPUT_JSON = SCRIPT_DIR / "label_studio_iaa_results.json"
 DEFAULT_OUTPUT_MD = SCRIPT_DIR / "label_studio_iaa_summary.md"
+REVIEWER_A_KEY = "reviewer_a"
+REVIEWER_B_KEY = "reviewer_b"
+REVIEWER_A_LABEL = "Reviewer A"
+REVIEWER_B_LABEL = "Reviewer B"
 
 ALIGNMENT_KEY_FIELDS = [
     "source_transcript_id",
@@ -122,7 +126,6 @@ def index_export(path: Path, label: str) -> dict[str, Any]:
     duplicate_annotation_fields: list[dict[str, Any]] = []
     empty_annotations: list[dict[str, Any]] = []
     annotations_per_task = Counter()
-    annotator_ids = Counter()
     nonempty_annotation_count = 0
 
     for task in tasks:
@@ -131,7 +134,6 @@ def index_export(path: Path, label: str) -> dict[str, Any]:
         annotations_per_task[len(annotations)] += 1
 
         for annotation in annotations:
-            annotator_ids[stable_string(annotation.get("completed_by"))] += 1
             if annotation.get("result"):
                 nonempty_annotation_count += 1
             else:
@@ -140,7 +142,6 @@ def index_export(path: Path, label: str) -> dict[str, Any]:
                         "export": label,
                         "task_id": task.get("id"),
                         "annotation_id": annotation.get("id"),
-                        "completed_by": annotation.get("completed_by"),
                         "updated_at": annotation.get("updated_at"),
                         "key": display_key(key),
                     }
@@ -172,7 +173,6 @@ def index_export(path: Path, label: str) -> dict[str, Any]:
         records[key] = {
             "task_id": task.get("id"),
             "selected_annotation_id": annotation.get("id") if annotation else None,
-            "completed_by": annotation.get("completed_by") if annotation else None,
             "updated_at": annotation.get("updated_at") if annotation else None,
             "values": values,
         }
@@ -183,7 +183,6 @@ def index_export(path: Path, label: str) -> dict[str, Any]:
         "task_count": len(tasks),
         "records": records,
         "annotations_per_task": dict(sorted(annotations_per_task.items())),
-        "annotator_ids": dict(sorted(annotator_ids.items())),
         "nonempty_annotation_count": nonempty_annotation_count,
         "empty_annotations": empty_annotations,
         "duplicate_task_keys": duplicate_task_keys,
@@ -515,9 +514,9 @@ def comparable_pairs(
     return pairs
 
 
-def build_results(project_7: Path, project_11: Path) -> dict[str, Any]:
-    left = index_export(project_7, "project_7")
-    right = index_export(project_11, "project_11")
+def build_results(reviewer_a: Path, reviewer_b: Path) -> dict[str, Any]:
+    left = index_export(reviewer_a, REVIEWER_A_KEY)
+    right = index_export(reviewer_b, REVIEWER_B_KEY)
     left_records = left["records"]
     right_records = right["records"]
 
@@ -579,8 +578,8 @@ def build_results(project_7: Path, project_11: Path) -> dict[str, Any]:
             "n_pairs": len(pairs),
             "missing_pair_count": missing_count,
             "exact_agreement": rounded(exact_agreement),
-            "project_7_distribution": distribution(left_values),
-            "project_11_distribution": distribution(right_values),
+            "reviewer_a_distribution": distribution(left_values),
+            "reviewer_b_distribution": distribution(right_values),
         }
 
         if field_type == "continuous":
@@ -613,7 +612,7 @@ def build_results(project_7: Path, project_11: Path) -> dict[str, Any]:
                     "within_one_point_agreement": rounded(within_tolerance(units, 1.0)),
                     "mean_absolute_difference": rounded(mean(absolute_differences)),
                     "median_absolute_difference": rounded(median(absolute_differences)),
-                    "mean_project_11_minus_project_7": rounded(mean(signed_differences)),
+                    "mean_reviewer_b_minus_reviewer_a": rounded(mean(signed_differences)),
                 }
             )
         elif field_type == "binary":
@@ -630,7 +629,7 @@ def build_results(project_7: Path, project_11: Path) -> dict[str, Any]:
                     ),
                     "positive_agreement": rounded(positive_agreement(left_values, right_values)),
                     "negative_agreement": rounded(negative_agreement(left_values, right_values)),
-                    "confusion_project_7_rows_project_11_columns": confusion(
+                    "confusion_reviewer_a_rows_reviewer_b_columns": confusion(
                         left_values,
                         right_values,
                         BINARY_CATEGORIES,
@@ -739,33 +738,31 @@ def build_results(project_7: Path, project_11: Path) -> dict[str, Any]:
         "metadata": {
             "generated_at_utc": dt.datetime.now(dt.UTC).replace(microsecond=0).isoformat(),
             "script": Path(__file__).name,
-            "source_files": [project_7.name, project_11.name],
+            "source_exports": [REVIEWER_A_KEY, REVIEWER_B_KEY],
             "alignment_key_fields": ALIGNMENT_KEY_FIELDS,
             "continuous_metric": "Krippendorff alpha with interval distance",
             "binary_metric": "Cohen weighted kappa with quadratic weights",
         },
         "inputs": {
-            "project_7": {
-                "path": Path(left["path"]).name,
+            REVIEWER_A_KEY: {
+                "source_label": REVIEWER_A_KEY,
                 "task_count": left["task_count"],
                 "annotations_per_task": left["annotations_per_task"],
-                "annotator_ids": left["annotator_ids"],
                 "nonempty_annotation_count": left["nonempty_annotation_count"],
             },
-            "project_11": {
-                "path": Path(right["path"]).name,
+            REVIEWER_B_KEY: {
+                "source_label": REVIEWER_B_KEY,
                 "task_count": right["task_count"],
                 "annotations_per_task": right["annotations_per_task"],
-                "annotator_ids": right["annotator_ids"],
                 "nonempty_annotation_count": right["nonempty_annotation_count"],
             },
         },
         "alignment": {
-            "project_7_task_count": len(left_keys),
-            "project_11_task_count": len(right_keys),
+            "reviewer_a_task_count": len(left_keys),
+            "reviewer_b_task_count": len(right_keys),
             "common_task_count": len(common_keys),
-            "project_7_only_task_count": len(left_keys - right_keys),
-            "project_11_only_task_count": len(right_keys - left_keys),
+            "reviewer_a_only_task_count": len(left_keys - right_keys),
+            "reviewer_b_only_task_count": len(right_keys - left_keys),
             "comparable_task_count_with_nonempty_annotations": comparable_task_count,
         },
         "pooled": {
@@ -857,10 +854,14 @@ def write_summary(results: dict[str, Any], output_md: Path, output_json: Path) -
     lines.append("")
     lines.append("## Inputs")
     lines.append("")
-    for input_name, input_details in results["inputs"].items():
-        lines.append(f"{input_name}: `{Path(input_details['path']).name}`")
+    for input_name, display_name in (
+        (REVIEWER_A_KEY, REVIEWER_A_LABEL),
+        (REVIEWER_B_KEY, REVIEWER_B_LABEL),
+    ):
+        input_details = results["inputs"][input_name]
+        lines.append(display_name)
         lines.append(f"Tasks: {input_details['task_count']}")
-        lines.append(f"Annotator ids: `{json.dumps(input_details['annotator_ids'], sort_keys=True)}`")
+        lines.append(f"Nonempty annotations: {input_details['nonempty_annotation_count']}")
         lines.append("")
 
     alignment = results["alignment"]
@@ -868,8 +869,8 @@ def write_summary(results: dict[str, Any], output_md: Path, output_json: Path) -
     lines.append("")
     lines.append(f"Common tasks: {alignment['common_task_count']}")
     lines.append(f"Comparable tasks with nonempty annotations in both exports: {alignment['comparable_task_count_with_nonempty_annotations']}")
-    lines.append(f"Project 7 only tasks: {alignment['project_7_only_task_count']}")
-    lines.append(f"Project 11 only tasks: {alignment['project_11_only_task_count']}")
+    lines.append(f"{REVIEWER_A_LABEL} only tasks: {alignment['reviewer_a_only_task_count']}")
+    lines.append(f"{REVIEWER_B_LABEL} only tasks: {alignment['reviewer_b_only_task_count']}")
     lines.append("")
 
     lines.append("## Methods")
@@ -994,7 +995,7 @@ def write_summary(results: dict[str, Any], output_md: Path, output_json: Path) -
     lines.append("## Continuous fields")
     lines.append("")
     lines.append("<table>")
-    lines.append("<tr><th>Field</th><th>N pairs</th><th>Alpha</th><th>Gwet AC2</th><th>Ordinal weighted kappa</th><th>ICC(A,1)</th><th>Exact</th><th>Within one point</th><th>Mean absolute difference</th><th>Project 11 minus Project 7</th></tr>")
+    lines.append(f"<tr><th>Field</th><th>N pairs</th><th>Alpha</th><th>Gwet AC2</th><th>Ordinal weighted kappa</th><th>ICC(A,1)</th><th>Exact</th><th>Within one point</th><th>Mean absolute difference</th><th>{REVIEWER_B_LABEL} minus {REVIEWER_A_LABEL}</th></tr>")
     for field, details in continuous_fields:
         lines.append(
             f"<tr><td>{field_label(field)}</td>"
@@ -1006,7 +1007,7 @@ def write_summary(results: dict[str, Any], output_md: Path, output_json: Path) -
             f"<td>{format_metric(details.get('exact_agreement'))}</td>"
             f"<td>{format_metric(details.get('within_one_point_agreement'))}</td>"
             f"<td>{format_metric(details.get('mean_absolute_difference'))}</td>"
-            f"<td>{format_metric(details.get('mean_project_11_minus_project_7'))}</td></tr>"
+            f"<td>{format_metric(details.get('mean_reviewer_b_minus_reviewer_a'))}</td></tr>"
         )
     lines.append("</table>")
     lines.append("")
@@ -1014,7 +1015,7 @@ def write_summary(results: dict[str, Any], output_md: Path, output_json: Path) -
     lines.append("## Binary fields")
     lines.append("")
     lines.append("<table>")
-    lines.append("<tr><th>Field</th><th>N pairs</th><th>Weighted kappa</th><th>Gwet AC1</th><th>PABAK</th><th>MCC</th><th>Exact</th><th>Positive agreement</th><th>Negative agreement</th><th>Project 7 distribution</th><th>Project 11 distribution</th></tr>")
+    lines.append(f"<tr><th>Field</th><th>N pairs</th><th>Weighted kappa</th><th>Gwet AC1</th><th>PABAK</th><th>MCC</th><th>Exact</th><th>Positive agreement</th><th>Negative agreement</th><th>{REVIEWER_A_LABEL} distribution</th><th>{REVIEWER_B_LABEL} distribution</th></tr>")
     for field, details in binary_fields:
         lines.append(
             f"<tr><td>{field_label(field)}</td>"
@@ -1026,8 +1027,8 @@ def write_summary(results: dict[str, Any], output_md: Path, output_json: Path) -
             f"<td>{format_metric(details.get('exact_agreement'))}</td>"
             f"<td>{format_metric(details.get('positive_agreement'))}</td>"
             f"<td>{format_metric(details.get('negative_agreement'))}</td>"
-            f"<td>{json.dumps(details['project_7_distribution'], sort_keys=True)}</td>"
-            f"<td>{json.dumps(details['project_11_distribution'], sort_keys=True)}</td></tr>"
+            f"<td>{json.dumps(details['reviewer_a_distribution'], sort_keys=True)}</td>"
+            f"<td>{json.dumps(details['reviewer_b_distribution'], sort_keys=True)}</td></tr>"
         )
     lines.append("</table>")
     lines.append("")
@@ -1066,8 +1067,8 @@ def write_summary(results: dict[str, Any], output_md: Path, output_json: Path) -
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Compute IAA for two Label Studio exports.")
-    parser.add_argument("--project-7", type=Path, default=DEFAULT_PROJECT_7)
-    parser.add_argument("--project-11", type=Path, default=DEFAULT_PROJECT_11)
+    parser.add_argument("--reviewer-a", type=Path, default=DEFAULT_REVIEWER_A)
+    parser.add_argument("--reviewer-b", type=Path, default=DEFAULT_REVIEWER_B)
     parser.add_argument("--output-json", type=Path, default=DEFAULT_OUTPUT_JSON)
     parser.add_argument("--output-md", type=Path, default=DEFAULT_OUTPUT_MD)
     return parser.parse_args()
@@ -1075,7 +1076,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    results = build_results(args.project_7, args.project_11)
+    results = build_results(args.reviewer_a, args.reviewer_b)
     args.output_json.write_text(
         json.dumps(results, indent=2, ensure_ascii=True, sort_keys=True) + "\n",
         encoding="utf-8",

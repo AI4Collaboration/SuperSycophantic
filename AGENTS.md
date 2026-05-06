@@ -6,7 +6,7 @@
 - Keep GitHub focused on `Experimental/`, benchmark data builders, audits,
   runners, scoring, plotting scripts, and code-facing visual assets.
 - Manuscript files, LaTeX sources, bibliography edits, paper tables, and paper
-  figures belong in the separate Overleaf tree, not in the GitHub codebase
+  figures belong in the separate manuscript source tree, not in the codebase
   tree.
 - Keep release-facing files double-blind. Do not add author names,
   institutions, private remote URLs, local usernames, absolute local paths,
@@ -17,12 +17,12 @@
 ## Git And Push
 
 - Use the configured remotes only when the user explicitly asks to push.
-- For codebase work, fetch the GitHub remote after a gap, stage only intended
-  codebase files, commit, push GitHub, and verify the GitHub remote head.
-- For manuscript work, use the separate Overleaf worktree/remote, stage only
-  manuscript files, commit, push Overleaf, and verify the Overleaf remote head.
-- Do not push one combined commit to both remotes. GitHub and Overleaf are
-  intentionally separate trees.
+- For codebase work, fetch the configured code remote after a gap, stage only
+  intended codebase files, commit, push, and verify the code remote head.
+- For manuscript work, use the configured manuscript sync target, stage only
+  manuscript files, commit, push, and verify the manuscript target head.
+- Do not combine codebase and manuscript changes in one sync operation. They
+  are intentionally separate release trees.
 - Do not document private remote URLs or account identifiers in repository
   files.
 - Do not force-push unless the user explicitly asks.

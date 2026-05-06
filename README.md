@@ -4,9 +4,9 @@ This is the codebase-only GitHub tree for SuperSycophantic experiments. It
 contains benchmark data, data builders, audits, model runners, scoring and
 reporting utilities, and plotting assets used by the experimental pipeline.
 
-The paper manuscript is maintained separately in Overleaf. Do not use GitHub to
-sync LaTeX sources, bibliography edits, paper-only figures, or Overleaf build
-artifacts.
+The paper manuscript is maintained in a separate manuscript source tree. Do not
+use this codebase tree to sync LaTeX sources, bibliography edits, paper-only
+figures, or manuscript build artifacts.
 
 ## Release Hygiene
 
@@ -18,9 +18,9 @@ artifacts.
 - Store regenerated raw outputs under ignored locations such as
   `Experimental/results/`, `Experimental/reports/`, or local judge-output
   directories.
-- Keep paper-only assets in the Overleaf tree. GitHub should contain only
-  code-facing visual assets, such as source logos and model badges used by the
-  plotting scripts.
+- Keep paper-only assets in the manuscript source tree. This codebase should
+  contain only code-facing visual assets, such as source logos and model badges
+  used by the plotting scripts.
 
 ## Repository Layout
 
@@ -216,6 +216,6 @@ images/*_latest_*.png
 images/model_logos/model_badges/_preview.png
 ```
 
-Paper-only images and result figures are maintained in Overleaf. Do not add
-`images/Figure*.png` or `images/results/` to GitHub codebase commits unless the
-user explicitly asks for a code-facing release asset.
+Paper-only images and result figures are maintained with the manuscript source.
+Do not add `images/Figure*.png` or `images/results/` to codebase commits unless
+the user explicitly asks for a code-facing release asset.

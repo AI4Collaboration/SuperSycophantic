@@ -2,10 +2,10 @@
   "alignment": {
     "common_task_count": 100,
     "comparable_task_count_with_nonempty_annotations": 100,
-    "project_11_only_task_count": 0,
-    "project_11_task_count": 100,
-    "project_7_only_task_count": 0,
-    "project_7_task_count": 100
+    "reviewer_a_only_task_count": 0,
+    "reviewer_a_task_count": 100,
+    "reviewer_b_only_task_count": 0,
+    "reviewer_b_task_count": 100
   },
   "data_quality": {
     "duplicate_annotation_fields": [],
@@ -21,24 +21,24 @@
       "icc_a1_absolute_agreement": 0.304407,
       "krippendorff_alpha": 0.305741,
       "mean_absolute_difference": 0.55,
-      "mean_project_11_minus_project_7": -0.01,
+      "mean_reviewer_b_minus_reviewer_a": -0.01,
       "median_absolute_difference": 0.0,
       "metric": "krippendorff_alpha_interval",
       "missing_pair_count": 0,
       "n_pairs": 100,
       "ordinal_weighted_kappa_quadratic": 0.302283,
-      "project_11_distribution": {
+      "reviewer_a_distribution": {
+        "2": 20,
+        "3": 50,
+        "4": 28,
+        "5": 2
+      },
+      "reviewer_b_distribution": {
         "1": 1,
         "2": 15,
         "3": 61,
         "4": 18,
         "5": 5
-      },
-      "project_7_distribution": {
-        "2": 20,
-        "3": 50,
-        "4": 28,
-        "5": 2
       },
       "within_one_point_agreement": 0.91
     },
@@ -49,23 +49,23 @@
       "icc_a1_absolute_agreement": 0.120914,
       "krippendorff_alpha": -0.026449,
       "mean_absolute_difference": 0.72,
-      "mean_project_11_minus_project_7": 0.56,
+      "mean_reviewer_b_minus_reviewer_a": 0.56,
       "median_absolute_difference": 1.0,
       "metric": "krippendorff_alpha_interval",
       "missing_pair_count": 0,
       "n_pairs": 100,
       "ordinal_weighted_kappa_quadratic": 0.11985,
-      "project_11_distribution": {
-        "1": 3,
-        "2": 58,
-        "3": 35,
-        "4": 4
-      },
-      "project_7_distribution": {
+      "reviewer_a_distribution": {
         "1": 26,
         "2": 66,
         "3": 6,
         "4": 2
+      },
+      "reviewer_b_distribution": {
+        "1": 3,
+        "2": 58,
+        "3": 35,
+        "4": 4
       },
       "within_one_point_agreement": 0.89
     },
@@ -76,22 +76,22 @@
       "icc_a1_absolute_agreement": 0.227166,
       "krippendorff_alpha": 0.164568,
       "mean_absolute_difference": 0.68,
-      "mean_project_11_minus_project_7": 0.4,
+      "mean_reviewer_b_minus_reviewer_a": 0.4,
       "median_absolute_difference": 1.0,
       "metric": "krippendorff_alpha_interval",
       "missing_pair_count": 0,
       "n_pairs": 100,
       "ordinal_weighted_kappa_quadratic": 0.225407,
-      "project_11_distribution": {
-        "1": 1,
-        "2": 72,
-        "3": 27
-      },
-      "project_7_distribution": {
+      "reviewer_a_distribution": {
         "1": 38,
         "2": 41,
         "3": 18,
         "4": 3
+      },
+      "reviewer_b_distribution": {
+        "1": 1,
+        "2": 72,
+        "3": 27
       },
       "within_one_point_agreement": 0.94
     },
@@ -102,26 +102,26 @@
       "icc_a1_absolute_agreement": 0.279126,
       "krippendorff_alpha": 0.186447,
       "mean_absolute_difference": 0.58,
-      "mean_project_11_minus_project_7": 0.46,
+      "mean_reviewer_b_minus_reviewer_a": 0.46,
       "median_absolute_difference": 1.0,
       "metric": "krippendorff_alpha_interval",
       "missing_pair_count": 0,
       "n_pairs": 100,
       "ordinal_weighted_kappa_quadratic": 0.277108,
-      "project_11_distribution": {
-        "2": 69,
-        "3": 31
-      },
-      "project_7_distribution": {
+      "reviewer_a_distribution": {
         "1": 31,
         "2": 55,
         "3": 12,
         "4": 2
       },
+      "reviewer_b_distribution": {
+        "2": 69,
+        "3": 31
+      },
       "within_one_point_agreement": 0.96
     },
     "model_contradicted_itself": {
-      "confusion_project_7_rows_project_11_columns": {
+      "confusion_reviewer_a_rows_reviewer_b_columns": {
         "No": {
           "No": 69,
           "Yes": 2
@@ -141,18 +141,18 @@
       "negative_agreement": 0.821429,
       "pabak": 0.4,
       "positive_agreement": 0.0625,
-      "project_11_distribution": {
-        "No": 97,
-        "Yes": 3
-      },
-      "project_7_distribution": {
+      "reviewer_a_distribution": {
         "No": 71,
         "Yes": 29
+      },
+      "reviewer_b_distribution": {
+        "No": 97,
+        "Yes": 3
       },
       "weighted_kappa": 0.008592
     },
     "model_rationalized_change": {
-      "confusion_project_7_rows_project_11_columns": {
+      "confusion_reviewer_a_rows_reviewer_b_columns": {
         "No": {
           "No": 1,
           "Yes": 4
@@ -172,18 +172,18 @@
       "negative_agreement": 0.25,
       "pabak": 0.88,
       "positive_agreement": 0.96875,
-      "project_11_distribution": {
-        "No": 3,
-        "Yes": 97
-      },
-      "project_7_distribution": {
+      "reviewer_a_distribution": {
         "No": 5,
         "Yes": 95
+      },
+      "reviewer_b_distribution": {
+        "No": 3,
+        "Yes": 97
       },
       "weighted_kappa": 0.220779
     },
     "model_redid_question": {
-      "confusion_project_7_rows_project_11_columns": {
+      "confusion_reviewer_a_rows_reviewer_b_columns": {
         "No": {
           "No": 0,
           "Yes": 2
@@ -203,13 +203,13 @@
       "negative_agreement": 0.0,
       "pabak": 0.9,
       "positive_agreement": 0.974359,
-      "project_11_distribution": {
-        "No": 3,
-        "Yes": 97
-      },
-      "project_7_distribution": {
+      "reviewer_a_distribution": {
         "No": 2,
         "Yes": 98
+      },
+      "reviewer_b_distribution": {
+        "No": 3,
+        "Yes": 97
       },
       "weighted_kappa": -0.02459
     },
@@ -220,23 +220,23 @@
       "icc_a1_absolute_agreement": -0.013425,
       "krippendorff_alpha": -0.171944,
       "mean_absolute_difference": 0.82,
-      "mean_project_11_minus_project_7": 0.58,
+      "mean_reviewer_b_minus_reviewer_a": 0.58,
       "median_absolute_difference": 1.0,
       "metric": "krippendorff_alpha_interval",
       "missing_pair_count": 0,
       "n_pairs": 100,
       "ordinal_weighted_kappa_quadratic": -0.013289,
-      "project_11_distribution": {
-        "1": 6,
-        "2": 54,
-        "3": 34,
-        "4": 6
-      },
-      "project_7_distribution": {
+      "reviewer_a_distribution": {
         "1": 28,
         "2": 64,
         "3": 6,
         "4": 2
+      },
+      "reviewer_b_distribution": {
+        "1": 6,
+        "2": 54,
+        "3": 34,
+        "4": 6
       },
       "within_one_point_agreement": 0.88
     },
@@ -247,24 +247,24 @@
       "icc_a1_absolute_agreement": 0.28809,
       "krippendorff_alpha": 0.115556,
       "mean_absolute_difference": 0.88,
-      "mean_project_11_minus_project_7": 0.84,
+      "mean_reviewer_b_minus_reviewer_a": 0.84,
       "median_absolute_difference": 1.0,
       "metric": "krippendorff_alpha_interval",
       "missing_pair_count": 0,
       "n_pairs": 100,
       "ordinal_weighted_kappa_quadratic": 0.286033,
-      "project_11_distribution": {
+      "reviewer_a_distribution": {
+        "1": 35,
+        "2": 53,
+        "3": 11,
+        "4": 1
+      },
+      "reviewer_b_distribution": {
         "1": 2,
         "2": 49,
         "3": 37,
         "4": 9,
         "5": 3
-      },
-      "project_7_distribution": {
-        "1": 35,
-        "2": 53,
-        "3": 11,
-        "4": 1
       },
       "within_one_point_agreement": 0.84
     },
@@ -275,24 +275,24 @@
       "icc_a1_absolute_agreement": 0.331028,
       "krippendorff_alpha": 0.330868,
       "mean_absolute_difference": 0.61,
-      "mean_project_11_minus_project_7": -0.07,
+      "mean_reviewer_b_minus_reviewer_a": -0.07,
       "median_absolute_difference": 0.5,
       "metric": "krippendorff_alpha_interval",
       "missing_pair_count": 0,
       "n_pairs": 100,
       "ordinal_weighted_kappa_quadratic": 0.328806,
-      "project_11_distribution": {
+      "reviewer_a_distribution": {
+        "2": 28,
+        "3": 49,
+        "4": 20,
+        "5": 3
+      },
+      "reviewer_b_distribution": {
         "1": 1,
         "2": 30,
         "3": 51,
         "4": 13,
         "5": 5
-      },
-      "project_7_distribution": {
-        "2": 28,
-        "3": 49,
-        "4": 20,
-        "5": 3
       },
       "within_one_point_agreement": 0.9
     },
@@ -303,49 +303,43 @@
       "icc_a1_absolute_agreement": 0.063739,
       "krippendorff_alpha": 0.066328,
       "mean_absolute_difference": 0.61,
-      "mean_project_11_minus_project_7": -0.05,
+      "mean_reviewer_b_minus_reviewer_a": -0.05,
       "median_absolute_difference": 1.0,
       "metric": "krippendorff_alpha_interval",
       "missing_pair_count": 0,
       "n_pairs": 100,
       "ordinal_weighted_kappa_quadratic": 0.063142,
-      "project_11_distribution": {
+      "reviewer_a_distribution": {
+        "2": 4,
+        "3": 53,
+        "4": 40,
+        "5": 3
+      },
+      "reviewer_b_distribution": {
         "1": 2,
         "2": 1,
         "3": 56,
         "4": 40,
         "5": 1
       },
-      "project_7_distribution": {
-        "2": 4,
-        "3": 53,
-        "4": 40,
-        "5": 3
-      },
       "within_one_point_agreement": 0.94
     }
   },
   "inputs": {
-    "project_11": {
+    "reviewer_a": {
       "annotations_per_task": {
         "1": 100
       },
-      "annotator_ids": {
-        "67": 100
-      },
       "nonempty_annotation_count": 100,
-      "path": "project-11-at-2026-05-06-09-42-654c7fca.json",
+      "source_label": "reviewer_a",
       "task_count": 100
     },
-    "project_7": {
+    "reviewer_b": {
       "annotations_per_task": {
         "1": 100
       },
-      "annotator_ids": {
-        "70": 100
-      },
       "nonempty_annotation_count": 100,
-      "path": "project-7-at-2026-05-06-00-06-dd1a3816.json",
+      "source_label": "reviewer_b",
       "task_count": 100
     }
   },
@@ -364,9 +358,9 @@
     "continuous_metric": "Krippendorff alpha with interval distance",
     "generated_at_utc": "2026-05-06T11:25:26+00:00",
     "script": "compute_label_studio_iaa.py",
-    "source_files": [
-      "project-7-at-2026-05-06-00-06-dd1a3816.json",
-      "project-11-at-2026-05-06-09-42-654c7fca.json"
+    "source_exports": [
+      "reviewer_a",
+      "reviewer_b"
     ]
   },
   "pooled": {

@@ -2,20 +2,20 @@
 
 ## Inputs
 
-project_7: `project-7-at-2026-05-06-00-06-dd1a3816.json`
+Reviewer A
 Tasks: 100
-Annotator ids: `{"70": 100}`
+Nonempty annotations: 100
 
-project_11: `project-11-at-2026-05-06-09-42-654c7fca.json`
+Reviewer B
 Tasks: 100
-Annotator ids: `{"67": 100}`
+Nonempty annotations: 100
 
 ## Alignment
 
 Common tasks: 100
 Comparable tasks with nonempty annotations in both exports: 100
-Project 7 only tasks: 0
-Project 11 only tasks: 0
+Reviewer A only tasks: 0
+Reviewer B only tasks: 0
 
 ## Methods
 
@@ -65,7 +65,7 @@ Overall, the IAA supports complete audit coverage and usable coarse binary audit
 ## Continuous fields
 
 <table>
-<tr><th>Field</th><th>N pairs</th><th>Alpha</th><th>Gwet AC2</th><th>Ordinal weighted kappa</th><th>ICC(A,1)</th><th>Exact</th><th>Within one point</th><th>Mean absolute difference</th><th>Project 11 minus Project 7</th></tr>
+<tr><th>Field</th><th>N pairs</th><th>Alpha</th><th>Gwet AC2</th><th>Ordinal weighted kappa</th><th>ICC(A,1)</th><th>Exact</th><th>Within one point</th><th>Mean absolute difference</th><th>Reviewer B minus Reviewer A</th></tr>
 <tr><td>appeared eager to please user</td><td>100</td><td>0.306</td><td>0.737</td><td>0.302</td><td>0.304</td><td>0.550</td><td>0.910</td><td>0.550</td><td>-0.010</td></tr>
 <tr><td>disagreed with user points r</td><td>100</td><td>-0.026</td><td>0.753</td><td>0.120</td><td>0.121</td><td>0.390</td><td>0.890</td><td>0.720</td><td>0.560</td></tr>
 <tr><td>enthusiastic in conversation</td><td>100</td><td>0.165</td><td>0.798</td><td>0.225</td><td>0.227</td><td>0.380</td><td>0.940</td><td>0.680</td><td>0.400</td></tr>
@@ -79,7 +79,7 @@ Overall, the IAA supports complete audit coverage and usable coarse binary audit
 ## Binary fields
 
 <table>
-<tr><th>Field</th><th>N pairs</th><th>Weighted kappa</th><th>Gwet AC1</th><th>PABAK</th><th>MCC</th><th>Exact</th><th>Positive agreement</th><th>Negative agreement</th><th>Project 7 distribution</th><th>Project 11 distribution</th></tr>
+<tr><th>Field</th><th>N pairs</th><th>Weighted kappa</th><th>Gwet AC1</th><th>PABAK</th><th>MCC</th><th>Exact</th><th>Positive agreement</th><th>Negative agreement</th><th>Reviewer A distribution</th><th>Reviewer B distribution</th></tr>
 <tr><td>model contradicted itself</td><td>100</td><td>0.009</td><td>0.590</td><td>0.400</td><td>0.017</td><td>0.700</td><td>0.062</td><td>0.821</td><td>{"No": 71, "Yes": 29}</td><td>{"No": 97, "Yes": 3}</td></tr>
 <tr><td>model rationalized change</td><td>100</td><td>0.221</td><td>0.935</td><td>0.880</td><td>0.229</td><td>0.940</td><td>0.969</td><td>0.250</td><td>{"No": 5, "Yes": 95}</td><td>{"No": 3, "Yes": 97}</td></tr>
 <tr><td>model redid question</td><td>100</td><td>-0.025</td><td>0.947</td><td>0.900</td><td>-0.025</td><td>0.950</td><td>0.974</td><td>0.000</td><td>{"No": 2, "Yes": 98}</td><td>{"No": 3, "Yes": 97}</td></tr>

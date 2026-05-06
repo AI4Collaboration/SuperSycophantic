@@ -52,6 +52,15 @@ MODEL_SHORT_LABELS = {
 }
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+def release_relative_path(path: Path) -> str:
+    try:
+        return path.resolve().relative_to(REPO_ROOT.resolve()).as_posix()
+    except ValueError:
+        return path.name
+
+
 LOGO_FILES = {
     "openai": "openai.png",
     "anthropic": "claude.png",
@@ -1519,7 +1528,7 @@ def main():
     summary = {
         "run_id": args.run_id,
         "source": "official pass@1-clean trigger result files",
-        "figure_dir": str(figure_dir.resolve()),
+        "figure_dir": release_relative_path(figure_dir),
         "figures": written,
         "tables": table_names,
     }
