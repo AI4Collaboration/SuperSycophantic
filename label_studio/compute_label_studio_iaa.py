@@ -28,6 +28,7 @@ ALIGNMENT_KEY_FIELDS = [
 ]
 
 BINARY_CATEGORIES = ["No", "Yes"]
+ORDINAL_CATEGORIES = ["1", "2", "3", "4", "5"]
 
 
 def stable_string(value: Any) -> str:
@@ -277,6 +278,185 @@ def weighted_kappa(
     return 1.0 - observed_disagreement / expected_disagreement
 
 
+def category_penalty(left: str, right: str, categories: list[str], weighting: str = "quadratic") -> float:
+    index = {category: offset for offset, category in enumerate(categories)}
+    width = max(len(categories) - 1, 1)
+    distance = abs(index[left] - index[right]) / width
+    if weighting == "linear":
+        return distance
+    if weighting == "quadratic":
+        return distance * distance
+    raise ValueError(f"Unknown weighting: {weighting}")
+
+
+def category_agreement_weight(
+    left: str,
+    right: str,
+    categories: list[str],
+    weighting: str = "quadratic",
+) -> float:
+    return 1.0 - category_penalty(left, right, categories, weighting)
+
+
+def gwet_ac1(rater_a: list[str], rater_b: list[str], categories: list[str]) -> float | None:
+    if len(rater_a) != len(rater_b):
+        raise ValueError("Rater vectors must have the same length")
+    if not rater_a or len(categories) < 2:
+        return None
+
+    total = len(rater_a)
+    observed_agreement = sum(
+        1 for left, right in zip(rater_a, rater_b, strict=True) if left == right
+    ) / total
+
+    pooled_counts = Counter(rater_a)
+    pooled_counts.update(rater_b)
+    proportions = {category: pooled_counts[category] / (2 * total) for category in categories}
+    chance_agreement = sum(
+        proportions[category] * (1.0 - proportions[category])
+        for category in categories
+    ) / (len(categories) - 1)
+
+    denominator = 1.0 - chance_agreement
+    if denominator == 0:
+        return None
+    return (observed_agreement - chance_agreement) / denominator
+
+
+def gwet_ac2(
+    rater_a: list[str],
+    rater_b: list[str],
+    categories: list[str],
+    weighting: str = "quadratic",
+) -> float | None:
+    if len(rater_a) != len(rater_b):
+        raise ValueError("Rater vectors must have the same length")
+    if not rater_a or len(categories) < 2:
+        return None
+
+    total = len(rater_a)
+    observed_agreement = sum(
+        category_agreement_weight(left, right, categories, weighting)
+        for left, right in zip(rater_a, rater_b, strict=True)
+    ) / total
+
+    pooled_counts = Counter(rater_a)
+    pooled_counts.update(rater_b)
+    proportions = {category: pooled_counts[category] / (2 * total) for category in categories}
+    chance_agreement = 0.0
+    for left in categories:
+        for right in categories:
+            chance_agreement += (
+                category_agreement_weight(left, right, categories, weighting)
+                * proportions[left]
+                * (1.0 - proportions[right])
+            )
+    chance_agreement /= len(categories) - 1
+
+    denominator = 1.0 - chance_agreement
+    if denominator == 0:
+        return None
+    return (observed_agreement - chance_agreement) / denominator
+
+
+def pabak(exact_agreement: float | None) -> float | None:
+    if exact_agreement is None:
+        return None
+    return 2.0 * exact_agreement - 1.0
+
+
+def binary_pair_counts(rater_a: list[str], rater_b: list[str]) -> dict[str, int]:
+    counts = Counter(zip(rater_a, rater_b, strict=True))
+    return {
+        "yes_yes": counts[("Yes", "Yes")],
+        "yes_no": counts[("Yes", "No")],
+        "no_yes": counts[("No", "Yes")],
+        "no_no": counts[("No", "No")],
+    }
+
+
+def positive_agreement(rater_a: list[str], rater_b: list[str]) -> float | None:
+    counts = binary_pair_counts(rater_a, rater_b)
+    denominator = 2 * counts["yes_yes"] + counts["yes_no"] + counts["no_yes"]
+    if denominator == 0:
+        return None
+    return 2 * counts["yes_yes"] / denominator
+
+
+def negative_agreement(rater_a: list[str], rater_b: list[str]) -> float | None:
+    counts = binary_pair_counts(rater_a, rater_b)
+    denominator = 2 * counts["no_no"] + counts["yes_no"] + counts["no_yes"]
+    if denominator == 0:
+        return None
+    return 2 * counts["no_no"] / denominator
+
+
+def matthews_correlation_coefficient(rater_a: list[str], rater_b: list[str]) -> float | None:
+    counts = binary_pair_counts(rater_a, rater_b)
+    tp = counts["yes_yes"]
+    fn = counts["yes_no"]
+    fp = counts["no_yes"]
+    tn = counts["no_no"]
+    denominator = math.sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn))
+    if denominator == 0:
+        return None
+    return (tp * tn - fp * fn) / denominator
+
+
+def within_tolerance(units: list[list[float]], tolerance: float) -> float | None:
+    if not units:
+        return None
+    return sum(1 for left, right in units if abs(left - right) <= tolerance) / len(units)
+
+
+def icc_absolute_agreement(units: list[list[float]]) -> float | None:
+    complete_units = [unit for unit in units if len(unit) >= 2]
+    if len(complete_units) < 2:
+        return None
+
+    n_subjects = len(complete_units)
+    n_raters = len(complete_units[0])
+    if n_raters < 2 or any(len(unit) != n_raters for unit in complete_units):
+        return None
+
+    grand_mean = sum(sum(unit) for unit in complete_units) / (n_subjects * n_raters)
+    subject_means = [sum(unit) / n_raters for unit in complete_units]
+    rater_means = [
+        sum(unit[rater_index] for unit in complete_units) / n_subjects
+        for rater_index in range(n_raters)
+    ]
+
+    ms_subject = (
+        n_raters
+        * sum((subject_mean - grand_mean) ** 2 for subject_mean in subject_means)
+        / (n_subjects - 1)
+    )
+    ms_rater = (
+        n_subjects
+        * sum((rater_mean - grand_mean) ** 2 for rater_mean in rater_means)
+        / (n_raters - 1)
+    )
+    residual_sum = 0.0
+    for subject_index, unit in enumerate(complete_units):
+        for rater_index, value in enumerate(unit):
+            residual_sum += (
+                value
+                - subject_means[subject_index]
+                - rater_means[rater_index]
+                + grand_mean
+            ) ** 2
+    ms_error = residual_sum / ((n_subjects - 1) * (n_raters - 1))
+
+    denominator = (
+        ms_subject
+        + (n_raters - 1) * ms_error
+        + n_raters * (ms_rater - ms_error) / n_subjects
+    )
+    if denominator == 0:
+        return None
+    return (ms_subject - ms_error) / denominator
+
+
 def rounded(value: float | None) -> float | None:
     if value is None:
         return None
@@ -355,6 +535,8 @@ def build_results(project_7: Path, project_11: Path) -> dict[str, Any]:
 
     comparable_fields: dict[str, Any] = {}
     pooled_continuous_units: list[list[float]] = []
+    pooled_continuous_left: list[str] = []
+    pooled_continuous_right: list[str] = []
     pooled_binary_left: list[str] = []
     pooled_binary_right: list[str] = []
     missing_pairs: list[dict[str, Any]] = []
@@ -414,11 +596,21 @@ def build_results(project_7: Path, project_11: Path) -> dict[str, Any]:
             absolute_differences = [abs(unit[0] - unit[1]) for unit in units]
             signed_differences = [unit[1] - unit[0] for unit in units]
             pooled_continuous_units.extend(units)
+            pooled_continuous_left.extend(left_values)
+            pooled_continuous_right.extend(right_values)
 
             field_result.update(
                 {
                     "metric": "krippendorff_alpha_interval",
                     "krippendorff_alpha": rounded(krippendorff_alpha_interval(units)),
+                    "gwet_ac2_quadratic": rounded(
+                        gwet_ac2(left_values, right_values, ORDINAL_CATEGORIES)
+                    ),
+                    "ordinal_weighted_kappa_quadratic": rounded(
+                        weighted_kappa(left_values, right_values, ORDINAL_CATEGORIES)
+                    ),
+                    "icc_a1_absolute_agreement": rounded(icc_absolute_agreement(units)),
+                    "within_one_point_agreement": rounded(within_tolerance(units, 1.0)),
                     "mean_absolute_difference": rounded(mean(absolute_differences)),
                     "median_absolute_difference": rounded(median(absolute_differences)),
                     "mean_project_11_minus_project_7": rounded(mean(signed_differences)),
@@ -431,6 +623,13 @@ def build_results(project_7: Path, project_11: Path) -> dict[str, Any]:
                 {
                     "metric": "weighted_kappa_quadratic",
                     "weighted_kappa": rounded(weighted_kappa(left_values, right_values, BINARY_CATEGORIES)),
+                    "gwet_ac1": rounded(gwet_ac1(left_values, right_values, BINARY_CATEGORIES)),
+                    "pabak": rounded(pabak(exact_agreement)),
+                    "matthews_correlation_coefficient": rounded(
+                        matthews_correlation_coefficient(left_values, right_values)
+                    ),
+                    "positive_agreement": rounded(positive_agreement(left_values, right_values)),
+                    "negative_agreement": rounded(negative_agreement(left_values, right_values)),
                     "confusion_project_7_rows_project_11_columns": confusion(
                         left_values,
                         right_values,
@@ -446,11 +645,89 @@ def build_results(project_7: Path, project_11: Path) -> dict[str, Any]:
         for field in comparable_fields.values()
         if field.get("field_type") == "continuous" and field.get("krippendorff_alpha") is not None
     ]
+    continuous_ac2s = [
+        field["gwet_ac2_quadratic"]
+        for field in comparable_fields.values()
+        if field.get("field_type") == "continuous" and field.get("gwet_ac2_quadratic") is not None
+    ]
+    continuous_kappas = [
+        field["ordinal_weighted_kappa_quadratic"]
+        for field in comparable_fields.values()
+        if field.get("field_type") == "continuous"
+        and field.get("ordinal_weighted_kappa_quadratic") is not None
+    ]
+    continuous_iccs = [
+        field["icc_a1_absolute_agreement"]
+        for field in comparable_fields.values()
+        if field.get("field_type") == "continuous"
+        and field.get("icc_a1_absolute_agreement") is not None
+    ]
+    continuous_within_one = [
+        field["within_one_point_agreement"]
+        for field in comparable_fields.values()
+        if field.get("field_type") == "continuous"
+        and field.get("within_one_point_agreement") is not None
+    ]
     binary_kappas = [
         field["weighted_kappa"]
         for field in comparable_fields.values()
         if field.get("field_type") == "binary" and field.get("weighted_kappa") is not None
     ]
+    binary_ac1s = [
+        field["gwet_ac1"]
+        for field in comparable_fields.values()
+        if field.get("field_type") == "binary" and field.get("gwet_ac1") is not None
+    ]
+    binary_pabaks = [
+        field["pabak"]
+        for field in comparable_fields.values()
+        if field.get("field_type") == "binary" and field.get("pabak") is not None
+    ]
+    binary_mccs = [
+        field["matthews_correlation_coefficient"]
+        for field in comparable_fields.values()
+        if field.get("field_type") == "binary"
+        and field.get("matthews_correlation_coefficient") is not None
+    ]
+    binary_positive_agreements = [
+        field["positive_agreement"]
+        for field in comparable_fields.values()
+        if field.get("field_type") == "binary" and field.get("positive_agreement") is not None
+    ]
+    binary_negative_agreements = [
+        field["negative_agreement"]
+        for field in comparable_fields.values()
+        if field.get("field_type") == "binary" and field.get("negative_agreement") is not None
+    ]
+
+    pooled_continuous_exact = (
+        sum(
+            1
+            for left_value, right_value in zip(
+                pooled_continuous_left,
+                pooled_continuous_right,
+                strict=True,
+            )
+            if left_value == right_value
+        )
+        / len(pooled_continuous_left)
+        if pooled_continuous_left
+        else None
+    )
+    pooled_continuous_abs_diffs = [
+        abs(unit[0] - unit[1])
+        for unit in pooled_continuous_units
+    ]
+    pooled_binary_exact = (
+        sum(
+            1
+            for left_value, right_value in zip(pooled_binary_left, pooled_binary_right, strict=True)
+            if left_value == right_value
+        )
+        / len(pooled_binary_left)
+        if pooled_binary_left
+        else None
+    )
 
     comparable_task_count = sum(
         1
@@ -497,6 +774,22 @@ def build_results(project_7: Path, project_11: Path) -> dict[str, Any]:
                 "metric": "krippendorff_alpha_interval",
                 "krippendorff_alpha": rounded(krippendorff_alpha_interval(pooled_continuous_units)),
                 "macro_mean_krippendorff_alpha": rounded(mean(continuous_alphas)),
+                "gwet_ac2_quadratic": rounded(
+                    gwet_ac2(pooled_continuous_left, pooled_continuous_right, ORDINAL_CATEGORIES)
+                ),
+                "macro_mean_gwet_ac2_quadratic": rounded(mean(continuous_ac2s)),
+                "ordinal_weighted_kappa_quadratic": rounded(
+                    weighted_kappa(pooled_continuous_left, pooled_continuous_right, ORDINAL_CATEGORIES)
+                ),
+                "macro_mean_ordinal_weighted_kappa_quadratic": rounded(mean(continuous_kappas)),
+                "icc_a1_absolute_agreement": rounded(icc_absolute_agreement(pooled_continuous_units)),
+                "macro_mean_icc_a1_absolute_agreement": rounded(mean(continuous_iccs)),
+                "exact_agreement": rounded(pooled_continuous_exact),
+                "within_one_point_agreement": rounded(
+                    within_tolerance(pooled_continuous_units, 1.0)
+                ),
+                "macro_mean_within_one_point_agreement": rounded(mean(continuous_within_one)),
+                "mean_absolute_difference": rounded(mean(pooled_continuous_abs_diffs)),
             },
             "binary": {
                 "n_label_pairs": len(pooled_binary_left),
@@ -505,6 +798,23 @@ def build_results(project_7: Path, project_11: Path) -> dict[str, Any]:
                     weighted_kappa(pooled_binary_left, pooled_binary_right, BINARY_CATEGORIES)
                 ),
                 "macro_mean_weighted_kappa": rounded(mean(binary_kappas)),
+                "gwet_ac1": rounded(gwet_ac1(pooled_binary_left, pooled_binary_right, BINARY_CATEGORIES)),
+                "macro_mean_gwet_ac1": rounded(mean(binary_ac1s)),
+                "pabak": rounded(pabak(pooled_binary_exact)),
+                "macro_mean_pabak": rounded(mean(binary_pabaks)),
+                "matthews_correlation_coefficient": rounded(
+                    matthews_correlation_coefficient(pooled_binary_left, pooled_binary_right)
+                ),
+                "macro_mean_matthews_correlation_coefficient": rounded(mean(binary_mccs)),
+                "exact_agreement": rounded(pooled_binary_exact),
+                "positive_agreement": rounded(
+                    positive_agreement(pooled_binary_left, pooled_binary_right)
+                ),
+                "macro_mean_positive_agreement": rounded(mean(binary_positive_agreements)),
+                "negative_agreement": rounded(
+                    negative_agreement(pooled_binary_left, pooled_binary_right)
+                ),
+                "macro_mean_negative_agreement": rounded(mean(binary_negative_agreements)),
             },
         },
         "fields": comparable_fields,
@@ -565,42 +875,136 @@ def write_summary(results: dict[str, Any], output_md: Path, output_json: Path) -
     lines.append("## Methods")
     lines.append("")
     lines.append("Continuous 1 to 5 ratings were scored with Krippendorff alpha using interval distance.")
+    lines.append("Continuous fields also include Gwet AC2, ordinal quadratic weighted kappa, ICC(A,1), exact agreement, within one point agreement, mean absolute difference, and average signed difference.")
     lines.append("Binary Yes or No fields were scored with Cohen weighted kappa using quadratic weights.")
+    lines.append("Binary fields also include Gwet AC1, PABAK, MCC, positive agreement, and negative agreement.")
     lines.append("The pooled rows treat each task by field cell as one paired label.")
     lines.append("")
 
     pooled = results["pooled"]
     lines.append("## Pooled results")
     lines.append("")
+    lines.append("Continuous pooled metrics:")
+    lines.append("")
     lines.append("<table>")
-    lines.append("<tr><th>Group</th><th>N label pairs</th><th>Metric</th><th>Value</th><th>Macro mean</th></tr>")
+    lines.append("<tr><th>Metric</th><th>N label pairs</th><th>Pooled value</th><th>Macro mean</th></tr>")
     lines.append(
-        "<tr><td>Continuous</td>"
+        "<tr><td>Krippendorff alpha</td>"
         f"<td>{pooled['continuous']['n_label_pairs']}</td>"
-        "<td>Krippendorff alpha</td>"
         f"<td>{format_metric(pooled['continuous']['krippendorff_alpha'])}</td>"
         f"<td>{format_metric(pooled['continuous']['macro_mean_krippendorff_alpha'])}</td></tr>"
     )
     lines.append(
-        "<tr><td>Binary</td>"
+        "<tr><td>Gwet AC2</td>"
+        f"<td>{pooled['continuous']['n_label_pairs']}</td>"
+        f"<td>{format_metric(pooled['continuous']['gwet_ac2_quadratic'])}</td>"
+        f"<td>{format_metric(pooled['continuous']['macro_mean_gwet_ac2_quadratic'])}</td></tr>"
+    )
+    lines.append(
+        "<tr><td>Ordinal weighted kappa</td>"
+        f"<td>{pooled['continuous']['n_label_pairs']}</td>"
+        f"<td>{format_metric(pooled['continuous']['ordinal_weighted_kappa_quadratic'])}</td>"
+        f"<td>{format_metric(pooled['continuous']['macro_mean_ordinal_weighted_kappa_quadratic'])}</td></tr>"
+    )
+    lines.append(
+        "<tr><td>ICC(A,1)</td>"
+        f"<td>{pooled['continuous']['n_label_pairs']}</td>"
+        f"<td>{format_metric(pooled['continuous']['icc_a1_absolute_agreement'])}</td>"
+        f"<td>{format_metric(pooled['continuous']['macro_mean_icc_a1_absolute_agreement'])}</td></tr>"
+    )
+    lines.append(
+        "<tr><td>Exact agreement</td>"
+        f"<td>{pooled['continuous']['n_label_pairs']}</td>"
+        f"<td>{format_metric(pooled['continuous']['exact_agreement'])}</td>"
+        "<td>NA</td></tr>"
+    )
+    lines.append(
+        "<tr><td>Within one point agreement</td>"
+        f"<td>{pooled['continuous']['n_label_pairs']}</td>"
+        f"<td>{format_metric(pooled['continuous']['within_one_point_agreement'])}</td>"
+        f"<td>{format_metric(pooled['continuous']['macro_mean_within_one_point_agreement'])}</td></tr>"
+    )
+    lines.append(
+        "<tr><td>Mean absolute difference</td>"
+        f"<td>{pooled['continuous']['n_label_pairs']}</td>"
+        f"<td>{format_metric(pooled['continuous']['mean_absolute_difference'])}</td>"
+        "<td>NA</td></tr>"
+    )
+    lines.append("</table>")
+    lines.append("")
+    lines.append("Binary pooled metrics:")
+    lines.append("")
+    lines.append("<table>")
+    lines.append("<tr><th>Metric</th><th>N label pairs</th><th>Pooled value</th><th>Macro mean</th></tr>")
+    lines.append(
+        "<tr><td>Weighted kappa</td>"
         f"<td>{pooled['binary']['n_label_pairs']}</td>"
-        "<td>Weighted kappa</td>"
         f"<td>{format_metric(pooled['binary']['weighted_kappa'])}</td>"
         f"<td>{format_metric(pooled['binary']['macro_mean_weighted_kappa'])}</td></tr>"
     )
+    lines.append(
+        "<tr><td>Gwet AC1</td>"
+        f"<td>{pooled['binary']['n_label_pairs']}</td>"
+        f"<td>{format_metric(pooled['binary']['gwet_ac1'])}</td>"
+        f"<td>{format_metric(pooled['binary']['macro_mean_gwet_ac1'])}</td></tr>"
+    )
+    lines.append(
+        "<tr><td>PABAK</td>"
+        f"<td>{pooled['binary']['n_label_pairs']}</td>"
+        f"<td>{format_metric(pooled['binary']['pabak'])}</td>"
+        f"<td>{format_metric(pooled['binary']['macro_mean_pabak'])}</td></tr>"
+    )
+    lines.append(
+        "<tr><td>MCC</td>"
+        f"<td>{pooled['binary']['n_label_pairs']}</td>"
+        f"<td>{format_metric(pooled['binary']['matthews_correlation_coefficient'])}</td>"
+        f"<td>{format_metric(pooled['binary']['macro_mean_matthews_correlation_coefficient'])}</td></tr>"
+    )
+    lines.append(
+        "<tr><td>Exact agreement</td>"
+        f"<td>{pooled['binary']['n_label_pairs']}</td>"
+        f"<td>{format_metric(pooled['binary']['exact_agreement'])}</td>"
+        "<td>NA</td></tr>"
+    )
+    lines.append(
+        "<tr><td>Positive agreement</td>"
+        f"<td>{pooled['binary']['n_label_pairs']}</td>"
+        f"<td>{format_metric(pooled['binary']['positive_agreement'])}</td>"
+        f"<td>{format_metric(pooled['binary']['macro_mean_positive_agreement'])}</td></tr>"
+    )
+    lines.append(
+        "<tr><td>Negative agreement</td>"
+        f"<td>{pooled['binary']['n_label_pairs']}</td>"
+        f"<td>{format_metric(pooled['binary']['negative_agreement'])}</td>"
+        f"<td>{format_metric(pooled['binary']['macro_mean_negative_agreement'])}</td></tr>"
+    )
     lines.append("</table>")
+    lines.append("")
+
+    lines.append("## Interpretation")
+    lines.append("")
+    lines.append(f"Coverage is complete: {alignment['common_task_count']} common tasks and {alignment['comparable_task_count_with_nonempty_annotations']} paired nonempty annotations.")
+    lines.append(f"Continuous ratings show stronger coarse agreement than exact agreement: pooled Gwet AC2 is {format_metric(pooled['continuous']['gwet_ac2_quadratic'])}, within one point agreement is {format_metric(pooled['continuous']['within_one_point_agreement'])}, and exact agreement is {format_metric(pooled['continuous']['exact_agreement'])}.")
+    lines.append(f"Field level continuous reliability remains uneven: macro mean Krippendorff alpha is {format_metric(pooled['continuous']['macro_mean_krippendorff_alpha'])}, macro mean Gwet AC2 is {format_metric(pooled['continuous']['macro_mean_gwet_ac2_quadratic'])}, and macro mean ICC(A,1) is {format_metric(pooled['continuous']['macro_mean_icc_a1_absolute_agreement'])}.")
+    lines.append(f"Binary labels have high raw agreement under class imbalance: exact agreement is {format_metric(pooled['binary']['exact_agreement'])}, Gwet AC1 is {format_metric(pooled['binary']['gwet_ac1'])}, and PABAK is {format_metric(pooled['binary']['pabak'])}.")
+    lines.append(f"Minority class reliability is weaker: macro mean positive agreement is {format_metric(pooled['binary']['macro_mean_positive_agreement'])}, macro mean negative agreement is {format_metric(pooled['binary']['macro_mean_negative_agreement'])}, and macro mean MCC is {format_metric(pooled['binary']['macro_mean_matthews_correlation_coefficient'])}.")
+    lines.append("Overall, the IAA supports complete audit coverage and usable coarse binary audit labels, with weaker evidence for fine grained field level ordinal claims.")
     lines.append("")
 
     lines.append("## Continuous fields")
     lines.append("")
     lines.append("<table>")
-    lines.append("<tr><th>Field</th><th>N pairs</th><th>Alpha</th><th>Exact agreement</th><th>Mean absolute difference</th><th>Project 11 minus Project 7</th></tr>")
+    lines.append("<tr><th>Field</th><th>N pairs</th><th>Alpha</th><th>Gwet AC2</th><th>Ordinal weighted kappa</th><th>ICC(A,1)</th><th>Exact</th><th>Within one point</th><th>Mean absolute difference</th><th>Project 11 minus Project 7</th></tr>")
     for field, details in continuous_fields:
         lines.append(
             f"<tr><td>{field_label(field)}</td>"
             f"<td>{details['n_pairs']}</td>"
             f"<td>{format_metric(details.get('krippendorff_alpha'))}</td>"
+            f"<td>{format_metric(details.get('gwet_ac2_quadratic'))}</td>"
+            f"<td>{format_metric(details.get('ordinal_weighted_kappa_quadratic'))}</td>"
+            f"<td>{format_metric(details.get('icc_a1_absolute_agreement'))}</td>"
             f"<td>{format_metric(details.get('exact_agreement'))}</td>"
+            f"<td>{format_metric(details.get('within_one_point_agreement'))}</td>"
             f"<td>{format_metric(details.get('mean_absolute_difference'))}</td>"
             f"<td>{format_metric(details.get('mean_project_11_minus_project_7'))}</td></tr>"
         )
@@ -610,13 +1014,18 @@ def write_summary(results: dict[str, Any], output_md: Path, output_json: Path) -
     lines.append("## Binary fields")
     lines.append("")
     lines.append("<table>")
-    lines.append("<tr><th>Field</th><th>N pairs</th><th>Weighted kappa</th><th>Exact agreement</th><th>Project 7 distribution</th><th>Project 11 distribution</th></tr>")
+    lines.append("<tr><th>Field</th><th>N pairs</th><th>Weighted kappa</th><th>Gwet AC1</th><th>PABAK</th><th>MCC</th><th>Exact</th><th>Positive agreement</th><th>Negative agreement</th><th>Project 7 distribution</th><th>Project 11 distribution</th></tr>")
     for field, details in binary_fields:
         lines.append(
             f"<tr><td>{field_label(field)}</td>"
             f"<td>{details['n_pairs']}</td>"
             f"<td>{format_metric(details.get('weighted_kappa'))}</td>"
+            f"<td>{format_metric(details.get('gwet_ac1'))}</td>"
+            f"<td>{format_metric(details.get('pabak'))}</td>"
+            f"<td>{format_metric(details.get('matthews_correlation_coefficient'))}</td>"
             f"<td>{format_metric(details.get('exact_agreement'))}</td>"
+            f"<td>{format_metric(details.get('positive_agreement'))}</td>"
+            f"<td>{format_metric(details.get('negative_agreement'))}</td>"
             f"<td>{json.dumps(details['project_7_distribution'], sort_keys=True)}</td>"
             f"<td>{json.dumps(details['project_11_distribution'], sort_keys=True)}</td></tr>"
         )

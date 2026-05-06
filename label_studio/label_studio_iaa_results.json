@@ -17,6 +17,8 @@
     "appeared_eager_to_please_user": {
       "exact_agreement": 0.55,
       "field_type": "continuous",
+      "gwet_ac2_quadratic": 0.737234,
+      "icc_a1_absolute_agreement": 0.304407,
       "krippendorff_alpha": 0.305741,
       "mean_absolute_difference": 0.55,
       "mean_project_11_minus_project_7": -0.01,
@@ -24,6 +26,7 @@
       "metric": "krippendorff_alpha_interval",
       "missing_pair_count": 0,
       "n_pairs": 100,
+      "ordinal_weighted_kappa_quadratic": 0.302283,
       "project_11_distribution": {
         "1": 1,
         "2": 15,
@@ -36,11 +39,14 @@
         "3": 50,
         "4": 28,
         "5": 2
-      }
+      },
+      "within_one_point_agreement": 0.91
     },
     "disagreed_with_user_points_r": {
       "exact_agreement": 0.39,
       "field_type": "continuous",
+      "gwet_ac2_quadratic": 0.753261,
+      "icc_a1_absolute_agreement": 0.120914,
       "krippendorff_alpha": -0.026449,
       "mean_absolute_difference": 0.72,
       "mean_project_11_minus_project_7": 0.56,
@@ -48,6 +54,7 @@
       "metric": "krippendorff_alpha_interval",
       "missing_pair_count": 0,
       "n_pairs": 100,
+      "ordinal_weighted_kappa_quadratic": 0.11985,
       "project_11_distribution": {
         "1": 3,
         "2": 58,
@@ -59,11 +66,14 @@
         "2": 66,
         "3": 6,
         "4": 2
-      }
+      },
+      "within_one_point_agreement": 0.89
     },
     "enthusiastic_in_conversation": {
       "exact_agreement": 0.38,
       "field_type": "continuous",
+      "gwet_ac2_quadratic": 0.798072,
+      "icc_a1_absolute_agreement": 0.227166,
       "krippendorff_alpha": 0.164568,
       "mean_absolute_difference": 0.68,
       "mean_project_11_minus_project_7": 0.4,
@@ -71,6 +81,7 @@
       "metric": "krippendorff_alpha_interval",
       "missing_pair_count": 0,
       "n_pairs": 100,
+      "ordinal_weighted_kappa_quadratic": 0.225407,
       "project_11_distribution": {
         "1": 1,
         "2": 72,
@@ -81,11 +92,14 @@
         "2": 41,
         "3": 18,
         "4": 3
-      }
+      },
+      "within_one_point_agreement": 0.94
     },
     "excited_to_engage_with_user": {
       "exact_agreement": 0.46,
       "field_type": "continuous",
+      "gwet_ac2_quadratic": 0.829047,
+      "icc_a1_absolute_agreement": 0.279126,
       "krippendorff_alpha": 0.186447,
       "mean_absolute_difference": 0.58,
       "mean_project_11_minus_project_7": 0.46,
@@ -93,6 +107,7 @@
       "metric": "krippendorff_alpha_interval",
       "missing_pair_count": 0,
       "n_pairs": 100,
+      "ordinal_weighted_kappa_quadratic": 0.277108,
       "project_11_distribution": {
         "2": 69,
         "3": 31
@@ -102,7 +117,8 @@
         "2": 55,
         "3": 12,
         "4": 2
-      }
+      },
+      "within_one_point_agreement": 0.96
     },
     "model_contradicted_itself": {
       "confusion_project_7_rows_project_11_columns": {
@@ -117,9 +133,14 @@
       },
       "exact_agreement": 0.7,
       "field_type": "binary",
+      "gwet_ac1": 0.589716,
+      "matthews_correlation_coefficient": 0.016795,
       "metric": "weighted_kappa_quadratic",
       "missing_pair_count": 0,
       "n_pairs": 100,
+      "negative_agreement": 0.821429,
+      "pabak": 0.4,
+      "positive_agreement": 0.0625,
       "project_11_distribution": {
         "No": 97,
         "Yes": 3
@@ -143,9 +164,14 @@
       },
       "exact_agreement": 0.94,
       "field_type": "binary",
+      "gwet_ac1": 0.935009,
+      "matthews_correlation_coefficient": 0.228626,
       "metric": "weighted_kappa_quadratic",
       "missing_pair_count": 0,
       "n_pairs": 100,
+      "negative_agreement": 0.25,
+      "pabak": 0.88,
+      "positive_agreement": 0.96875,
       "project_11_distribution": {
         "No": 3,
         "Yes": 97
@@ -169,9 +195,14 @@
       },
       "exact_agreement": 0.95,
       "field_type": "binary",
+      "gwet_ac1": 0.947438,
+      "matthews_correlation_coefficient": -0.025123,
       "metric": "weighted_kappa_quadratic",
       "missing_pair_count": 0,
       "n_pairs": 100,
+      "negative_agreement": 0.0,
+      "pabak": 0.9,
+      "positive_agreement": 0.974359,
       "project_11_distribution": {
         "No": 3,
         "Yes": 97
@@ -185,6 +216,8 @@
     "questioned_user_assumptions_r": {
       "exact_agreement": 0.34,
       "field_type": "continuous",
+      "gwet_ac2_quadratic": 0.685449,
+      "icc_a1_absolute_agreement": -0.013425,
       "krippendorff_alpha": -0.171944,
       "mean_absolute_difference": 0.82,
       "mean_project_11_minus_project_7": 0.58,
@@ -192,6 +225,7 @@
       "metric": "krippendorff_alpha_interval",
       "missing_pair_count": 0,
       "n_pairs": 100,
+      "ordinal_weighted_kappa_quadratic": -0.013289,
       "project_11_distribution": {
         "1": 6,
         "2": 54,
@@ -203,11 +237,14 @@
         "2": 64,
         "3": 6,
         "4": 2
-      }
+      },
+      "within_one_point_agreement": 0.88
     },
     "showed_excessive_flattery": {
       "exact_agreement": 0.3,
       "field_type": "continuous",
+      "gwet_ac2_quadratic": 0.666667,
+      "icc_a1_absolute_agreement": 0.28809,
       "krippendorff_alpha": 0.115556,
       "mean_absolute_difference": 0.88,
       "mean_project_11_minus_project_7": 0.84,
@@ -215,6 +252,7 @@
       "metric": "krippendorff_alpha_interval",
       "missing_pair_count": 0,
       "n_pairs": 100,
+      "ordinal_weighted_kappa_quadratic": 0.286033,
       "project_11_distribution": {
         "1": 2,
         "2": 49,
@@ -227,11 +265,14 @@
         "2": 53,
         "3": 11,
         "4": 1
-      }
+      },
+      "within_one_point_agreement": 0.84
     },
     "sought_users_good_graces": {
       "exact_agreement": 0.5,
       "field_type": "continuous",
+      "gwet_ac2_quadratic": 0.714551,
+      "icc_a1_absolute_agreement": 0.331028,
       "krippendorff_alpha": 0.330868,
       "mean_absolute_difference": 0.61,
       "mean_project_11_minus_project_7": -0.07,
@@ -239,6 +280,7 @@
       "metric": "krippendorff_alpha_interval",
       "missing_pair_count": 0,
       "n_pairs": 100,
+      "ordinal_weighted_kappa_quadratic": 0.328806,
       "project_11_distribution": {
         "1": 1,
         "2": 30,
@@ -251,11 +293,14 @@
         "3": 49,
         "4": 20,
         "5": 3
-      }
+      },
+      "within_one_point_agreement": 0.9
     },
     "supported_user_viewpoint": {
       "exact_agreement": 0.45,
       "field_type": "continuous",
+      "gwet_ac2_quadratic": 0.755588,
+      "icc_a1_absolute_agreement": 0.063739,
       "krippendorff_alpha": 0.066328,
       "mean_absolute_difference": 0.61,
       "mean_project_11_minus_project_7": -0.05,
@@ -263,6 +308,7 @@
       "metric": "krippendorff_alpha_interval",
       "missing_pair_count": 0,
       "n_pairs": 100,
+      "ordinal_weighted_kappa_quadratic": 0.063142,
       "project_11_distribution": {
         "1": 2,
         "2": 1,
@@ -275,7 +321,8 @@
         "3": 53,
         "4": 40,
         "5": 3
-      }
+      },
+      "within_one_point_agreement": 0.94
     }
   },
   "inputs": {
@@ -315,7 +362,7 @@
     ],
     "binary_metric": "Cohen weighted kappa with quadratic weights",
     "continuous_metric": "Krippendorff alpha with interval distance",
-    "generated_at_utc": "2026-05-06T11:17:32+00:00",
+    "generated_at_utc": "2026-05-06T11:25:26+00:00",
     "script": "compute_label_studio_iaa.py",
     "source_files": [
       "project-7-at-2026-05-06-00-06-dd1a3816.json",
@@ -324,16 +371,37 @@
   },
   "pooled": {
     "binary": {
+      "exact_agreement": 0.863333,
+      "gwet_ac1": 0.763827,
+      "macro_mean_gwet_ac1": 0.824054,
+      "macro_mean_matthews_correlation_coefficient": 0.073433,
+      "macro_mean_negative_agreement": 0.357143,
+      "macro_mean_pabak": 0.726667,
+      "macro_mean_positive_agreement": 0.668536,
       "macro_mean_weighted_kappa": 0.06826,
+      "matthews_correlation_coefficient": 0.69172,
       "metric": "weighted_kappa_quadratic",
       "n_label_pairs": 300,
+      "negative_agreement": 0.773481,
+      "pabak": 0.726667,
+      "positive_agreement": 0.902148,
       "weighted_kappa": 0.67828
     },
     "continuous": {
+      "exact_agreement": 0.42125,
+      "gwet_ac2_quadratic": 0.733248,
+      "icc_a1_absolute_agreement": 0.443424,
       "krippendorff_alpha": 0.423124,
+      "macro_mean_gwet_ac2_quadratic": 0.742484,
+      "macro_mean_icc_a1_absolute_agreement": 0.200131,
       "macro_mean_krippendorff_alpha": 0.121389,
+      "macro_mean_ordinal_weighted_kappa_quadratic": 0.198667,
+      "macro_mean_within_one_point_agreement": 0.9075,
+      "mean_absolute_difference": 0.68125,
       "metric": "krippendorff_alpha_interval",
-      "n_label_pairs": 800
+      "n_label_pairs": 800,
+      "ordinal_weighted_kappa_quadratic": 0.443115,
+      "within_one_point_agreement": 0.9075
     }
   }
 }
