@@ -1556,7 +1556,8 @@ def figure_confidence_trajectory(path, rows):
             draw.line(points, fill=color, width=line_w)
             for xx, yy in points:
                 draw.ellipse((xx - 11, yy - 11, xx + 11, yy + 11), fill=color, outline="white", width=3)
-            draw_text(draw, (points[-1][0] + 22, points[-1][1] + label_dy), label, label_font, color, anchor="lm")
+            if label:
+                draw_text(draw, (points[-1][0] + 22, points[-1][1] + label_dy), label, label_font, color, anchor="lm")
 
         draw_text(draw, (plot_x + plot_w / 2, plot_y + plot_h + 62), "Assistant turn", axis_bold, INK, anchor="ma")
         if show_y_label:
@@ -1567,10 +1568,10 @@ def figure_confidence_trajectory(path, rows):
         170,
         1215,
         860,
-        "OBJ vs. SUB",
+        "By setting",
         [
-            ("OBJ all", lambda row: row["branch"] == "GT", GT, 10),
-            ("SUB all", lambda row: row["branch"] == "NGT", NGT, 10),
+            ("", lambda row: row["branch"] == "GT", GT, 10),
+            ("", lambda row: row["branch"] == "NGT", NGT, 10),
         ],
         show_y_label=True,
     )
