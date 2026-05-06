@@ -487,7 +487,7 @@ def save_shift_plot(summary: dict, out_png: Path | None, out_pdf: Path | None) -
     width, height = 3300, 1450
     img = Image.new("RGBA", (width, height), WHITE)
     draw = ImageDraw.Draw(img)
-    title = "Neutral-to-Framed Movement"
+    title = "First-turn framing shifts both factual and subjective answers"
     box = draw.textbbox((0, 0), title, font=F_TITLE)
     draw.text((width / 2 - (box[2] - box[0]) / 2, 54), title, font=F_TITLE, fill=INK)
 
@@ -495,7 +495,7 @@ def save_shift_plot(summary: dict, out_png: Path | None, out_pdf: Path | None) -
         draw,
         summary,
         (120, 270, 1575, 1260),
-        "GT",
+        "OBJ",
         "Neutral accuracy to framed accuracy",
         "gt",
         0,
@@ -505,7 +505,7 @@ def save_shift_plot(summary: dict, out_png: Path | None, out_pdf: Path | None) -
         draw,
         summary,
         (1715, 270, 3170, 1260),
-        "NGT",
+        "SUB",
         "Neutral user-view rate to framed user-view rate",
         "ngt",
         45,
@@ -520,10 +520,10 @@ def save_shift_plot(summary: dict, out_png: Path | None, out_pdf: Path | None) -
     draw.text((legend_x + 42, legend_y - 20), "Neutral", font=F_SHIFT_LEGEND, fill=INK)
     legend_x += 230
     draw.ellipse([legend_x, legend_y - 14, legend_x + 28, legend_y + 14], fill="#CB4B47", outline=WHITE, width=3)
-    draw.text((legend_x + 42, legend_y - 20), "GT framed", font=F_SHIFT_LEGEND, fill=INK)
+    draw.text((legend_x + 42, legend_y - 20), "OBJ framed", font=F_SHIFT_LEGEND, fill=INK)
     legend_x += 270
     draw.ellipse([legend_x, legend_y - 14, legend_x + 28, legend_y + 14], fill="#2BAE66", outline=WHITE, width=3)
-    draw.text((legend_x + 42, legend_y - 20), "NGT framed", font=F_SHIFT_LEGEND, fill=INK)
+    draw.text((legend_x + 42, legend_y - 20), "SUB framed", font=F_SHIFT_LEGEND, fill=INK)
 
     output_parent = (out_png or out_pdf).parent if (out_png or out_pdf) else None
     if output_parent is None:

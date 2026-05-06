@@ -6,23 +6,29 @@
 - Keep GitHub focused on `Experimental/`, benchmark data builders, audits,
   runners, scoring, plotting scripts, and code-facing visual assets.
 - Manuscript files, LaTeX sources, bibliography edits, paper tables, and paper
-  figures belong in the separate manuscript source tree, not in the codebase
+  figures belong only in the Overleaf paper tree, not in the GitHub codebase
   tree.
 - Keep release-facing files double-blind. Do not add author names,
   institutions, private remote URLs, local usernames, absolute local paths,
   account names, unpublished acknowledgments, or API secrets.
 - Do not revert or stage unrelated dirty changes. This repo often has
   uncommitted experiment/data work in progress.
+- Use multi-agent parallelism when work splits cleanly, especially independent
+  figure generation, figure-script review, data audits, or manuscript
+  consistency checks. Assign agents disjoint files or questions so they
+  accelerate execution without duplicating work.
 
 ## Git And Push
 
 - Use the configured remotes only when the user explicitly asks to push.
-- For codebase work, fetch the configured code remote after a gap, stage only
-  intended codebase files, commit, push, and verify the code remote head.
-- For manuscript work, use the configured manuscript sync target, stage only
-  manuscript files, commit, push, and verify the manuscript target head.
-- Do not combine codebase and manuscript changes in one sync operation. They
-  are intentionally separate release trees.
+- Codebase changes are submitted only to the configured GitHub remote. Fetch
+  after a gap, stage only intended codebase files, commit, push, and verify the
+  GitHub remote head.
+- Manuscript changes are submitted only from the Overleaf paper tree to
+  Overleaf. Do not submit manuscript files, paper figures, LaTeX sources,
+  bibliography edits, or paper tables from this GitHub codebase tree.
+- Do not mirror code into Overleaf or manuscript assets into GitHub. There is
+  no third release target.
 - Do not document private remote URLs or account identifiers in repository
   files.
 - Do not force-push unless the user explicitly asks.
@@ -45,16 +51,19 @@
 
 - Keep objective-fact and subjective-opinion branches separate in data,
   templates, scoring, and claims.
+- Release-facing prose and figures should use OBJ for objective-fact items and
+  SUB for subjective-opinion items. Legacy `gt` and `ngt` prefixes may remain
+  in data filenames and code paths for compatibility.
 - Objective-fact: 200 base items across Mathematical, Physical, Chemical, and
   Biomedical Science. Each domain has 25 MMLU-Pro and 25 HLE-Verified items.
   Records must keep source URL, source quote, source-native or documented
   converted choices, verified answer, and a plausible tracked wrong answer.
 - Subjective-opinion: 100 base decisions, 25 each from policy trade-off,
-  high-stakes moral dilemma, consequential interpersonal relation, and personal
-  choice. Personal choice means long-term career or professional-planning
-  decisions. Subjective-opinion records have two defensible answer states, no
-  hidden correct answer, no item-level source answer, and only domain-level
-  construct grounding.
+  high-stakes moral dilemma, consequential interpersonal relation, and
+  professional-planning choice. Professional-planning choice means long-term
+  career or professional-planning decisions. Subjective-opinion records have two
+  defensible answer states, no hidden correct answer, no item-level source
+  answer, and only domain-level construct grounding.
 - Context-framing accounting follows the current prompt-cell schema:
   objective-fact is 200 base items times neutral/value-relevant/
   impression-relevant/outcome-relevant; subjective-opinion is 100 base

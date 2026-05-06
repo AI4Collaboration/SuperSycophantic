@@ -26,6 +26,8 @@ MODELS = [
     "mistralai/mistral-medium-3.1",
     "cohere/command-r-08-2024",
 ]
+CLAUDE_MODELS = [model for model in MODELS if model.startswith("anthropic/")]
+OTHER_MODELS = [model for model in MODELS if model not in CLAUDE_MODELS]
 
 MODEL_LABELS = {
     "openai/gpt-5.4": "GPT-5.4",
@@ -176,6 +178,10 @@ def parse_args():
 
 
 def read_jsonl_gz(path):
+    if not Path(path).exists():
+        raise FileNotFoundError(
+            f"Missing result file: {path}. Restore the ignored Experimental/results raw run files before regenerating figures."
+        )
     with gzip.open(path, "rt", encoding="utf-8-sig") as handle:
         for line in handle:
             line = line.strip()
@@ -251,6 +257,17 @@ def draw_header(draw, title, subtitle, width):
     else:
         line_y = 122
     draw.line((65, line_y, width - 65, line_y), fill=LIGHT_GRID, width=3)
+
+
+def draw_rotated_label(im, center, text, font, fill=INK, angle=90, pad_x=18, pad_y=14):
+    label_box = Image.new("RGBA", (1, 1), (255, 255, 255, 0))
+    ld = ImageDraw.Draw(label_box)
+    box = ld.textbbox((0, 0), text, font=font)
+    label = Image.new("RGBA", (box[2] - box[0] + 2 * pad_x, box[3] - box[1] + 2 * pad_y), (255, 255, 255, 0))
+    ld = ImageDraw.Draw(label)
+    ld.text((pad_x - box[0], pad_y - box[1]), text, font=font, fill=fill)
+    rotated = label.rotate(angle, expand=True)
+    im.paste(rotated, (int(center[0] - rotated.width / 2), int(center[1] - rotated.height / 2)), rotated)
 
 
 def save_tight(im, path, padding=34):
@@ -923,88 +940,131 @@ def figure_temporal_sequences(path, sequence_rows):
 
 
 def figure_scatter(path, headline):
-    width, height = 1800, 1120
+    width, height = 2440, 1090
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
-    draw_header(
-        draw,
-        "Model comparison",
-        "",
-        width,
-    )
-    rows = []
-    for model in MODELS:
-        gt_rate = row_lookup(headline, model=model, branch="GT", mode="adaptive", source="single")["rate"]
-        ngt_rate = row_lookup(headline, model=model, branch="NGT", mode="adaptive", source="single")["rate"]
-        rows.append(
-            {
-                "model": model,
-                "label": MODEL_SHORT_LABELS[model],
-                "family": model.split("/")[0],
-                "gt": gt_rate,
-                "ngt": ngt_rate,
-            }
-        )
-    left, top = 210, 185
-    plot_w, plot_h = 1360, 760
+    draw_header(draw, "Adaptive triggers by a small model can mislead larger models", "", width)
+
+    top = 165
+    panel_w, panel_h = 1025, 790
+    panel_gap = 115
+    panel_lefts = [145, 145 + panel_w + panel_gap]
+    plot_pad_left, plot_pad_top = 116, 92
+    plot_pad_right, plot_pad_bottom = 58, 112
+    plot_w = panel_w - plot_pad_left - plot_pad_right
+    plot_h = panel_h - plot_pad_top - plot_pad_bottom
     min_x, max_x = 0.05, 0.38
-    min_y, max_y = 0.32, 0.95
+    min_y, max_y = 0.25, 0.95
     x_cut, y_cut = 0.20, 0.60
 
-    def x_pos(value):
-        return left + plot_w * (value - min_x) / (max_x - min_x)
-
-    def y_pos(value):
-        return top + plot_h - plot_h * (value - min_y) / (max_y - min_y)
-
-    # Soft quadrant fields, deliberately more visual than a plain scatter background.
-    overlay = Image.new("RGBA", (width, height), (255, 255, 255, 0))
-    od = ImageDraw.Draw(overlay)
-    x_mid, y_mid = x_pos(x_cut), y_pos(y_cut)
-    od.rectangle((left, top, x_mid, y_mid), fill=(*ImageColor.getrgb("#EAF4EF"), 150))
-    od.rectangle((x_mid, top, left + plot_w, y_mid), fill=(*ImageColor.getrgb("#FFF3E8"), 150))
-    od.rectangle((left, y_mid, x_mid, top + plot_h), fill=(*ImageColor.getrgb("#EEF5FB"), 150))
-    od.rectangle((x_mid, y_mid, left + plot_w, top + plot_h), fill=(*ImageColor.getrgb("#F9EEF1"), 135))
-    im = Image.alpha_composite(im.convert("RGBA"), overlay).convert("RGB")
-    draw = ImageDraw.Draw(im)
-
-    for value in [0.10, 0.20, 0.30]:
-        xx = x_pos(value)
-        draw.line((xx, top, xx, top + plot_h), fill="#DCE3EC", width=1)
-        draw_text(draw, (xx, top + plot_h + 18), f"{int(value * 100)}%", FONT_SMALL, MUTED, anchor="ma")
-    for value in [0.40, 0.60, 0.80]:
-        yy = y_pos(value)
-        draw.line((left, yy, left + plot_w, yy), fill="#DCE3EC", width=1)
-        draw_text(draw, (left - 16, yy), f"{int(value * 100)}%", FONT_SMALL, MUTED, anchor="rm")
-    draw.line((x_mid, top, x_mid, top + plot_h), fill="#586474", width=2)
-    draw.line((left, y_mid, left + plot_w, y_mid), fill="#586474", width=2)
-    draw.rectangle((left, top, left + plot_w, top + plot_h), outline="#1A2028", width=2)
-
     label_specs = {
-        "openai/gpt-5.4": (-18, -42, "rm"),
-        "openai/gpt-5.4-mini": (24, 16, "lm"),
-        "openai/gpt-5.4-nano": (24, 14, "lm"),
-        "anthropic/claude-sonnet-4.5": (22, 18, "lm"),
-        "anthropic/claude-haiku-4.5": (22, -42, "lm"),
-        "google/gemini-3.1-flash-lite-preview": (22, 18, "lm"),
-        "mistralai/mistral-medium-3.1": (24, -38, "lm"),
-        "cohere/command-r-08-2024": (24, 16, "lm"),
+        "static": {
+            "openai/gpt-5.4": (-46, -54, "rm"),
+            "openai/gpt-5.4-mini": (-16, 58, "ma"),
+            "openai/gpt-5.4-nano": (34, -4, "lm"),
+            "anthropic/claude-opus-4.5": (-40, -50, "rm"),
+            "anthropic/claude-sonnet-4.5": (34, -44, "lm"),
+            "anthropic/claude-haiku-4.5": (36, 24, "lm"),
+            "google/gemini-3.1-flash-lite-preview": (32, -44, "lm"),
+            "mistralai/mistral-medium-3.1": (36, -10, "lm"),
+            "cohere/command-r-08-2024": (34, 18, "lm"),
+        },
+        "adaptive": {
+            "openai/gpt-5.4": (0, -70, "ma"),
+            "openai/gpt-5.4-mini": (-46, 50, "rm"),
+            "openai/gpt-5.4-nano": (30, 50, "lm"),
+            "anthropic/claude-opus-4.5": (-42, 18, "rm"),
+            "anthropic/claude-sonnet-4.5": (36, -46, "lm"),
+            "anthropic/claude-haiku-4.5": (36, 18, "lm"),
+            "google/gemini-3.1-flash-lite-preview": (34, -44, "lm"),
+            "mistralai/mistral-medium-3.1": (38, 20, "lm"),
+            "cohere/command-r-08-2024": (36, 18, "lm"),
+        },
     }
-    for row in rows:
-        x = x_pos(row["gt"])
-        y = y_pos(row["ngt"])
-        badge = make_logo_badge(row["family"], 64)
-        im.paste(badge, (int(x - badge.width / 2), int(y - badge.height / 2)), badge)
-        draw = ImageDraw.Draw(im)
-        dx, dy, anchor = label_specs.get(row["model"], (12, 8, "lm"))
-        draw.multiline_text((x + dx, y + dy), row["label"], font=FONT_SMALL, fill=INK, anchor=anchor, spacing=2, align="center")
 
-    draw_text(draw, (left + plot_w / 2, top + plot_h + 80), "Wrong turns on factual questions (%)", FONT_AXIS_BOLD, INK, anchor="ma")
-    y_label = Image.new("RGBA", (430, 42), (255, 255, 255, 0))
-    yd = ImageDraw.Draw(y_label)
-    yd.text((0, 0), "Decision shifts (%)", font=FONT_AXIS_BOLD, fill=INK)
-    y_label = y_label.rotate(90, expand=True)
-    im.paste(y_label, (72, top + 170), y_label)
+    def draw_panel(panel_left, mode, title):
+        nonlocal draw
+        panel_top = top
+        draw.rounded_rectangle(
+            (panel_left, panel_top, panel_left + panel_w, panel_top + panel_h),
+            radius=18,
+            fill="#FBFCFE",
+            outline="#D8E0EA",
+            width=2,
+        )
+        draw_text(draw, (panel_left + panel_w / 2, panel_top + 36), title, FONT_PANEL, INK, anchor="ma")
+
+        left = panel_left + plot_pad_left
+        plot_top = panel_top + plot_pad_top
+
+        def x_pos(value):
+            return left + plot_w * (value - min_x) / (max_x - min_x)
+
+        def y_pos(value):
+            return plot_top + plot_h - plot_h * (value - min_y) / (max_y - min_y)
+
+        overlay = Image.new("RGBA", (width, height), (255, 255, 255, 0))
+        od = ImageDraw.Draw(overlay)
+        x_mid, y_mid = x_pos(x_cut), y_pos(y_cut)
+        od.rectangle((left, plot_top, x_mid, y_mid), fill=(*ImageColor.getrgb("#EAF4EF"), 150))
+        od.rectangle((x_mid, plot_top, left + plot_w, y_mid), fill=(*ImageColor.getrgb("#FFF3E8"), 150))
+        od.rectangle((left, y_mid, x_mid, plot_top + plot_h), fill=(*ImageColor.getrgb("#EEF5FB"), 150))
+        od.rectangle((x_mid, y_mid, left + plot_w, plot_top + plot_h), fill=(*ImageColor.getrgb("#F9EEF1"), 135))
+        base = Image.alpha_composite(im.convert("RGBA"), overlay).convert("RGB")
+        im.paste(base)
+        draw = ImageDraw.Draw(im)
+
+        for value in [0.10, 0.20, 0.30]:
+            xx = x_pos(value)
+            draw.line((xx, plot_top, xx, plot_top + plot_h), fill="#DCE3EC", width=1)
+            draw_text(draw, (xx, plot_top + plot_h + 16), f"{int(value * 100)}%", FONT_SMALL, MUTED, anchor="ma")
+        for value in [0.40, 0.60, 0.80]:
+            yy = y_pos(value)
+            draw.line((left, yy, left + plot_w, yy), fill="#DCE3EC", width=1)
+            draw_text(draw, (left - 15, yy), f"{int(value * 100)}%", FONT_SMALL, MUTED, anchor="rm")
+        draw.line((x_mid, plot_top, x_mid, plot_top + plot_h), fill="#586474", width=2)
+        draw.line((left, y_mid, left + plot_w, y_mid), fill="#586474", width=2)
+        draw.rectangle((left, plot_top, left + plot_w, plot_top + plot_h), outline="#1A2028", width=2)
+
+        rows = []
+        for model in MODELS:
+            rows.append(
+                {
+                    "model": model,
+                    "label": MODEL_SHORT_LABELS[model],
+                    "gt": row_lookup(headline, model=model, branch="GT", mode=mode, source="single")["rate"],
+                    "ngt": row_lookup(headline, model=model, branch="NGT", mode=mode, source="single")["rate"],
+                }
+            )
+
+        for row in sorted(rows, key=lambda item: item["ngt"]):
+            x = x_pos(row["gt"])
+            y = y_pos(row["ngt"])
+            badge = make_badge(row["model"])
+            badge.thumbnail((62, 62), RESAMPLE_LANCZOS)
+            im.paste(badge, (int(x - badge.width / 2), int(y - badge.height / 2)), badge)
+            draw = ImageDraw.Draw(im)
+            dx, dy, anchor = label_specs[mode].get(row["model"], (24, 18, "lm"))
+            lx, ly = x + dx, y + dy
+            if abs(dx) > 34 or abs(dy) > 34:
+                edge_x = x + (badge.width / 2 if dx > 0 else -badge.width / 2 if dx < 0 else 0)
+                edge_y = y + (badge.height / 2 if dy > 0 else -badge.height / 2 if dy < 0 else 0)
+                draw.line((edge_x, edge_y, lx, ly), fill="#AEB8C6", width=1)
+            draw.multiline_text((lx, ly), row["label"], font=FONT_TINY, fill=INK, anchor=anchor, spacing=1, align="center")
+
+        draw_text(
+            draw,
+            (left + plot_w / 2, plot_top + plot_h + 56),
+            "Model changes from right to wrong after 1 trigger (%)",
+            FONT_AXIS_BOLD,
+            INK,
+            anchor="ma",
+        )
+        draw_rotated_label(im, (left - 42, plot_top + plot_h / 2), "Model changes answer after 1 trigger (%)", FONT_AXIS_BOLD)
+        draw = ImageDraw.Draw(im)
+
+    draw_panel(panel_lefts[0], "static", "Static")
+    draw_panel(panel_lefts[1], "adaptive", "Adaptive")
     save_tight(im, path)
 
 
@@ -1108,28 +1168,46 @@ def figure_tone_opus(path, rows):
     width, height = 1780, 1036
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
-    draw_header(draw, "Tone gradient by model", "", width)
+    draw_header(draw, "Claude shows that strong pressure can trigger rechecking", "", width)
     panels = [
-        ("GT", 130, 205, "GT correct-to-wrong", 0.55, [0, 0.15, 0.30, 0.45]),
-        ("NGT", 950, 205, "NGT Flip-Flop", 0.9, [0, 0.3, 0.6, 0.9]),
+        ("GT", 130, 205, "OBJ right-to-wrong", 0.55, [0, 0.15, 0.30, 0.45]),
+        ("NGT", 950, 205, "SUB switching", 0.9, [0, 0.3, 0.6, 0.9]),
     ]
+
+    def other_mean(branch, tone):
+        subset = [row for row in rows if row["branch"] == branch and row["tone"] == tone and row["model"] in OTHER_MODELS]
+        denom = sum(row.get("denom", 0) for row in subset)
+        if denom <= 0:
+            raise ValueError(f"Missing non-Claude tone rows for branch={branch}, tone={tone}")
+        return sum(row["rate"] * row.get("denom", 0) for row in subset) / denom
+
+    line_specs = [
+        ("Other-model mean", "#17202A", 8, 13, None),
+        ("Opus 4.5", MODEL_COLORS["anthropic/claude-opus-4.5"], 8, 13, "anthropic/claude-opus-4.5"),
+        ("Sonnet 4.5", MODEL_COLORS["anthropic/claude-sonnet-4.5"], 6, 10, "anthropic/claude-sonnet-4.5"),
+        ("Haiku 4.5", MODEL_COLORS["anthropic/claude-haiku-4.5"], 6, 10, "anthropic/claude-haiku-4.5"),
+    ]
+
     for branch, x, y, title, max_rate, ticks in panels:
         w, h = 700, 610
         draw.rectangle((x, y, x + w, y + h), fill="white", outline="#D9E0E8", width=2)
         draw_text(draw, (x + 26, y + 24), title, FONT_PANEL, INK)
+        legend_x, legend_y = x + w - 260, y + 64
+        for li, (label, color, line_w, dot_r, _) in enumerate(line_specs):
+            yy = legend_y + li * 28
+            draw.line((legend_x, yy, legend_x + 42, yy), fill=color, width=max(4, line_w - 2))
+            draw.ellipse((legend_x + 17, yy - 5, legend_x + 27, yy + 5), fill=color, outline="white", width=2)
+            draw_text(draw, (legend_x + 54, yy), label, FONT_TINY, color if li else INK, anchor="lm")
         px0, py0 = x + 108, y + 112
         pw, ph = w - 178, h - 225
         for tick in ticks:
             yy = py0 + ph - ph * tick / max_rate
             draw.line((px0, yy, px0 + pw, yy), fill="#E7EDF3", width=1)
             draw_text(draw, (px0 - 16, yy), f"{int(tick * 100)}", FONT_SMALL, MUTED, anchor="rm")
-        for model in MODELS:
-            color = MODEL_COLORS[model]
-            line_w = 8 if model == "anthropic/claude-opus-4.5" else 5
-            dot_r = 13 if model == "anthropic/claude-opus-4.5" else 9
+        for label, color, line_w, dot_r, model in line_specs:
             pts = []
             for i, tone in enumerate(TONES):
-                value = row_lookup(rows, branch=branch, model=model, tone=tone)["rate"]
+                value = other_mean(branch, tone) if model is None else row_lookup(rows, branch=branch, model=model, tone=tone)["rate"]
                 xx = px0 + i * pw / 2
                 yy = py0 + ph - ph * value / max_rate
                 pts.append((xx, yy))
@@ -1139,18 +1217,9 @@ def figure_tone_opus(path, rows):
         for i, tone in enumerate(TONES):
             xx = px0 + i * pw / 2
             draw_text(draw, (xx, py0 + ph + 36), TONE_LABELS[tone], FONT_AXIS_BOLD, INK, anchor="ma")
-        draw_text(draw, (px0 + pw / 2, y + h - 34), "Tone", FONT_AXIS_BOLD, INK, anchor="ma")
-    legend_x, legend_y = 150, 875
-    col_w, row_h = 520, 38
-    for i, model in enumerate(MODELS):
-        col, row = i % 3, i // 3
-        x = legend_x + col * col_w
-        y = legend_y + row * row_h
-        color = MODEL_COLORS[model]
-        width_line = 8 if model == "anthropic/claude-opus-4.5" else 5
-        draw.line((x, y, x + 52, y), fill=color, width=width_line)
-        draw.ellipse((x + 24, y - 7, x + 38, y + 7), fill=color, outline="white", width=2)
-        draw_text(draw, (x + 68, y), model_display(model), FONT_SMALL, INK, anchor="lm")
+        draw_text(draw, (px0 + pw / 2, py0 + ph + 68), "Tone", FONT_AXIS_BOLD, INK, anchor="ma")
+        draw_rotated_label(im, (px0 - 74, py0 + ph / 2), "Sycophantic rate (%)", FONT_AXIS_BOLD)
+        draw = ImageDraw.Draw(im)
     save_tight(im, path)
 
 
@@ -1428,46 +1497,108 @@ def figure_temporal_pressure(path, rows):
 
 
 def figure_confidence_trajectory(path, rows):
-    width, height = 1780, 1100
+    width, height = 2620, 1125
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
-    draw_header(draw, "Confidence trajectory by model", "", width)
-    panels = [
-        ("GT", "preserved", "GT preserved", 90, 190, GT),
-        ("GT", "departed", "GT departed", 925, 190, ACCENT),
-        ("NGT", "held", "NGT held", 90, 610, GT),
-        ("NGT", "switched", "NGT switched", 925, 610, ACCENT),
-    ]
+    draw_header(draw, "Confidence falls under pressure but does not guarantee stability", "", width)
+    panel_font = load_font(43, True)
+    axis_font = load_font(31)
+    axis_bold = load_font(34, True)
+    label_font = load_font(33, True)
     turns = [0, 1, 2, 3]
-    for branch, category, title, x, y, color in panels:
-        w, h = 765, 355
-        draw.rectangle((x, y, x + w, y + h), fill="white", outline="#D9E0E8", width=2)
-        draw_text(draw, (x + 24, y + 18), title, FONT_PANEL, INK)
-        label_x = x + 24
-        cell_x = x + 250
-        top = y + 70
-        row_h = 29
-        cell_w = 82
-        gap = 8
-        for ci, turn in enumerate(turns):
-            draw_text(draw, (cell_x + ci * (cell_w + gap) + cell_w / 2, top - 20), ["Initial", "T1", "T2", "T3"][turn], FONT_TINY, INK, anchor="ma")
-        delta_x = cell_x + 4 * (cell_w + gap) + 14
-        draw_text(draw, (delta_x + 50, top - 20), "Delta", FONT_TINY, INK, anchor="ma")
-        for ri, model in enumerate(MODELS):
-            yy = top + ri * row_h
-            draw_text(draw, (label_x, yy + 11), model_display(model), FONT_TINY, INK, anchor="lm")
-            values = []
-            for ci, turn in enumerate(turns):
-                row = row_lookup(rows, branch=branch, model=model, category=category, turn=turn)
-                value = row["mean_confidence"]
-                values.append(value)
-                t = 0 if value <= 0 else (value - 2.8) / 2.2
-                fill = blend_color(color, 0.18 + 0.70 * t)
-                xx = cell_x + ci * (cell_w + gap)
-                draw.rounded_rectangle((xx, yy, xx + cell_w, yy + 23), radius=6, fill=fill)
-                draw_text(draw, (xx + cell_w / 2, yy + 11), f"{value:.1f}", FONT_TINY, "white" if t > 0.62 else INK, anchor="mm")
-            draw_delta_cell(draw, (delta_x, yy, delta_x + 100, yy + 23), values[-1] - values[0], 1.2, FONT_TINY, confidence=True)
-    save_tight(im, path)
+    turn_labels = ["Initial", "T1", "T2", "T3"]
+
+    def weighted_mean(predicate, turn):
+        subset = [row for row in rows if row["turn"] == turn and predicate(row)]
+        denom = sum(row.get("n", 0) for row in subset)
+        if denom <= 0:
+            raise ValueError(f"Missing confidence rows for turn={turn}")
+        return sum(row["mean_confidence"] * row.get("n", 0) for row in subset) / denom
+
+    def draw_line_panel(panel_x, panel_y, panel_w, panel_h, title, line_defs, show_y_label=False):
+        draw.rounded_rectangle(
+            (panel_x, panel_y, panel_x + panel_w, panel_y + panel_h),
+            radius=22,
+            fill="#F8FAFC",
+            outline="#D9E0E8",
+            width=2,
+        )
+        draw_text(draw, (panel_x + panel_w / 2, panel_y + 46), title, panel_font, INK, anchor="ma")
+
+        plot_x = panel_x + 145
+        plot_y = panel_y + 126
+        plot_w = panel_w - 355
+        plot_h = panel_h - 255
+        y_min, y_max = 2.4, 5.0
+
+        def x_pos(turn_index):
+            return plot_x + plot_w * turn_index / 3
+
+        def y_pos(value):
+            return plot_y + plot_h - plot_h * (value - y_min) / (y_max - y_min)
+
+        for tick in [2.5, 3.0, 3.5, 4.0, 4.5, 5.0]:
+            yy = y_pos(tick)
+            draw.line((plot_x, yy, plot_x + plot_w, yy), fill="#E3EAF2", width=2)
+            draw_text(draw, (plot_x - 18, yy), f"{tick:.1f}", axis_font, MUTED, anchor="rm")
+        for i, label in enumerate(turn_labels):
+            xx = x_pos(i)
+            draw.line((xx, plot_y, xx, plot_y + plot_h), fill="#EEF2F6", width=1)
+            draw_text(draw, (xx, plot_y + plot_h + 32), label, axis_bold, INK, anchor="ma")
+        draw.line((plot_x, plot_y + plot_h, plot_x + plot_w, plot_y + plot_h), fill="#9AA7B7", width=4)
+        draw.line((plot_x, plot_y, plot_x, plot_y + plot_h), fill="#9AA7B7", width=4)
+
+        for line_def in line_defs:
+            label, predicate, color, line_w = line_def[:4]
+            label_dy = line_def[4] if len(line_def) > 4 else 0
+            values = [weighted_mean(predicate, turn) for turn in turns]
+            points = [(x_pos(i), y_pos(value)) for i, value in enumerate(values)]
+            draw.line(points, fill=color, width=line_w)
+            for xx, yy in points:
+                draw.ellipse((xx - 11, yy - 11, xx + 11, yy + 11), fill=color, outline="white", width=3)
+            draw_text(draw, (points[-1][0] + 22, points[-1][1] + label_dy), label, label_font, color, anchor="lm")
+
+        draw_text(draw, (plot_x + plot_w / 2, plot_y + plot_h + 62), "Assistant turn", axis_bold, INK, anchor="ma")
+        if show_y_label:
+            draw_rotated_label(im, (plot_x - 48, plot_y + plot_h / 2), "Mean self-rated confidence (1-5)", axis_bold)
+
+    draw_line_panel(
+        65,
+        170,
+        1215,
+        860,
+        "OBJ vs. SUB",
+        [
+            ("OBJ all", lambda row: row["branch"] == "GT", GT, 10),
+            ("SUB all", lambda row: row["branch"] == "NGT", NGT, 10),
+        ],
+        show_y_label=True,
+    )
+    draw_line_panel(
+        1340,
+        170,
+        1215,
+        860,
+        "Sycophantic vs. stable",
+        [
+            (
+                "Stable",
+                lambda row: (row["branch"] == "GT" and row["category"] == "preserved")
+                or (row["branch"] == "NGT" and row["category"] == "held"),
+                "#3C8A66",
+                10,
+            ),
+            (
+                "Sycophantic",
+                lambda row: (row["branch"] == "GT" and row["category"] == "departed")
+                or (row["branch"] == "NGT" and row["category"] == "switched"),
+                "#C64B4B",
+                10,
+            ),
+        ],
+    )
+
+    save_tight(im, path, padding=8)
 
 
 def clean_outputs(report_dir, figure_dir):
@@ -1491,6 +1622,7 @@ def main():
         figure_dir.mkdir(parents=True, exist_ok=True)
 
     records = collect_records(args.results_dir, args.run_id)
+    headline, _, _, _ = build_tables(records)
     tables = build_trigger_figure_tables(records)
 
     table_names = []
@@ -1500,6 +1632,7 @@ def main():
         table_names.append(filename)
 
     figures = [
+        ("trigger_model_quadrant.png", figure_scatter, headline),
         ("trigger_model_comparison.png", figure_model_comparison, tables["model_comparison"]),
         ("trigger_tone_gradient_opus.png", figure_tone_opus, tables["tone_gradient_opus"]),
         ("trigger_static_vs_adaptive.png", figure_static_vs_adaptive, tables["static_vs_adaptive"]),
@@ -1543,13 +1676,14 @@ def main():
                 "This directory is the single canonical location for trigger figure candidates.",
                 "All figures are Python-generated PNG charts from the official pass@1-clean result files.",
                 "",
+                "- `trigger_model_quadrant.png`: main-text static/adaptive changes from right to wrong versus answer changes quadrant view.",
                 "- `trigger_model_comparison.png`: side-by-side GT correct-to-wrong and NGT Flip-Flop rates by model.",
-                "- `trigger_tone_gradient_opus.png`: model-separated mild/moderate/strong tone gradients with Opus 4.5 highlighted.",
+                "- `trigger_tone_gradient_opus.png`: Claude mild/moderate/strong tone gradients against the denominator-weighted other-model mean.",
                 "- `trigger_static_vs_adaptive.png`: per-model static vs adaptive GT and NGT rates.",
                 "- `trigger_temporal_pressure.png`: per-model adaptive single, same-family escalation, heterogeneous temporal pressure, and mixed-minus-single deltas.",
                 "- `trigger_tone_temporal.png`: compact main-text composite of per-model tone gradients and adaptive temporal pressure.",
                 "- `trigger_dynamics_summary.png`: 1x2 main-text scatter comparing single-follow-up and mixed three-turn movement by model for GT and NGT.",
-                "- `trigger_confidence_trajectory.png`: per-model confidence over turns for preserved/departed GT and held/switched NGT trajectories, with T3-minus-initial deltas.",
+                "- `trigger_confidence_trajectory.png`: two-panel confidence trends for OBJ/SUB and stable/sycophantic temporal trajectories.",
                 "",
                 "The CSV files in this directory contain the exact plotted aggregates.",
                 "",
