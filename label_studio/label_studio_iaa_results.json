@@ -1,486 +1,295 @@
 {
   "alignment": {
     "common_task_count": 100,
-    "comparable_task_count_with_nonempty_annotations": 99,
+    "comparable_task_count_with_nonempty_annotations": 100,
+    "project_11_only_task_count": 0,
+    "project_11_task_count": 100,
     "project_7_only_task_count": 0,
-    "project_7_task_count": 100,
-    "project_9_only_task_count": 0,
-    "project_9_task_count": 100
+    "project_7_task_count": 100
   },
   "data_quality": {
     "duplicate_annotation_fields": [],
     "duplicate_task_keys": [],
-    "empty_annotations": [
-      {
-        "annotation_id": 273,
-        "completed_by": 69,
-        "export": "project_9",
-        "key": {
-          "branch": "GT",
-          "context_condition": "neutral",
-          "model": "anthropic/claude-haiku-4.5",
-          "source_item_id": "GT-MATHEMATICAL_SCIENCE-043",
-          "source_transcript_id": "GT-023",
-          "tones": "[\"mild\",\"moderate\",\"strong\"]",
-          "transcript_id": "GT-023",
-          "trigger_family": "scarcity"
-        },
-        "task_id": 374,
-        "updated_at": "2026-05-05T21:58:16.301080Z"
-      },
-      {
-        "annotation_id": 274,
-        "completed_by": 69,
-        "export": "project_9",
-        "key": {
-          "branch": "GT",
-          "context_condition": "neutral",
-          "model": "anthropic/claude-haiku-4.5",
-          "source_item_id": "GT-MATHEMATICAL_SCIENCE-043",
-          "source_transcript_id": "GT-023",
-          "tones": "[\"mild\",\"moderate\",\"strong\"]",
-          "transcript_id": "GT-023",
-          "trigger_family": "scarcity"
-        },
-        "task_id": 374,
-        "updated_at": "2026-05-05T21:58:16.699760Z"
-      }
-    ],
-    "missing_pairs": [
-      {
-        "field": "appeared_eager_to_please_user",
-        "missing_keys": [
-          {
-            "branch": "GT",
-            "context_condition": "neutral",
-            "model": "anthropic/claude-haiku-4.5",
-            "source_item_id": "GT-MATHEMATICAL_SCIENCE-043",
-            "source_transcript_id": "GT-023",
-            "tones": "[\"mild\",\"moderate\",\"strong\"]",
-            "transcript_id": "GT-023",
-            "trigger_family": "scarcity"
-          }
-        ],
-        "missing_pair_count": 1
-      },
-      {
-        "field": "disagreed_with_user_points_r",
-        "missing_keys": [
-          {
-            "branch": "GT",
-            "context_condition": "neutral",
-            "model": "anthropic/claude-haiku-4.5",
-            "source_item_id": "GT-MATHEMATICAL_SCIENCE-043",
-            "source_transcript_id": "GT-023",
-            "tones": "[\"mild\",\"moderate\",\"strong\"]",
-            "transcript_id": "GT-023",
-            "trigger_family": "scarcity"
-          }
-        ],
-        "missing_pair_count": 1
-      },
-      {
-        "field": "enthusiastic_in_conversation",
-        "missing_keys": [
-          {
-            "branch": "GT",
-            "context_condition": "neutral",
-            "model": "anthropic/claude-haiku-4.5",
-            "source_item_id": "GT-MATHEMATICAL_SCIENCE-043",
-            "source_transcript_id": "GT-023",
-            "tones": "[\"mild\",\"moderate\",\"strong\"]",
-            "transcript_id": "GT-023",
-            "trigger_family": "scarcity"
-          }
-        ],
-        "missing_pair_count": 1
-      },
-      {
-        "field": "excited_to_engage_with_user",
-        "missing_keys": [
-          {
-            "branch": "GT",
-            "context_condition": "neutral",
-            "model": "anthropic/claude-haiku-4.5",
-            "source_item_id": "GT-MATHEMATICAL_SCIENCE-043",
-            "source_transcript_id": "GT-023",
-            "tones": "[\"mild\",\"moderate\",\"strong\"]",
-            "transcript_id": "GT-023",
-            "trigger_family": "scarcity"
-          }
-        ],
-        "missing_pair_count": 1
-      },
-      {
-        "field": "model_contradicted_itself",
-        "missing_keys": [
-          {
-            "branch": "GT",
-            "context_condition": "neutral",
-            "model": "anthropic/claude-haiku-4.5",
-            "source_item_id": "GT-MATHEMATICAL_SCIENCE-043",
-            "source_transcript_id": "GT-023",
-            "tones": "[\"mild\",\"moderate\",\"strong\"]",
-            "transcript_id": "GT-023",
-            "trigger_family": "scarcity"
-          }
-        ],
-        "missing_pair_count": 1
-      },
-      {
-        "field": "model_rationalized_change",
-        "missing_keys": [
-          {
-            "branch": "GT",
-            "context_condition": "neutral",
-            "model": "anthropic/claude-haiku-4.5",
-            "source_item_id": "GT-MATHEMATICAL_SCIENCE-043",
-            "source_transcript_id": "GT-023",
-            "tones": "[\"mild\",\"moderate\",\"strong\"]",
-            "transcript_id": "GT-023",
-            "trigger_family": "scarcity"
-          }
-        ],
-        "missing_pair_count": 1
-      },
-      {
-        "field": "model_redid_question",
-        "missing_keys": [
-          {
-            "branch": "GT",
-            "context_condition": "neutral",
-            "model": "anthropic/claude-haiku-4.5",
-            "source_item_id": "GT-MATHEMATICAL_SCIENCE-043",
-            "source_transcript_id": "GT-023",
-            "tones": "[\"mild\",\"moderate\",\"strong\"]",
-            "transcript_id": "GT-023",
-            "trigger_family": "scarcity"
-          }
-        ],
-        "missing_pair_count": 1
-      },
-      {
-        "field": "questioned_user_assumptions_r",
-        "missing_keys": [
-          {
-            "branch": "GT",
-            "context_condition": "neutral",
-            "model": "anthropic/claude-haiku-4.5",
-            "source_item_id": "GT-MATHEMATICAL_SCIENCE-043",
-            "source_transcript_id": "GT-023",
-            "tones": "[\"mild\",\"moderate\",\"strong\"]",
-            "transcript_id": "GT-023",
-            "trigger_family": "scarcity"
-          }
-        ],
-        "missing_pair_count": 1
-      },
-      {
-        "field": "showed_excessive_flattery",
-        "missing_keys": [
-          {
-            "branch": "GT",
-            "context_condition": "neutral",
-            "model": "anthropic/claude-haiku-4.5",
-            "source_item_id": "GT-MATHEMATICAL_SCIENCE-043",
-            "source_transcript_id": "GT-023",
-            "tones": "[\"mild\",\"moderate\",\"strong\"]",
-            "transcript_id": "GT-023",
-            "trigger_family": "scarcity"
-          }
-        ],
-        "missing_pair_count": 1
-      },
-      {
-        "field": "sought_users_good_graces",
-        "missing_keys": [
-          {
-            "branch": "GT",
-            "context_condition": "neutral",
-            "model": "anthropic/claude-haiku-4.5",
-            "source_item_id": "GT-MATHEMATICAL_SCIENCE-043",
-            "source_transcript_id": "GT-023",
-            "tones": "[\"mild\",\"moderate\",\"strong\"]",
-            "transcript_id": "GT-023",
-            "trigger_family": "scarcity"
-          }
-        ],
-        "missing_pair_count": 1
-      },
-      {
-        "field": "supported_user_viewpoint",
-        "missing_keys": [
-          {
-            "branch": "GT",
-            "context_condition": "neutral",
-            "model": "anthropic/claude-haiku-4.5",
-            "source_item_id": "GT-MATHEMATICAL_SCIENCE-043",
-            "source_transcript_id": "GT-023",
-            "tones": "[\"mild\",\"moderate\",\"strong\"]",
-            "transcript_id": "GT-023",
-            "trigger_family": "scarcity"
-          }
-        ],
-        "missing_pair_count": 1
-      }
-    ]
+    "empty_annotations": [],
+    "missing_pairs": []
   },
   "fields": {
     "appeared_eager_to_please_user": {
-      "exact_agreement": 0.070707,
+      "exact_agreement": 0.55,
       "field_type": "continuous",
-      "krippendorff_alpha": -0.43236,
-      "mean_absolute_difference": 1.515152,
-      "mean_project_9_minus_project_7": -1.474747,
-      "median_absolute_difference": 1.0,
+      "krippendorff_alpha": 0.305741,
+      "mean_absolute_difference": 0.55,
+      "mean_project_11_minus_project_7": -0.01,
+      "median_absolute_difference": 0.0,
       "metric": "krippendorff_alpha_interval",
-      "missing_pair_count": 1,
-      "n_pairs": 99,
+      "missing_pair_count": 0,
+      "n_pairs": 100,
+      "project_11_distribution": {
+        "1": 1,
+        "2": 15,
+        "3": 61,
+        "4": 18,
+        "5": 5
+      },
       "project_7_distribution": {
-        "2": 19,
+        "2": 20,
         "3": 50,
         "4": 28,
         "5": 2
-      },
-      "project_9_distribution": {
-        "1": 40,
-        "2": 54,
-        "3": 4,
-        "4": 1
       }
     },
     "disagreed_with_user_points_r": {
-      "exact_agreement": 0.383838,
+      "exact_agreement": 0.39,
       "field_type": "continuous",
-      "krippendorff_alpha": -0.178019,
-      "mean_absolute_difference": 0.69697,
-      "mean_project_9_minus_project_7": -0.474747,
+      "krippendorff_alpha": -0.026449,
+      "mean_absolute_difference": 0.72,
+      "mean_project_11_minus_project_7": 0.56,
       "median_absolute_difference": 1.0,
       "metric": "krippendorff_alpha_interval",
-      "missing_pair_count": 1,
-      "n_pairs": 99,
+      "missing_pair_count": 0,
+      "n_pairs": 100,
+      "project_11_distribution": {
+        "1": 3,
+        "2": 58,
+        "3": 35,
+        "4": 4
+      },
       "project_7_distribution": {
         "1": 26,
-        "2": 65,
+        "2": 66,
         "3": 6,
         "4": 2
-      },
-      "project_9_distribution": {
-        "1": 64,
-        "2": 34,
-        "3": 1
       }
     },
     "enthusiastic_in_conversation": {
-      "exact_agreement": 0.353535,
+      "exact_agreement": 0.38,
       "field_type": "continuous",
-      "krippendorff_alpha": -0.373159,
-      "mean_absolute_difference": 0.888889,
-      "mean_project_9_minus_project_7": -0.848485,
+      "krippendorff_alpha": 0.164568,
+      "mean_absolute_difference": 0.68,
+      "mean_project_11_minus_project_7": 0.4,
       "median_absolute_difference": 1.0,
       "metric": "krippendorff_alpha_interval",
-      "missing_pair_count": 1,
-      "n_pairs": 99,
+      "missing_pair_count": 0,
+      "n_pairs": 100,
+      "project_11_distribution": {
+        "1": 1,
+        "2": 72,
+        "3": 27
+      },
       "project_7_distribution": {
-        "1": 37,
+        "1": 38,
         "2": 41,
         "3": 18,
         "4": 3
-      },
-      "project_9_distribution": {
-        "1": 97,
-        "2": 2
       }
     },
     "excited_to_engage_with_user": {
-      "exact_agreement": 0.292929,
+      "exact_agreement": 0.46,
       "field_type": "continuous",
-      "krippendorff_alpha": -0.43401,
-      "mean_absolute_difference": 0.868687,
-      "mean_project_9_minus_project_7": -0.828283,
+      "krippendorff_alpha": 0.186447,
+      "mean_absolute_difference": 0.58,
+      "mean_project_11_minus_project_7": 0.46,
       "median_absolute_difference": 1.0,
       "metric": "krippendorff_alpha_interval",
-      "missing_pair_count": 1,
-      "n_pairs": 99,
+      "missing_pair_count": 0,
+      "n_pairs": 100,
+      "project_11_distribution": {
+        "2": 69,
+        "3": 31
+      },
       "project_7_distribution": {
         "1": 31,
-        "2": 54,
+        "2": 55,
         "3": 12,
         "4": 2
-      },
-      "project_9_distribution": {
-        "1": 97,
-        "2": 2
       }
     },
     "model_contradicted_itself": {
-      "confusion_project_7_rows_project_9_columns": {
+      "confusion_project_7_rows_project_11_columns": {
         "No": {
-          "No": 65,
-          "Yes": 5
+          "No": 69,
+          "Yes": 2
         },
         "Yes": {
-          "No": 26,
-          "Yes": 3
+          "No": 28,
+          "Yes": 1
         }
       },
-      "exact_agreement": 0.686869,
+      "exact_agreement": 0.7,
       "field_type": "binary",
       "metric": "weighted_kappa_quadratic",
-      "missing_pair_count": 1,
-      "n_pairs": 99,
+      "missing_pair_count": 0,
+      "n_pairs": 100,
+      "project_11_distribution": {
+        "No": 97,
+        "Yes": 3
+      },
       "project_7_distribution": {
-        "No": 70,
+        "No": 71,
         "Yes": 29
       },
-      "project_9_distribution": {
-        "No": 91,
-        "Yes": 8
-      },
-      "weighted_kappa": 0.040638
+      "weighted_kappa": 0.008592
     },
     "model_rationalized_change": {
-      "confusion_project_7_rows_project_9_columns": {
+      "confusion_project_7_rows_project_11_columns": {
         "No": {
-          "No": 0,
-          "Yes": 5
+          "No": 1,
+          "Yes": 4
         },
         "Yes": {
           "No": 2,
-          "Yes": 92
+          "Yes": 93
         }
       },
-      "exact_agreement": 0.929293,
+      "exact_agreement": 0.94,
       "field_type": "binary",
       "metric": "weighted_kappa_quadratic",
-      "missing_pair_count": 1,
-      "n_pairs": 99,
-      "project_7_distribution": {
-        "No": 5,
-        "Yes": 94
-      },
-      "project_9_distribution": {
-        "No": 2,
+      "missing_pair_count": 0,
+      "n_pairs": 100,
+      "project_11_distribution": {
+        "No": 3,
         "Yes": 97
       },
-      "weighted_kappa": -0.029718
+      "project_7_distribution": {
+        "No": 5,
+        "Yes": 95
+      },
+      "weighted_kappa": 0.220779
     },
     "model_redid_question": {
-      "confusion_project_7_rows_project_9_columns": {
+      "confusion_project_7_rows_project_11_columns": {
         "No": {
           "No": 0,
           "Yes": 2
         },
         "Yes": {
-          "No": 0,
-          "Yes": 97
+          "No": 3,
+          "Yes": 95
         }
       },
-      "exact_agreement": 0.979798,
+      "exact_agreement": 0.95,
       "field_type": "binary",
       "metric": "weighted_kappa_quadratic",
-      "missing_pair_count": 1,
-      "n_pairs": 99,
-      "project_7_distribution": {
-        "No": 2,
+      "missing_pair_count": 0,
+      "n_pairs": 100,
+      "project_11_distribution": {
+        "No": 3,
         "Yes": 97
       },
-      "project_9_distribution": {
-        "Yes": 99
+      "project_7_distribution": {
+        "No": 2,
+        "Yes": 98
       },
-      "weighted_kappa": 0.0
+      "weighted_kappa": -0.02459
     },
     "questioned_user_assumptions_r": {
-      "exact_agreement": 0.30303,
+      "exact_agreement": 0.34,
       "field_type": "continuous",
-      "krippendorff_alpha": -0.257733,
-      "mean_absolute_difference": 0.79798,
-      "mean_project_9_minus_project_7": -0.616162,
+      "krippendorff_alpha": -0.171944,
+      "mean_absolute_difference": 0.82,
+      "mean_project_11_minus_project_7": 0.58,
       "median_absolute_difference": 1.0,
       "metric": "krippendorff_alpha_interval",
-      "missing_pair_count": 1,
-      "n_pairs": 99,
+      "missing_pair_count": 0,
+      "n_pairs": 100,
+      "project_11_distribution": {
+        "1": 6,
+        "2": 54,
+        "3": 34,
+        "4": 6
+      },
       "project_7_distribution": {
         "1": 28,
-        "2": 63,
+        "2": 64,
         "3": 6,
         "4": 2
-      },
-      "project_9_distribution": {
-        "1": 83,
-        "2": 12,
-        "3": 4
       }
     },
     "showed_excessive_flattery": {
-      "exact_agreement": 0.323232,
+      "exact_agreement": 0.3,
       "field_type": "continuous",
-      "krippendorff_alpha": -0.419915,
-      "mean_absolute_difference": 0.808081,
-      "mean_project_9_minus_project_7": -0.767677,
+      "krippendorff_alpha": 0.115556,
+      "mean_absolute_difference": 0.88,
+      "mean_project_11_minus_project_7": 0.84,
       "median_absolute_difference": 1.0,
       "metric": "krippendorff_alpha_interval",
-      "missing_pair_count": 1,
-      "n_pairs": 99,
+      "missing_pair_count": 0,
+      "n_pairs": 100,
+      "project_11_distribution": {
+        "1": 2,
+        "2": 49,
+        "3": 37,
+        "4": 9,
+        "5": 3
+      },
       "project_7_distribution": {
-        "1": 34,
+        "1": 35,
         "2": 53,
         "3": 11,
         "4": 1
-      },
-      "project_9_distribution": {
-        "1": 97,
-        "2": 2
       }
     },
     "sought_users_good_graces": {
-      "exact_agreement": 0.111111,
+      "exact_agreement": 0.5,
       "field_type": "continuous",
-      "krippendorff_alpha": -0.665265,
-      "mean_absolute_difference": 1.676768,
-      "mean_project_9_minus_project_7": -1.616162,
-      "median_absolute_difference": 2.0,
+      "krippendorff_alpha": 0.330868,
+      "mean_absolute_difference": 0.61,
+      "mean_project_11_minus_project_7": -0.07,
+      "median_absolute_difference": 0.5,
       "metric": "krippendorff_alpha_interval",
-      "missing_pair_count": 1,
-      "n_pairs": 99,
+      "missing_pair_count": 0,
+      "n_pairs": 100,
+      "project_11_distribution": {
+        "1": 1,
+        "2": 30,
+        "3": 51,
+        "4": 13,
+        "5": 5
+      },
       "project_7_distribution": {
-        "2": 27,
+        "2": 28,
         "3": 49,
         "4": 20,
         "5": 3
-      },
-      "project_9_distribution": {
-        "1": 67,
-        "2": 28,
-        "3": 3,
-        "4": 1
       }
     },
     "supported_user_viewpoint": {
-      "exact_agreement": 0.181818,
+      "exact_agreement": 0.45,
       "field_type": "continuous",
-      "krippendorff_alpha": -0.476412,
-      "mean_absolute_difference": 1.171717,
-      "mean_project_9_minus_project_7": -1.131313,
+      "krippendorff_alpha": 0.066328,
+      "mean_absolute_difference": 0.61,
+      "mean_project_11_minus_project_7": -0.05,
       "median_absolute_difference": 1.0,
       "metric": "krippendorff_alpha_interval",
-      "missing_pair_count": 1,
-      "n_pairs": 99,
+      "missing_pair_count": 0,
+      "n_pairs": 100,
+      "project_11_distribution": {
+        "1": 2,
+        "2": 1,
+        "3": 56,
+        "4": 40,
+        "5": 1
+      },
       "project_7_distribution": {
         "2": 4,
-        "3": 52,
+        "3": 53,
         "4": 40,
         "5": 3
-      },
-      "project_9_distribution": {
-        "1": 2,
-        "2": 67,
-        "3": 29,
-        "4": 1
       }
     }
   },
   "inputs": {
+    "project_11": {
+      "annotations_per_task": {
+        "1": 100
+      },
+      "annotator_ids": {
+        "67": 100
+      },
+      "nonempty_annotation_count": 100,
+      "path": "project-11-at-2026-05-06-09-42-654c7fca.json",
+      "task_count": 100
+    },
     "project_7": {
       "annotations_per_task": {
         "1": 100
@@ -490,18 +299,6 @@
       },
       "nonempty_annotation_count": 100,
       "path": "project-7-at-2026-05-06-00-06-dd1a3816.json",
-      "task_count": 100
-    },
-    "project_9": {
-      "annotations_per_task": {
-        "1": 99,
-        "2": 1
-      },
-      "annotator_ids": {
-        "69": 101
-      },
-      "nonempty_annotation_count": 99,
-      "path": "project-9-at-2026-05-06-00-06-66acc131.json",
       "task_count": 100
     }
   },
@@ -518,25 +315,25 @@
     ],
     "binary_metric": "Cohen weighted kappa with quadratic weights",
     "continuous_metric": "Krippendorff alpha with interval distance",
-    "generated_at_utc": "2026-05-06T00:19:12+00:00",
+    "generated_at_utc": "2026-05-06T11:17:32+00:00",
     "script": "compute_label_studio_iaa.py",
     "source_files": [
       "project-7-at-2026-05-06-00-06-dd1a3816.json",
-      "project-9-at-2026-05-06-00-06-66acc131.json"
+      "project-11-at-2026-05-06-09-42-654c7fca.json"
     ]
   },
   "pooled": {
     "binary": {
-      "macro_mean_weighted_kappa": 0.00364,
+      "macro_mean_weighted_kappa": 0.06826,
       "metric": "weighted_kappa_quadratic",
-      "n_label_pairs": 297,
-      "weighted_kappa": 0.671533
+      "n_label_pairs": 300,
+      "weighted_kappa": 0.67828
     },
     "continuous": {
-      "krippendorff_alpha": -0.013733,
-      "macro_mean_krippendorff_alpha": -0.404609,
+      "krippendorff_alpha": 0.423124,
+      "macro_mean_krippendorff_alpha": 0.121389,
       "metric": "krippendorff_alpha_interval",
-      "n_label_pairs": 792
+      "n_label_pairs": 800
     }
   }
 }

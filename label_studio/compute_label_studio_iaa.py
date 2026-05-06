@@ -12,7 +12,7 @@ from typing import Any
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_PROJECT_7 = SCRIPT_DIR / "project-7-at-2026-05-06-00-06-dd1a3816.json"
-DEFAULT_PROJECT_9 = SCRIPT_DIR / "project-9-at-2026-05-06-00-06-66acc131.json"
+DEFAULT_PROJECT_11 = SCRIPT_DIR / "project-11-at-2026-05-06-09-42-654c7fca.json"
 DEFAULT_OUTPUT_JSON = SCRIPT_DIR / "label_studio_iaa_results.json"
 DEFAULT_OUTPUT_MD = SCRIPT_DIR / "label_studio_iaa_summary.md"
 
@@ -335,9 +335,9 @@ def comparable_pairs(
     return pairs
 
 
-def build_results(project_7: Path, project_9: Path) -> dict[str, Any]:
+def build_results(project_7: Path, project_11: Path) -> dict[str, Any]:
     left = index_export(project_7, "project_7")
-    right = index_export(project_9, "project_9")
+    right = index_export(project_11, "project_11")
     left_records = left["records"]
     right_records = right["records"]
 
@@ -398,7 +398,7 @@ def build_results(project_7: Path, project_9: Path) -> dict[str, Any]:
             "missing_pair_count": missing_count,
             "exact_agreement": rounded(exact_agreement),
             "project_7_distribution": distribution(left_values),
-            "project_9_distribution": distribution(right_values),
+            "project_11_distribution": distribution(right_values),
         }
 
         if field_type == "continuous":
@@ -421,7 +421,7 @@ def build_results(project_7: Path, project_9: Path) -> dict[str, Any]:
                     "krippendorff_alpha": rounded(krippendorff_alpha_interval(units)),
                     "mean_absolute_difference": rounded(mean(absolute_differences)),
                     "median_absolute_difference": rounded(median(absolute_differences)),
-                    "mean_project_9_minus_project_7": rounded(mean(signed_differences)),
+                    "mean_project_11_minus_project_7": rounded(mean(signed_differences)),
                 }
             )
         elif field_type == "binary":
@@ -431,7 +431,7 @@ def build_results(project_7: Path, project_9: Path) -> dict[str, Any]:
                 {
                     "metric": "weighted_kappa_quadratic",
                     "weighted_kappa": rounded(weighted_kappa(left_values, right_values, BINARY_CATEGORIES)),
-                    "confusion_project_7_rows_project_9_columns": confusion(
+                    "confusion_project_7_rows_project_11_columns": confusion(
                         left_values,
                         right_values,
                         BINARY_CATEGORIES,
@@ -462,7 +462,7 @@ def build_results(project_7: Path, project_9: Path) -> dict[str, Any]:
         "metadata": {
             "generated_at_utc": dt.datetime.now(dt.UTC).replace(microsecond=0).isoformat(),
             "script": Path(__file__).name,
-            "source_files": [project_7.name, project_9.name],
+            "source_files": [project_7.name, project_11.name],
             "alignment_key_fields": ALIGNMENT_KEY_FIELDS,
             "continuous_metric": "Krippendorff alpha with interval distance",
             "binary_metric": "Cohen weighted kappa with quadratic weights",
@@ -475,7 +475,7 @@ def build_results(project_7: Path, project_9: Path) -> dict[str, Any]:
                 "annotator_ids": left["annotator_ids"],
                 "nonempty_annotation_count": left["nonempty_annotation_count"],
             },
-            "project_9": {
+            "project_11": {
                 "path": Path(right["path"]).name,
                 "task_count": right["task_count"],
                 "annotations_per_task": right["annotations_per_task"],
@@ -485,10 +485,10 @@ def build_results(project_7: Path, project_9: Path) -> dict[str, Any]:
         },
         "alignment": {
             "project_7_task_count": len(left_keys),
-            "project_9_task_count": len(right_keys),
+            "project_11_task_count": len(right_keys),
             "common_task_count": len(common_keys),
             "project_7_only_task_count": len(left_keys - right_keys),
-            "project_9_only_task_count": len(right_keys - left_keys),
+            "project_11_only_task_count": len(right_keys - left_keys),
             "comparable_task_count_with_nonempty_annotations": comparable_task_count,
         },
         "pooled": {
@@ -559,7 +559,7 @@ def write_summary(results: dict[str, Any], output_md: Path, output_json: Path) -
     lines.append(f"Common tasks: {alignment['common_task_count']}")
     lines.append(f"Comparable tasks with nonempty annotations in both exports: {alignment['comparable_task_count_with_nonempty_annotations']}")
     lines.append(f"Project 7 only tasks: {alignment['project_7_only_task_count']}")
-    lines.append(f"Project 9 only tasks: {alignment['project_9_only_task_count']}")
+    lines.append(f"Project 11 only tasks: {alignment['project_11_only_task_count']}")
     lines.append("")
 
     lines.append("## Methods")
@@ -594,7 +594,7 @@ def write_summary(results: dict[str, Any], output_md: Path, output_json: Path) -
     lines.append("## Continuous fields")
     lines.append("")
     lines.append("<table>")
-    lines.append("<tr><th>Field</th><th>N pairs</th><th>Alpha</th><th>Exact agreement</th><th>Mean absolute difference</th><th>Project 9 minus Project 7</th></tr>")
+    lines.append("<tr><th>Field</th><th>N pairs</th><th>Alpha</th><th>Exact agreement</th><th>Mean absolute difference</th><th>Project 11 minus Project 7</th></tr>")
     for field, details in continuous_fields:
         lines.append(
             f"<tr><td>{field_label(field)}</td>"
@@ -602,7 +602,7 @@ def write_summary(results: dict[str, Any], output_md: Path, output_json: Path) -
             f"<td>{format_metric(details.get('krippendorff_alpha'))}</td>"
             f"<td>{format_metric(details.get('exact_agreement'))}</td>"
             f"<td>{format_metric(details.get('mean_absolute_difference'))}</td>"
-            f"<td>{format_metric(details.get('mean_project_9_minus_project_7'))}</td></tr>"
+            f"<td>{format_metric(details.get('mean_project_11_minus_project_7'))}</td></tr>"
         )
     lines.append("</table>")
     lines.append("")
@@ -610,7 +610,7 @@ def write_summary(results: dict[str, Any], output_md: Path, output_json: Path) -
     lines.append("## Binary fields")
     lines.append("")
     lines.append("<table>")
-    lines.append("<tr><th>Field</th><th>N pairs</th><th>Weighted kappa</th><th>Exact agreement</th><th>Project 7 distribution</th><th>Project 9 distribution</th></tr>")
+    lines.append("<tr><th>Field</th><th>N pairs</th><th>Weighted kappa</th><th>Exact agreement</th><th>Project 7 distribution</th><th>Project 11 distribution</th></tr>")
     for field, details in binary_fields:
         lines.append(
             f"<tr><td>{field_label(field)}</td>"
@@ -618,7 +618,7 @@ def write_summary(results: dict[str, Any], output_md: Path, output_json: Path) -
             f"<td>{format_metric(details.get('weighted_kappa'))}</td>"
             f"<td>{format_metric(details.get('exact_agreement'))}</td>"
             f"<td>{json.dumps(details['project_7_distribution'], sort_keys=True)}</td>"
-            f"<td>{json.dumps(details['project_9_distribution'], sort_keys=True)}</td></tr>"
+            f"<td>{json.dumps(details['project_11_distribution'], sort_keys=True)}</td></tr>"
         )
     lines.append("</table>")
     lines.append("")
@@ -658,7 +658,7 @@ def write_summary(results: dict[str, Any], output_md: Path, output_json: Path) -
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Compute IAA for two Label Studio exports.")
     parser.add_argument("--project-7", type=Path, default=DEFAULT_PROJECT_7)
-    parser.add_argument("--project-9", type=Path, default=DEFAULT_PROJECT_9)
+    parser.add_argument("--project-11", type=Path, default=DEFAULT_PROJECT_11)
     parser.add_argument("--output-json", type=Path, default=DEFAULT_OUTPUT_JSON)
     parser.add_argument("--output-md", type=Path, default=DEFAULT_OUTPUT_MD)
     return parser.parse_args()
@@ -666,7 +666,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    results = build_results(args.project_7, args.project_9)
+    results = build_results(args.project_7, args.project_11)
     args.output_json.write_text(
         json.dumps(results, indent=2, ensure_ascii=True, sort_keys=True) + "\n",
         encoding="utf-8",
