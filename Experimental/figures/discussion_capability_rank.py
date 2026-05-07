@@ -138,12 +138,10 @@ def main() -> None:
     axis_font = trigger_plot.load_font(34, True)
     axis_small = trigger_plot.load_font(30, True)
     tick_font = trigger_plot.load_font(32)
-    legend_font = trigger_plot.load_font(38)
-
     draw_text(draw, (width / 2, 58), "Capability rank does not predict sycophancy risk", title, anchor="ma")
     draw.line((65, 130, width - 65, 130), fill="#EEF2F6", width=4)
 
-    def panel(x0, y0, w, h, title_text, red_key, blue_key, red_label, blue_label):
+    def panel(x0, y0, w, h, title_text, red_key, blue_key):
         draw_text(draw, (x0 + w / 2, y0 - 36), title_text, panel_title, anchor="ma")
         plot_x0 = x0 + 520
         plot_x1 = x0 + w - 80
@@ -186,15 +184,8 @@ def main() -> None:
             draw.ellipse((xr - 16, y - 16, xr + 16, y + 16), fill=RED, outline="white", width=3)
             draw.ellipse((xb - 16, y - 16, xb + 16, y + 16), fill=BLUE, outline="white", width=3)
 
-        legend_x = x0 + w - 690
-        legend_y = y0 - 78
-        draw.ellipse((legend_x, legend_y - 14, legend_x + 28, legend_y + 14), fill=RED)
-        draw_text(draw, (legend_x + 42, legend_y), red_label, legend_font, anchor="lm")
-        draw.ellipse((legend_x + 385, legend_y - 14, legend_x + 413, legend_y + 14), fill=BLUE)
-        draw_text(draw, (legend_x + 427, legend_y), blue_label, legend_font, anchor="lm")
-
-    panel(70, 225, 1540, 930, "Context framing", "context_obj", "context_sub", "OBJ right-to-wrong", "SUB conformity lift")
-    panel(1690, 225, 1540, 930, "Trigger pressure", "trigger_obj", "trigger_sub", "OBJ right-to-wrong", "SUB answer switch")
+    panel(70, 225, 1540, 930, "Context framing", "context_obj", "context_sub")
+    panel(1690, 225, 1540, 930, "Trigger pressure", "trigger_obj", "trigger_sub")
 
     out = ensure_parent(args.out)
     trigger_plot.save_tight(im, out, padding=12)
