@@ -158,7 +158,7 @@ def figure_from_appendix(rows, out_path: Path) -> None:
         draw = ImageDraw.Draw(im)
 
     panel(70, 30, 1150, 785, "OBJ", ["Preserved", "Departed"])
-    panel(1280, 30, 1150, 785, "SUB", ["Held", "Switched"])
+    panel(1238, 30, 1150, 785, "SUB", ["Held", "Switched"])
 
     trigger_plot.save_tight(im, out_path, padding=8)
 

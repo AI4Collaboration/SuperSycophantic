@@ -385,10 +385,10 @@ def figure_trigger_confidence_high_risk(records, out_path):
         }
 
     rows = [
-        ("GT stable", "GT", "stable"),
-        ("GT departed", "GT", "departed"),
-        ("NGT held", "NGT", "held"),
-        ("NGT switched", "NGT", "switched"),
+        ("OBJ stable", "GT", "stable"),
+        ("OBJ departed", "GT", "departed"),
+        ("SUB held", "NGT", "held"),
+        ("SUB switched", "NGT", "switched"),
     ]
     colors = {"<4": "#CDD6E2", "4": ORANGE, "5": RED}
 
@@ -424,7 +424,7 @@ def figure_context_ngt_directionality(summary, out_path):
     width, height = 2550, 820
     im = Image.new("RGB", (width, height), WHITE)
     draw = ImageDraw.Draw(im)
-    draw_header(draw, "NGT paired A/B directionality by cue and model", width)
+    draw_header(draw, "SUB paired A/B directionality by cue and model", width)
     x0, y0 = 350, 250
     cell_w, cell_h = 225, 132
     for ci, model in enumerate(CONTEXT_MODELS):
@@ -494,7 +494,7 @@ def figure_validation_coverage(records, context_summary, trigger_judge_summary, 
                 color = "#F0F4F8"
             draw.rounded_rectangle((x, y, x + cell_w - 16, y + cell_h), radius=14, fill=color)
             draw_text(draw, (x + cell_w / 2 - 8, y + cell_h / 2), f"{value:,}", FONT_CELL, INK, anchor="mm")
-    draw_text(draw, (width / 2, height - 38), "GT outcome denominators use initially correct trials; NGT uses eligible parsed trials.", FONT, MUTED, anchor="mm")
+    draw_text(draw, (width / 2, height - 38), "OBJ outcome denominators use initially correct trials; SUB uses eligible parsed trials.", FONT, MUTED, anchor="mm")
     save(im, out_path)
 
 
@@ -505,10 +505,10 @@ def figure_item_concentration(records, out_path):
     draw_header(draw, "Item-level susceptibility is broadly distributed", width)
 
     specs = [
-        ("GT single", "single", "GT"),
-        ("NGT single", "single", "NGT"),
-        ("GT temporal", "temporal", "GT"),
-        ("NGT temporal", "temporal", "NGT"),
+        ("OBJ single", "single", "GT"),
+        ("SUB single", "single", "NGT"),
+        ("OBJ temporal", "temporal", "GT"),
+        ("SUB temporal", "temporal", "NGT"),
     ]
     bins = [(0, 20), (20, 40), (40, 60), (60, 80), (80, 101)]
 
@@ -714,7 +714,7 @@ def figure_confidence_risk_calibration(records, out_path):
             for xx, yy, value in points:
                 draw.ellipse((xx - 10, yy - 10, xx + 10, yy + 10), fill=color)
                 draw_text(draw, (xx + 13, yy), f"{value:.0f}", FONT_SMALL, color, anchor="lm")
-        draw_legend(draw, [("GT", GT), ("NGT", NGT)], x + 360, y + h - 44, gap=110)
+        draw_legend(draw, [("OBJ", GT), ("SUB", NGT)], x + 360, y + h - 44, gap=110)
     draw_text(draw, (width / 2, height - 36), "outcome rate by initial self-reported confidence (%)", FONT_LABEL, anchor="mm")
     save(im, out_path)
 
@@ -801,7 +801,7 @@ def figure_context_change_decomposition(gt_pairs, out_path):
     width, height = 2400, 1020
     im = Image.new("RGB", (width, height), WHITE)
     draw = ImageDraw.Draw(im)
-    draw_header(draw, "Context GT answer changes decompose into failure and harmless movement", width)
+    draw_header(draw, "Context OBJ answer changes decompose into failure and harmless movement", width)
     counts = defaultdict(lambda: Counter())
     for neutral, framed in gt_pairs:
         if neutral.get("truth_status") != "correct":
@@ -842,7 +842,7 @@ def figure_ngt_domain_cue(ngt_pairs, out_path):
     width, height = 1900, 850
     im = Image.new("RGB", (width, height), WHITE)
     draw = ImageDraw.Draw(im)
-    draw_header(draw, "NGT framing lift by decision domain and cue", width)
+    draw_header(draw, "SUB framing lift by decision domain and cue", width)
     counts = defaultdict(lambda: [0, 0])
     for neutral, framed, user_dir in ngt_pairs:
         cue = framed.get("cue_type")
@@ -881,16 +881,16 @@ def figure_context_confidence_outcome(gt_pairs, ngt_pairs, out_path):
         conf = framed.get("confidence")
         if not isinstance(conf, (int, float)):
             continue
-        groups["GT departed" if framed.get("truth_status") != "correct" else "GT preserved"].append(float(conf))
+        groups["OBJ departed" if framed.get("truth_status") != "correct" else "OBJ preserved"].append(float(conf))
     for neutral, framed, user_dir in ngt_pairs:
         conf = framed.get("confidence")
         if not isinstance(conf, (int, float)):
             continue
         changed = framed.get("answer") != neutral.get("answer")
         user_aligned = framed.get("answer") == user_dir
-        label = "NGT switched to user" if changed and user_aligned else "NGT other/held"
+        label = "SUB switched to user" if changed and user_aligned else "SUB other/held"
         groups[label].append(float(conf))
-    labels = ["GT preserved", "GT departed", "NGT other/held", "NGT switched to user"]
+    labels = ["OBJ preserved", "OBJ departed", "SUB other/held", "SUB switched to user"]
     x0, x1 = 650, 1800
     y0, row_h = 210, 115
     draw_percent_axis(draw, x0, y0 - 25, x1, y0 + row_h * len(labels), 5, (1, 3, 5))

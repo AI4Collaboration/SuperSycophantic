@@ -24,7 +24,9 @@ Additional helper entrypoints:
 - `patch_appendix_trigger_temporal_strategy_labels.py` patches only the
   release-facing OBJ/SUB panel labels on an existing temporal strategy PNG when
   the ignored raw result files are unavailable.
-- `trigger_confidence_trajectory.py` preserves an older confidence variant.
+- `trigger_confidence_trajectory.py` is the direct confidence-trajectory helper
+  used by the current Figure 8 wrapper when publishing under a descriptive
+  filename.
 - `trigger_tone_gradient_opus.py` is the direct Claude tone-detail helper used
   by the current Figure 10 wrapper when publishing under a descriptive filename.
 

@@ -21,14 +21,14 @@ BLUE = "#1F7EBB"
 
 DISPLAY_NAMES = {
     "GPT-5.4": "GPT-5.4",
-    "GPT-5.4-Mini": "GPT-5.4 mini",
-    "GPT-5.4-Nano": "GPT-5.4 nano",
-    "Opus-4.5": "Opus 4.5",
-    "Sonnet-4.5": "Sonnet 4.5",
-    "Haiku-4.5": "Haiku 4.5",
-    "Gemini-3.1-Flash-Lite": "Gemini Flash Lite",
-    "Mistral-Medium-3.1": "Mistral Medium",
-    "Command-R": "Command R",
+    "GPT-5.4-Mini": "GPT-5.4-mini",
+    "GPT-5.4-Nano": "GPT-5.4-nano",
+    "Opus-4.5": "Opus-4.5",
+    "Sonnet-4.5": "Sonnet-4.5",
+    "Haiku-4.5": "Haiku-4.5",
+    "Gemini-3.1-Flash-Lite": "Gemini-3.1-Flash-Lite",
+    "Mistral-Medium-3.1": "Mistral-Medium-3.1",
+    "Command-R": "Command-R",
 }
 
 
@@ -134,8 +134,9 @@ def main() -> None:
     draw = ImageDraw.Draw(im)
     title = trigger_plot.load_font(62, True)
     panel_title = trigger_plot.load_font(52, True)
-    label_font = trigger_plot.load_font(36)
+    label_font = trigger_plot.load_font(34)
     axis_font = trigger_plot.load_font(34, True)
+    axis_small = trigger_plot.load_font(30, True)
     tick_font = trigger_plot.load_font(32)
     legend_font = trigger_plot.load_font(38)
 
@@ -144,11 +145,19 @@ def main() -> None:
 
     def panel(x0, y0, w, h, title_text, red_key, blue_key, red_label, blue_label):
         draw_text(draw, (x0 + w / 2, y0 - 36), title_text, panel_title, anchor="ma")
-        plot_x0 = x0 + 360
+        plot_x0 = x0 + 520
         plot_x1 = x0 + w - 80
         row_top = y0 + 35
         row_h = 96
         max_x = 90
+        draw_text(
+            draw,
+            (plot_x0 - 24, row_top - 55),
+            "Artificial Analysis rank (1 = strongest)",
+            axis_small,
+            INK,
+            anchor="rs",
+        )
         for tick in [0, 25, 50, 75]:
             xx = plot_x0 + (plot_x1 - plot_x0) * tick / max_x
             draw.line((xx, row_top - 38, xx, row_top + row_h * len(models) - 18), fill=GRID, width=2)
@@ -157,7 +166,7 @@ def main() -> None:
         draw.line((plot_x0, row_top + row_h * len(models) - 18, plot_x1, row_top + row_h * len(models) - 18), fill=MUTED, width=4)
         draw_text(
             draw,
-            (plot_x0 + (plot_x1 - plot_x0) / 2, row_top + row_h * len(models) + 44),
+            (plot_x0 + (plot_x1 - plot_x0) / 2, row_top + row_h * len(models) + 38),
             "Sycophantic outcome rate (%)",
             axis_font,
             INK,

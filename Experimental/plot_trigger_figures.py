@@ -776,10 +776,10 @@ def figure_headline(path, headline):
         draw_text(draw, (axis_x + axis_w / 2, y + row_h - 42), "Rate (%)", FONT_SMALL, MUTED, anchor="ma")
 
     panels = [
-        (grid_x, grid_y, "GT", "single", "GT: wrong turns", "#B8443F"),
-        (grid_x + col_w + gutter_x, grid_y, "GT", "temporal", "GT: cave over time", "#B8443F"),
-        (grid_x, grid_y + row_h + gutter_y, "NGT", "single", "NGT: decision shifts", "#2870A8"),
-        (grid_x + col_w + gutter_x, grid_y + row_h + gutter_y, "NGT", "temporal", "NGT: cave over time", "#2870A8"),
+        (grid_x, grid_y, "GT", "single", "OBJ: wrong turns", "#B8443F"),
+        (grid_x + col_w + gutter_x, grid_y, "GT", "temporal", "OBJ: cave over time", "#B8443F"),
+        (grid_x, grid_y + row_h + gutter_y, "NGT", "single", "SUB: decision shifts", "#2870A8"),
+        (grid_x + col_w + gutter_x, grid_y + row_h + gutter_y, "NGT", "temporal", "SUB: cave over time", "#2870A8"),
     ]
     for args in panels:
         panel(*args)
@@ -884,7 +884,7 @@ def figure_family_heatmap(path, family_rows):
         draw.rectangle((avg_x, y, avg_x + avg_w * averages[trigger], y + cell_h - 4), fill=ACCENT)
         draw_text(draw, (avg_x + avg_w + 14, y + cell_h / 2), fmt_pct(averages[trigger]), FONT_AXIS_BOLD, INK, anchor="lm")
     draw_text(draw, (left + len(ordered_models) * cell_w + 18, top - 54), "Mean", FONT_AXIS_BOLD, INK, anchor="lm")
-    draw_text(draw, (left + (len(ordered_models) * cell_w) / 2, height - 55), "Darker cells indicate more NGT decision shifts", FONT_SMALL, MUTED, anchor="ma")
+    draw_text(draw, (left + (len(ordered_models) * cell_w) / 2, height - 55), "Darker cells indicate more SUB decision shifts", FONT_SMALL, MUTED, anchor="ma")
     save_tight(im, path)
 
 
@@ -908,7 +908,7 @@ def figure_temporal_sequences(path, sequence_rows):
     draw_header(
         draw,
         "Three-turn trajectories amplify pressure accommodation",
-        "NGT temporal answer-switch rate by sequence; same-family and mixed-family sequences share the same mild -> moderate -> strong tone ramp.",
+        "SUB temporal answer-switch rate by sequence; same-family and mixed-family sequences share the same mild -> moderate -> strong tone ramp.",
         width,
     )
     x0, y0 = 610, 220
@@ -935,7 +935,7 @@ def figure_temporal_sequences(path, sequence_rows):
         draw.ellipse((xs - 9, y - 9, xs + 9, y + 9), fill=STATIC)
         draw.ellipse((xa - 11, y - 11, xa + 11, y + 11), fill=ADAPTIVE)
         draw_text(draw, (x0 + plot_w + 18, y), fmt_pct(adapt), FONT_AXIS_BOLD, ADAPTIVE, anchor="lm")
-    draw_text(draw, (x0 + plot_w / 2, height - 58), "NGT answer-switch rate (%)", FONT_SMALL, MUTED, anchor="ma")
+    draw_text(draw, (x0 + plot_w / 2, height - 58), "SUB answer-switch rate (%)", FONT_SMALL, MUTED, anchor="ma")
     save_tight(im, path)
 
 
@@ -1106,8 +1106,8 @@ def figure_model_comparison(path, rows):
                 draw_text(draw, (bar_x + fill_w + 8, yy + bar_h / 2), label, FONT_SMALL, INK, anchor="lm")
         draw_text(draw, (bar_x + bar_w / 2, y + h - 32), "Rate (%)", FONT_AXIS_BOLD, MUTED, anchor="ma")
 
-    panel(100, 195, "GT correct-to-wrong", "gt_rate", 0.55, STATIC, [0.0, 0.15, 0.30, 0.45, 0.55])
-    panel(960, 195, "NGT Flip-Flop", "ngt_rate", 0.90, ADAPTIVE, [0.0, 0.30, 0.60, 0.90])
+    panel(100, 195, "OBJ correct-to-wrong", "gt_rate", 0.55, STATIC, [0.0, 0.15, 0.30, 0.45, 0.55])
+    panel(960, 195, "SUB Flip-Flop", "ngt_rate", 0.90, ADAPTIVE, [0.0, 0.30, 0.60, 0.90])
     save_tight(im, path)
 
 
@@ -1188,6 +1188,14 @@ def figure_tone_opus(path, rows):
         ("Haiku 4.5", MODEL_COLORS["anthropic/claude-haiku-4.5"], 6, 10, "anthropic/claude-haiku-4.5"),
     ]
 
+    legend_x = 360
+    legend_y = 128
+    for label, color, line_w, _, _ in line_specs:
+        draw.line((legend_x, legend_y, legend_x + 48, legend_y), fill=color, width=line_w)
+        draw.ellipse((legend_x + 18, legend_y - 7, legend_x + 32, legend_y + 7), fill=color, outline="white", width=2)
+        draw_text(draw, (legend_x + 62, legend_y), label.replace(" ", "-") if label != "All-model baseline" else label, FONT_AXIS_BOLD, INK, anchor="lm")
+        legend_x += 360 if label == "All-model baseline" else 260
+
     for branch, x, y, title, max_rate, ticks in panels:
         w, h = 700, 610
         draw.rectangle((x, y, x + w, y + h), fill="white", outline="#D9E0E8", width=2)
@@ -1232,8 +1240,8 @@ def figure_trigger_dynamics(path, tone_rows, temporal_rows, confidence_rows):
     panel_h = 1145
     panel_w = (width - 2 * margin - gap) / 2
     panel_specs = [
-        ("GT", margin, "GT Truth Departure", 0.0, 0.50, [0.0, 0.10, 0.20, 0.30, 0.40, 0.50], STATIC),
-        ("NGT", margin + panel_w + gap, "NGT Flip-Flop", 0.25, 0.95, [0.25, 0.40, 0.55, 0.70, 0.85, 0.95], ADAPTIVE),
+        ("GT", margin, "OBJ Truth Departure", 0.0, 0.50, [0.0, 0.10, 0.20, 0.30, 0.40, 0.50], STATIC),
+        ("NGT", margin + panel_w + gap, "SUB Flip-Flop", 0.25, 0.95, [0.25, 0.40, 0.55, 0.70, 0.85, 0.95], ADAPTIVE),
     ]
 
     def color_alpha(hex_color, alpha):
@@ -1374,8 +1382,8 @@ def figure_tone_temporal(path, tone_rows, temporal_rows):
             xx = px0 + i * pw / 2
             draw_text(draw, (xx, py0 + ph + 34), TONE_LABELS[tone], FONT_AXIS_BOLD, INK, anchor="ma")
 
-    tone_panel("GT", 120, 210, "GT correct-to-wrong", 0.55, [0, 0.15, 0.30, 0.45])
-    tone_panel("NGT", 120, 725, "NGT Flip-Flop", 0.90, [0, 0.30, 0.60, 0.90])
+    tone_panel("GT", 120, 210, "OBJ correct-to-wrong", 0.55, [0, 0.15, 0.30, 0.45])
+    tone_panel("NGT", 120, 725, "SUB Flip-Flop", 0.90, [0, 0.30, 0.60, 0.90])
     legend_x, legend_y = 150, 1260
     col_w, row_h = 575, 42
     for i, model in enumerate(MODELS):
@@ -1411,8 +1419,8 @@ def figure_tone_temporal(path, tone_rows, temporal_rows):
                 xx = cell_x + ci * (cell_w + gap)
                 draw_rate_cell(draw, (xx, yy, xx + cell_w, yy + cell_h), value, max_rate, color, FONT_AXIS_BOLD)
 
-    temporal_panel("GT", 2010, 210, "GT final correct-to-wrong", 0.55, STATIC)
-    temporal_panel("NGT", 2910, 210, "NGT final Flip-Flop", 0.90, ADAPTIVE)
+    temporal_panel("GT", 2010, 210, "OBJ final correct-to-wrong", 0.55, STATIC)
+    temporal_panel("NGT", 2910, 210, "SUB final Flip-Flop", 0.90, ADAPTIVE)
     save_tight(im, path)
 
 
@@ -1421,7 +1429,7 @@ def figure_static_vs_adaptive(path, rows):
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
     draw_header(draw, "Static vs. adaptive by model", "", width)
-    panels = [("GT", 110, 195, "GT correct-to-wrong", 0.55, STATIC), ("NGT", 935, 195, "NGT Flip-Flop", 0.90, ADAPTIVE)]
+    panels = [("GT", 110, 195, "OBJ correct-to-wrong", 0.55, STATIC), ("NGT", 935, 195, "SUB Flip-Flop", 0.90, ADAPTIVE)]
     for branch, x, y, title, max_rate, _ in panels:
         w, h = 735, 780
         draw.rectangle((x, y, x + w, y + h), fill="white", outline="#D9E0E8", width=2)
@@ -1457,8 +1465,8 @@ def figure_temporal_pressure(path, rows):
     draw = ImageDraw.Draw(im)
     draw_header(draw, "Temporal pressure by model", "", width)
     panels = [
-        ("GT", 105, 195, "GT final correct-to-wrong", 0.55, STATIC, 0.14),
-        ("NGT", 920, 195, "NGT final Flip-Flop", 0.90, ADAPTIVE, 0.40),
+        ("GT", 105, 195, "OBJ final correct-to-wrong", 0.55, STATIC, 0.14),
+        ("NGT", 920, 195, "SUB final Flip-Flop", 0.90, ADAPTIVE, 0.40),
     ]
     stages = ["single", "same_family", "heterogeneous"]
     for branch, x, y, title, max_rate, color, max_delta in panels:
@@ -1569,7 +1577,7 @@ def figure_confidence_trajectory(path, rows):
         show_y_label=True,
     )
     draw_line_panel(
-        1340,
+        1295,
         35,
         1215,
         860,
@@ -1671,12 +1679,12 @@ def main():
                 "All figures are Python-generated PNG charts from the official pass@1-clean result files.",
                 "",
                 "- `trigger_model_quadrant.png`: main-text static/adaptive changes from right to wrong versus answer changes quadrant view.",
-                "- `trigger_model_comparison.png`: side-by-side GT correct-to-wrong and NGT Flip-Flop rates by model.",
+                "- `trigger_model_comparison.png`: side-by-side OBJ correct-to-wrong and SUB Flip-Flop rates by model.",
                 "- `trigger_tone_gradient_opus.png`: Claude mild/moderate/strong tone gradients against the denominator-weighted all-model baseline.",
-                "- `trigger_static_vs_adaptive.png`: per-model static vs adaptive GT and NGT rates.",
+                "- `trigger_static_vs_adaptive.png`: per-model static vs adaptive OBJ and SUB rates.",
                 "- `trigger_temporal_pressure.png`: per-model adaptive single, same-family escalation, heterogeneous temporal pressure, and mixed-minus-single deltas.",
                 "- `trigger_tone_temporal.png`: compact main-text composite of per-model tone gradients and adaptive temporal pressure.",
-                "- `trigger_dynamics_summary.png`: 1x2 main-text scatter comparing single-follow-up and mixed three-turn movement by model for GT and NGT.",
+                "- `trigger_dynamics_summary.png`: 1x2 main-text scatter comparing single-follow-up and mixed three-turn movement by model for OBJ and SUB.",
                 "- `trigger_confidence_trajectory.png`: two-panel confidence trends for OBJ/SUB and stable/sycophantic temporal trajectories.",
                 "",
                 "The CSV files in this directory contain the exact plotted aggregates.",
