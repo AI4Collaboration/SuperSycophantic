@@ -31,26 +31,26 @@ OTHER_MODELS = [model for model in MODELS if model not in CLAUDE_MODELS]
 
 MODEL_LABELS = {
     "openai/gpt-5.4": "GPT-5.4",
-    "openai/gpt-5.4-mini": "GPT-5.4 Mini",
-    "openai/gpt-5.4-nano": "GPT-5.4 Nano",
-    "anthropic/claude-opus-4.5": "Claude Opus 4.5",
-    "anthropic/claude-sonnet-4.5": "Claude Sonnet 4.5",
-    "anthropic/claude-haiku-4.5": "Claude Haiku 4.5",
-    "google/gemini-3.1-flash-lite-preview": "Gemini Flash Lite",
-    "mistralai/mistral-medium-3.1": "Mistral Medium 3.1",
-    "cohere/command-r-08-2024": "Command R",
+    "openai/gpt-5.4-mini": "GPT-5.4-mini",
+    "openai/gpt-5.4-nano": "GPT-5.4-nano",
+    "anthropic/claude-opus-4.5": "Opus-4.5",
+    "anthropic/claude-sonnet-4.5": "Sonnet-4.5",
+    "anthropic/claude-haiku-4.5": "Haiku-4.5",
+    "google/gemini-3.1-flash-lite-preview": "Gemini-3.1 Flash-Lite",
+    "mistralai/mistral-medium-3.1": "Mistral-Medium-3.1",
+    "cohere/command-r-08-2024": "Command-R",
 }
 
 MODEL_SHORT_LABELS = {
     "openai/gpt-5.4": "GPT-5.4",
-    "openai/gpt-5.4-mini": "GPT-5.4\nMini",
-    "openai/gpt-5.4-nano": "GPT-5.4\nNano",
-    "anthropic/claude-opus-4.5": "Opus 4.5",
-    "anthropic/claude-sonnet-4.5": "Sonnet 4.5",
-    "anthropic/claude-haiku-4.5": "Haiku 4.5",
-    "google/gemini-3.1-flash-lite-preview": "Gemini\nFlash Lite",
-    "mistralai/mistral-medium-3.1": "Mistral\nMedium",
-    "cohere/command-r-08-2024": "Command R",
+    "openai/gpt-5.4-mini": "GPT-5.4-\nmini",
+    "openai/gpt-5.4-nano": "GPT-5.4-\nnano",
+    "anthropic/claude-opus-4.5": "Opus-\n4.5",
+    "anthropic/claude-sonnet-4.5": "Sonnet-\n4.5",
+    "anthropic/claude-haiku-4.5": "Haiku-\n4.5",
+    "google/gemini-3.1-flash-lite-preview": "Gemini-3.1\nFlash-Lite",
+    "mistralai/mistral-medium-3.1": "Mistral-\nMedium-3.1",
+    "cohere/command-r-08-2024": "Command-R",
 }
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -1107,7 +1107,7 @@ def figure_model_comparison(path, rows):
         draw_text(draw, (bar_x + bar_w / 2, y + h - 32), "Rate (%)", FONT_AXIS_BOLD, MUTED, anchor="ma")
 
     panel(100, 195, "OBJ correct-to-wrong", "gt_rate", 0.55, STATIC, [0.0, 0.15, 0.30, 0.45, 0.55])
-    panel(960, 195, "SUB Flip-Flop", "ngt_rate", 0.90, ADAPTIVE, [0.0, 0.30, 0.60, 0.90])
+    panel(960, 195, "SUB switching", "ngt_rate", 0.90, ADAPTIVE, [0.0, 0.30, 0.60, 0.90])
     save_tight(im, path)
 
 
@@ -1183,9 +1183,9 @@ def figure_tone_opus(path, rows):
 
     line_specs = [
         ("All-model baseline", "#17202A", 8, 13, None),
-        ("Opus 4.5", MODEL_COLORS["anthropic/claude-opus-4.5"], 8, 13, "anthropic/claude-opus-4.5"),
-        ("Sonnet 4.5", MODEL_COLORS["anthropic/claude-sonnet-4.5"], 6, 10, "anthropic/claude-sonnet-4.5"),
-        ("Haiku 4.5", MODEL_COLORS["anthropic/claude-haiku-4.5"], 6, 10, "anthropic/claude-haiku-4.5"),
+        ("Opus-4.5", MODEL_COLORS["anthropic/claude-opus-4.5"], 8, 13, "anthropic/claude-opus-4.5"),
+        ("Sonnet-4.5", MODEL_COLORS["anthropic/claude-sonnet-4.5"], 6, 10, "anthropic/claude-sonnet-4.5"),
+        ("Haiku-4.5", MODEL_COLORS["anthropic/claude-haiku-4.5"], 6, 10, "anthropic/claude-haiku-4.5"),
     ]
 
     legend_x = 360
@@ -1241,7 +1241,7 @@ def figure_trigger_dynamics(path, tone_rows, temporal_rows, confidence_rows):
     panel_w = (width - 2 * margin - gap) / 2
     panel_specs = [
         ("GT", margin, "OBJ Truth Departure", 0.0, 0.50, [0.0, 0.10, 0.20, 0.30, 0.40, 0.50], STATIC),
-        ("NGT", margin + panel_w + gap, "SUB Flip-Flop", 0.25, 0.95, [0.25, 0.40, 0.55, 0.70, 0.85, 0.95], ADAPTIVE),
+        ("NGT", margin + panel_w + gap, "SUB switching", 0.25, 0.95, [0.25, 0.40, 0.55, 0.70, 0.85, 0.95], ADAPTIVE),
     ]
 
     def color_alpha(hex_color, alpha):
@@ -1383,7 +1383,7 @@ def figure_tone_temporal(path, tone_rows, temporal_rows):
             draw_text(draw, (xx, py0 + ph + 34), TONE_LABELS[tone], FONT_AXIS_BOLD, INK, anchor="ma")
 
     tone_panel("GT", 120, 210, "OBJ correct-to-wrong", 0.55, [0, 0.15, 0.30, 0.45])
-    tone_panel("NGT", 120, 725, "SUB Flip-Flop", 0.90, [0, 0.30, 0.60, 0.90])
+    tone_panel("NGT", 120, 725, "SUB switching", 0.90, [0, 0.30, 0.60, 0.90])
     legend_x, legend_y = 150, 1260
     col_w, row_h = 575, 42
     for i, model in enumerate(MODELS):
@@ -1420,7 +1420,7 @@ def figure_tone_temporal(path, tone_rows, temporal_rows):
                 draw_rate_cell(draw, (xx, yy, xx + cell_w, yy + cell_h), value, max_rate, color, FONT_AXIS_BOLD)
 
     temporal_panel("GT", 2010, 210, "OBJ final correct-to-wrong", 0.55, STATIC)
-    temporal_panel("NGT", 2910, 210, "SUB final Flip-Flop", 0.90, ADAPTIVE)
+    temporal_panel("NGT", 2910, 210, "SUB final switching", 0.90, ADAPTIVE)
     save_tight(im, path)
 
 
@@ -1429,7 +1429,7 @@ def figure_static_vs_adaptive(path, rows):
     im = Image.new("RGB", (width, height), PAPER_BG)
     draw = ImageDraw.Draw(im)
     draw_header(draw, "Static vs. adaptive by model", "", width)
-    panels = [("GT", 110, 195, "OBJ correct-to-wrong", 0.55, STATIC), ("NGT", 935, 195, "SUB Flip-Flop", 0.90, ADAPTIVE)]
+    panels = [("GT", 110, 195, "OBJ correct-to-wrong", 0.55, STATIC), ("NGT", 935, 195, "SUB switching", 0.90, ADAPTIVE)]
     for branch, x, y, title, max_rate, _ in panels:
         w, h = 735, 780
         draw.rectangle((x, y, x + w, y + h), fill="white", outline="#D9E0E8", width=2)
@@ -1466,7 +1466,7 @@ def figure_temporal_pressure(path, rows):
     draw_header(draw, "Temporal pressure by model", "", width)
     panels = [
         ("GT", 105, 195, "OBJ final correct-to-wrong", 0.55, STATIC, 0.14),
-        ("NGT", 920, 195, "SUB final Flip-Flop", 0.90, ADAPTIVE, 0.40),
+        ("NGT", 920, 195, "SUB final switching", 0.90, ADAPTIVE, 0.40),
     ]
     stages = ["single", "same_family", "heterogeneous"]
     for branch, x, y, title, max_rate, color, max_delta in panels:
@@ -1679,7 +1679,7 @@ def main():
                 "All figures are Python-generated PNG charts from the official pass@1-clean result files.",
                 "",
                 "- `trigger_model_quadrant.png`: main-text static/adaptive changes from right to wrong versus answer changes quadrant view.",
-                "- `trigger_model_comparison.png`: side-by-side OBJ correct-to-wrong and SUB Flip-Flop rates by model.",
+                "- `trigger_model_comparison.png`: side-by-side OBJ correct-to-wrong and SUB switching rates by model.",
                 "- `trigger_tone_gradient_opus.png`: Claude mild/moderate/strong tone gradients against the denominator-weighted all-model baseline.",
                 "- `trigger_static_vs_adaptive.png`: per-model static vs adaptive OBJ and SUB rates.",
                 "- `trigger_temporal_pressure.png`: per-model adaptive single, same-family escalation, heterogeneous temporal pressure, and mixed-minus-single deltas.",

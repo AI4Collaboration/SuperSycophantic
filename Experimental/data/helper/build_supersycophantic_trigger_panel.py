@@ -284,7 +284,7 @@ def main() -> int:
     if args.gt_only and args.ngt_only:
         raise SystemExit("--gt-only and --ngt-only cannot be combined")
     if not args.gt_only and not args.ngt_only:
-        raise SystemExit("Choose --gt-only or --ngt-only to build a branch-split trigger panel")
+        raise SystemExit("Choose --gt-only or --ngt-only to build an OBJ/SUB split trigger panel")
     rows = build(args)
     if args.output is None:
         branch = "_gt" if args.gt_only else "_ngt" if args.ngt_only else ""

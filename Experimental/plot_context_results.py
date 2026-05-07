@@ -23,26 +23,26 @@ MODEL_ORDER = [
 
 SHORT_LABELS = {
     "openai/gpt-5.4": "GPT-5.4",
-    "openai/gpt-5.4-mini": "GPT-5.4\nmini",
-    "openai/gpt-5.4-nano": "GPT-5.4\nnano",
-    "anthropic/claude-opus-4.5": "Opus 4.5",
-    "anthropic/claude-sonnet-4.5": "Sonnet 4.5",
-    "anthropic/claude-haiku-4.5": "Haiku 4.5",
-    "google/gemini-3.1-flash-lite-preview": "Gemini\nFlash",
-    "mistralai/mistral-medium-3.1": "Mistral",
-    "cohere/command-r-08-2024": "Command R",
+    "openai/gpt-5.4-mini": "GPT-5.4-\nmini",
+    "openai/gpt-5.4-nano": "GPT-5.4-\nnano",
+    "anthropic/claude-opus-4.5": "Opus-4.5",
+    "anthropic/claude-sonnet-4.5": "Sonnet-4.5",
+    "anthropic/claude-haiku-4.5": "Haiku-4.5",
+    "google/gemini-3.1-flash-lite-preview": "Gemini-3.1\nFlash-Lite",
+    "mistralai/mistral-medium-3.1": "Mistral-\nMedium-3.1",
+    "cohere/command-r-08-2024": "Command-R",
 }
 
 COLUMN_LABELS = {
     "openai/gpt-5.4": "GPT-5.4",
-    "openai/gpt-5.4-mini": "5.4\nmini",
-    "openai/gpt-5.4-nano": "5.4\nnano",
-    "anthropic/claude-opus-4.5": "Opus",
-    "anthropic/claude-sonnet-4.5": "Sonnet",
-    "anthropic/claude-haiku-4.5": "Haiku",
-    "google/gemini-3.1-flash-lite-preview": "Gemini",
-    "mistralai/mistral-medium-3.1": "Mistral",
-    "cohere/command-r-08-2024": "Command\nR",
+    "openai/gpt-5.4-mini": "5.4-\nmini",
+    "openai/gpt-5.4-nano": "5.4-\nnano",
+    "anthropic/claude-opus-4.5": "Opus-\n4.5",
+    "anthropic/claude-sonnet-4.5": "Sonnet-\n4.5",
+    "anthropic/claude-haiku-4.5": "Haiku-\n4.5",
+    "google/gemini-3.1-flash-lite-preview": "Gemini-\n3.1",
+    "mistralai/mistral-medium-3.1": "Mistral-\n3.1",
+    "cohere/command-r-08-2024": "Command-\nR",
 }
 
 PROVIDER = {
