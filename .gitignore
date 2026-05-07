@@ -1,5 +1,15 @@
 .env
 .env.*
+.envrc
+secrets.env
+*.pem
+*.key
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+config.local.json
+*.local.json
 .venv/
 __pycache__/
 *.py[cod]

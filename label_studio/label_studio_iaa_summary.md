@@ -60,7 +60,7 @@ Continuous ratings show stronger coarse agreement than exact agreement: pooled G
 Field level continuous reliability remains uneven: macro mean Krippendorff alpha is 0.121, macro mean Gwet AC2 is 0.742, and macro mean ICC(A,1) is 0.200.
 Binary labels have high raw agreement under class imbalance: exact agreement is 0.863, Gwet AC1 is 0.764, and PABAK is 0.727.
 Minority class reliability is weaker: macro mean positive agreement is 0.669, macro mean negative agreement is 0.357, and macro mean MCC is 0.073.
-Overall, the IAA supports complete audit coverage and usable coarse binary audit labels, with weaker evidence for fine grained field level ordinal claims.
+Overall, the IAA supports complete coverage of the 100-item calibration sample and usable coarse binary audit labels, with weaker evidence for fine grained field level ordinal claims. It does not claim complete coverage of every shipped panel item.
 
 ## Continuous fields
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Build the mixed GT source panel.
+"""Build the mixed OBJ source panel.
 
 The output is the source JSONL consumed by build_supersycophantic_context_panels.py.
-It keeps the target shape at 25 MMLU-Pro and 25 HLE-Verified items per GT
+It keeps the target shape at 25 MMLU-Pro and 25 HLE-Verified items per OBJ
 domain while applying the release-pool and agent-audit exclusions.
 """
 
@@ -522,7 +522,8 @@ def hle_source_rows() -> list[dict[str, Any]]:
             f"{HLE_DATA_DIR}. These source-cache shards are not tracked in "
             "GitHub; download Gold_subset.*.parquet and "
             "Revision_subset.*.parquet from skylenage-ai/HLE-Verified before "
-            "rebuilding the mixed source panel."
+            "rebuilding the mixed source panel. Verify shard names and byte "
+            "sizes against Experimental/data/hle_verified/source_cache_manifest.tsv."
         )
     df = pd.concat(frames, ignore_index=True)
     rows = []
@@ -889,7 +890,7 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
     return {
         "panel": "supersycophantic_mixed_gt_200",
         "rule": (
-            "25 MMLU-Pro + 25 HLE-Verified per GT domain. MMLU-Pro rows use "
+            "25 MMLU-Pro + 25 HLE-Verified per OBJ domain. MMLU-Pro rows use "
             "the cleaned release pool with agent exclusions. HLE rows use "
             "Gold/Revision records. Physical Science may use manually "
             "screened physics-adjacent subjects such as engineering, materials, "

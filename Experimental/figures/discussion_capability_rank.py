@@ -123,8 +123,8 @@ def main() -> None:
     parser.add_argument(
         "--appendix-tex",
         type=Path,
-        default=Path("sections/appendix.tex"),
-        help="Appendix TeX file containing context, trigger, and capability-rank aggregate tables.",
+        required=True,
+        help="Current table source containing context, trigger, and capability-rank aggregate tables.",
     )
     args = parser.parse_args()
     models = load_models_from_appendix(args.appendix_tex)

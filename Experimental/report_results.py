@@ -58,6 +58,10 @@ def cue_display_name(cue):
     }.get(str(cue), str(cue).replace("_relevant", ""))
 
 
+def stream_display_name(branch):
+    return {"GT": "OBJ", "NGT": "SUB"}.get(str(branch), str(branch))
+
+
 def model_family(model):
     return str(model).split("/")[0]
 
@@ -462,7 +466,7 @@ def residual_failure_note(residual):
     counts = Counter((row["model"], row["branch"], row["failure_type"]) for row in residual)
     top = counts.most_common(3)
     summary = ", ".join(
-        f"{short_model(model)} {branch} {failure_type}: {count}"
+        f"{short_model(model)} {stream_display_name(branch)} {failure_type}: {count}"
         for (model, branch, failure_type), count in top
     )
     return f"- Residual failures after resumable retries: {summary}."
@@ -475,11 +479,11 @@ def residual_risk_lines(completion):
         ngt_missing = payload["NGT_incomplete"]
         if gt_missing:
             lines.append(
-                f"- GT metrics for `{model}` are based on {payload['GT_complete']}/{EXPECTED_GT_PER_MODEL} completed cells."
+                f"- OBJ metrics for `{model}` are based on {payload['GT_complete']}/{EXPECTED_GT_PER_MODEL} completed cells."
             )
         if ngt_missing:
             lines.append(
-                f"- NGT metrics for `{model}` are based on {payload['NGT_complete']}/{EXPECTED_NGT_PER_MODEL} completed cells."
+                f"- SUB metrics for `{model}` are based on {payload['NGT_complete']}/{EXPECTED_NGT_PER_MODEL} completed cells."
             )
     if not lines:
         return ["- No residual incomplete rows remain after resumable retries."]
@@ -508,10 +512,10 @@ def context_results_plan_lines(context_summary, completion):
         caveat += ", with no residual incomplete rows."
     return [
         f"1. {caveat}",
-        f"2. Lead the GT paragraph with truth-departure ranking: highest {top_gt}; lowest {low_gt}. Pair each claim with truth-preservation rates.",
-        f"3. Follow with the NGT paragraph framed as pressure accommodation, not accuracy, emphasizing the largest user-view lifts: {top_ngt}.",
-        f"4. Use one cue paragraph to compare value/belief, impression/identity, and outcome/stake framing directly; for NGT, the mean cue effects are {cue_sentence or 'not available'}.",
-        "5. Close with family-level synthesis and confidence diagnostics, keeping GT truth-departure claims separate from NGT pressure-accommodation claims.",
+        f"2. Lead the OBJ paragraph with truth-departure ranking: highest {top_gt}; lowest {low_gt}. Pair each claim with truth-preservation rates.",
+        f"3. Follow with the SUB paragraph framed as pressure accommodation, not accuracy, emphasizing the largest user-view lifts: {top_ngt}.",
+        f"4. Use one cue paragraph to compare value/belief, impression/identity, and outcome/stake framing directly; for SUB, the mean cue effects are {cue_sentence or 'not available'}.",
+        "5. Close with family-level synthesis and confidence diagnostics, keeping OBJ truth-departure claims separate from SUB pressure-accommodation claims.",
     ]
 
 
@@ -535,7 +539,7 @@ def write_report(
         path = report_dir / "fig_context_gt_truth_departure.png"
         if png_bar_chart(
             path,
-            "GT Context: Correct-to-Incorrect Under First-Turn Framing",
+            "OBJ Context: Correct-to-Incorrect Under First-Turn Framing",
             [{"label": short_model(r["model"]), "value": r["gt_truth_departure"]} for r in ctx_rows],
             "label",
             "value",
@@ -545,7 +549,7 @@ def write_report(
         path = report_dir / "fig_context_ngt_user_lift.png"
         if png_bar_chart(
             path,
-            "NGT Context: User-View Lift Under First-Turn Framing",
+            "SUB Context: User-View Lift Under First-Turn Framing",
             [{"label": short_model(r["model"]), "value": r["ngt_user_lift"]} for r in ctx_rows],
             "label",
             "value",
@@ -555,7 +559,7 @@ def write_report(
         path = report_dir / "fig_context_gt_truth_departure_by_cue.png"
         if png_bar_chart(
             path,
-            "GT Context: Truth Departure by Cue",
+            "OBJ Context: Truth Departure by Cue",
             context_cue_rows(context_summary, "GT", ["correct_to_incorrect_rate"]),
             "label",
             "value",
@@ -565,7 +569,7 @@ def write_report(
         path = report_dir / "fig_context_ngt_user_lift_by_cue.png"
         if png_bar_chart(
             path,
-            "NGT Context: User-View Lift by Cue",
+            "SUB Context: User-View Lift by Cue",
             context_cue_rows(context_summary, "NGT", ["user_answer_agreement", "lift"]),
             "label",
             "value",
@@ -575,7 +579,7 @@ def write_report(
         path = report_dir / "fig_context_ngt_directionality.png"
         if png_bar_chart(
             path,
-            "NGT Context: A/B Direction Sensitivity",
+            "SUB Context: A/B Direction Sensitivity",
             context_ngt_directionality_rows(context_summary),
             "label",
             "value",
@@ -657,12 +661,12 @@ def write_report(
                 f"- Planned keys: {completion['planned']}",
                 f"- Completed keys: {completion['complete']} ({pct(completeness_rate)})",
                 f"- Residual incomplete keys: {completion['incomplete']} ({pct(rate(completion['incomplete'], completion['planned']))})",
-                f"- GT completed rows: {sum(v['GT_complete'] for v in completion['by_model'].values())}/{EXPECTED_GT_PER_MODEL * len(completion['by_model'])}",
-                f"- NGT completed rows: {sum(v['NGT_complete'] for v in completion['by_model'].values())}/{EXPECTED_NGT_PER_MODEL * len(completion['by_model'])}",
+                f"- OBJ completed rows: {sum(v['GT_complete'] for v in completion['by_model'].values())}/{EXPECTED_GT_PER_MODEL * len(completion['by_model'])}",
+                f"- SUB completed rows: {sum(v['NGT_complete'] for v in completion['by_model'].values())}/{EXPECTED_NGT_PER_MODEL * len(completion['by_model'])}",
                 "- All tables and figures below are computed from completed rows only; incomplete keys remain listed in the residual appendix.",
                 "",
                 md_table(
-                    ["model", "GT complete", "NGT complete", "total complete"],
+                    ["model", "OBJ complete", "SUB complete", "total complete"],
                     [
                         [
                             short_model(model),
@@ -674,7 +678,7 @@ def write_report(
                     ],
                 ),
                 "",
-                "## GT Truth-Departure And Truth-Preservation",
+                "## OBJ Truth-Departure And Truth-Preservation",
                 md_table(
                     ["model", "truth departure", "truth preservation", "answer change"],
                     [
@@ -688,10 +692,10 @@ def write_report(
                     ],
                 ),
                 "",
-                f"- Highest GT truth departure: {', '.join(f'{short_model(row['model'])} {pct(row['gt_truth_departure'])}' for row in top_bottom_rows(context_summary, 'gt_truth_departure', reverse=True))}.",
-                f"- Lowest GT truth departure: {', '.join(f'{short_model(row['model'])} {pct(row['gt_truth_departure'])}' for row in top_bottom_rows(context_summary, 'gt_truth_departure', reverse=False))}.",
+                f"- Highest OBJ truth departure: {format_model_rates(top_bottom_rows(context_summary, 'gt_truth_departure', reverse=True), 'gt_truth_departure')}.",
+                f"- Lowest OBJ truth departure: {format_model_rates(top_bottom_rows(context_summary, 'gt_truth_departure', reverse=False), 'gt_truth_departure')}.",
                 "",
-                "## NGT Pressure-Accommodation And Direction Shift",
+                "## SUB Pressure-Accommodation And Direction Shift",
                 md_table(
                     ["model", "user-view lift", "answer change", "A/B direction sensitivity"],
                     [
@@ -705,21 +709,21 @@ def write_report(
                     ],
                 ),
                 "",
-                f"- Highest NGT user-view lift: {', '.join(f'{short_model(row['model'])} {pct(row['ngt_user_lift'])}' for row in top_bottom_rows(context_summary, 'ngt_user_lift', reverse=True))}.",
-                f"- Lowest NGT user-view lift: {', '.join(f'{short_model(row['model'])} {pct(row['ngt_user_lift'])}' for row in top_bottom_rows(context_summary, 'ngt_user_lift', reverse=False))}.",
+                f"- Highest SUB user-view lift: {format_model_rates(top_bottom_rows(context_summary, 'ngt_user_lift', reverse=True), 'ngt_user_lift')}.",
+                f"- Lowest SUB user-view lift: {format_model_rates(top_bottom_rows(context_summary, 'ngt_user_lift', reverse=False), 'ngt_user_lift')}.",
                 "",
                 "## Cue-Level Comparisons",
                 md_table(
-                    ["branch", "cue", "mean effect across models"],
+                    ["stream", "cue", "mean effect across models"],
                     [
-                        [row["branch"], cue_display_name(row["cue"]), pct(row["average"])]
+                        [stream_display_name(row["branch"]), cue_display_name(row["cue"]), pct(row["average"])]
                         for row in cue_means
                     ],
                 ),
                 "",
                 "## Model-Family Patterns",
                 md_table(
-                    ["family", "avg GT truth departure", "avg NGT user-view lift"],
+                    ["family", "avg OBJ truth departure", "avg SUB user-view lift"],
                     [[row["family"], pct(row["gt"]), pct(row["ngt"])] for row in family],
                 ),
                 "",
@@ -739,8 +743,8 @@ def write_report(
                 ),
                 "",
                 "## Failure And Retry Notes",
-                "- The wrapper is resumable by `model`, `branch`, `item_id`, and `variant`, so valid rows are preserved and only incomplete keys are backfilled.",
-                "- If residual failures remain, rerun the same wrapper against the same `RunId` or target the listed residual model/branch keys with lower concurrency.",
+                "- The wrapper is resumable by stored model, stream, item, and variant keys, so valid rows are preserved and only incomplete keys are backfilled.",
+                "- If residual failures remain, rerun the same wrapper against the same `RunId` or target the listed residual model/stream keys with lower concurrency.",
                 residual_failure_note(residual),
                 "",
                 "## Residual Risks",
@@ -750,11 +754,11 @@ def write_report(
                 *context_results_plan_lines(context_summary, completion),
                 "",
                 "## Figure Plan",
-                "- Figure A: GT truth-departure rates by model.",
-                "- Figure B: NGT user-view lift by model.",
-                "- Figure C: GT truth departure by cue and model.",
-                "- Figure D: NGT user-view lift by cue and model.",
-                "- Figure E: NGT A/B direction sensitivity by model.",
+                "- Figure A: OBJ truth-departure rates by model.",
+                "- Figure B: SUB user-view lift by model.",
+                "- Figure C: OBJ truth departure by cue and model.",
+                "- Figure D: SUB user-view lift by cue and model.",
+                "- Figure E: SUB A/B direction sensitivity by model.",
                 "",
                 "## Figure Previews",
             ]
@@ -769,11 +773,11 @@ def write_report(
                 "",
                 "## Residual Failed Keys",
                 md_table(
-                    ["model", "branch", "item_id", "variant", "cue", "failure type", "last error"],
+                    ["model", "stream", "item_id", "variant", "cue", "failure type", "last error"],
                     [
                         [
                             short_model(row["model"]),
-                            row["branch"],
+                            stream_display_name(row["branch"]),
                             row["item_id"],
                             row["variant"],
                             row["cue"],
@@ -795,7 +799,7 @@ def write_report(
                 "",
                 "## Preflight Gates",
                 "- Require `audit_supersycophantic_panels.py` to pass before model calls.",
-                "- Interpret GT and NGT separately: GT truth departure, NGT pressure accommodation / switching.",
+                "- Interpret OBJ and SUB separately: OBJ truth departure, SUB pressure accommodation / switching.",
             ]
         )
 

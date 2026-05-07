@@ -74,6 +74,7 @@ MODEL_BADGE_FILES = {
     "openai/gpt-5.4": "gpt-5.4.png",
     "openai/gpt-5.4-mini": "gpt-5.4-mini.png",
     "openai/gpt-5.4-nano": "gpt-5.4-nano.png",
+    "anthropic/claude-opus-4.5": "opus-4.5.png",
     "anthropic/claude-sonnet-4.5": "sonnet-4.5.png",
     "anthropic/claude-haiku-4.5": "haiku-4.5.png",
     "google/gemini-3.1-flash-lite-preview": "gemini-flash-lite.png",
@@ -173,7 +174,7 @@ def parse_args():
     parser.add_argument("--run-id", required=True)
     parser.add_argument("--results-dir", type=Path, default=Path("Experimental/results"))
     parser.add_argument("--report-dir", type=Path, default=None)
-    parser.add_argument("--clean", action="store_true", help="Remove stale trigger figures before writing new ones.")
+    parser.add_argument("--clean", action="store_true", help="Remove existing trigger figures before writing new ones.")
     return parser.parse_args()
 
 
@@ -1680,7 +1681,7 @@ def main():
                 "",
                 "- `trigger_model_quadrant.png`: main-text static/adaptive changes from right to wrong versus answer changes quadrant view.",
                 "- `trigger_model_comparison.png`: side-by-side OBJ correct-to-wrong and SUB switching rates by model.",
-                "- `trigger_tone_gradient_opus.png`: Claude mild/moderate/strong tone gradients against the denominator-weighted all-model baseline.",
+                "- `trigger_tone_gradient_opus.png`: Opus/Sonnet/Haiku mild/moderate/strong tone gradients against the denominator-weighted all-model baseline.",
                 "- `trigger_static_vs_adaptive.png`: per-model static vs adaptive OBJ and SUB rates.",
                 "- `trigger_temporal_pressure.png`: per-model adaptive single, same-family escalation, heterogeneous temporal pressure, and mixed-minus-single deltas.",
                 "- `trigger_tone_temporal.png`: compact main-text composite of per-model tone gradients and adaptive temporal pressure.",

@@ -406,11 +406,11 @@ def generate_trigger_appendix(results_dir, run_id, out_dir):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--context-summary", type=Path, required=True)
-    parser.add_argument("--trigger-run-id", default="trigger_20260504_070840")
+    parser.add_argument("--trigger-run-id", required=True)
     parser.add_argument("--trigger-results-dir", type=Path, required=True)
     parser.add_argument("--judge-trigger-summary", type=Path)
     parser.add_argument("--judge-context-summary", type=Path)
-    parser.add_argument("--out-dir", type=Path, default=REPO_ROOT / "images" / "results" / "appendix")
+    parser.add_argument("--out-dir", type=Path, default=REPO_ROOT / "Experimental" / "reports" / "appendix")
     args = parser.parse_args()
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
@@ -455,7 +455,7 @@ def main():
             [
                 "# Appendix Result Figures",
                 "",
-                "All figures in this directory are generated from the latest official raw result files:",
+                "All figures in this directory are generated from the explicitly provided result inputs:",
                 f"- context summary: `{args.context_summary}`",
                 f"- trigger run: `{args.trigger_run_id}` under `{args.trigger_results_dir}`",
                 "",
@@ -463,7 +463,7 @@ def main():
                 "",
                 *[f"- `{name}`" for name in appendix_names],
                 "",
-                "All generated appendix diagnostics are directly referenced from `sections/appendix.tex`; there is no separate draft figure pool.",
+                "Generated appendix diagnostics are code-facing outputs; move only reviewed final assets into the manuscript tree.",
                 "",
             ]
         ),

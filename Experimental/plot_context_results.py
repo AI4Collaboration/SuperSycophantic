@@ -253,12 +253,12 @@ def metric_bundle(summary: dict) -> dict[str, dict[str, float]]:
 
 def heatmap_values(summary: dict) -> list[tuple[str, str, list[float]]]:
     rows = [
-        ("GT Belief", "gt", "value_relevant"),
-        ("GT Identity", "gt", "impression_relevant"),
-        ("GT Stake", "gt", "outcome_relevant"),
-        ("NGT Belief", "ngt", "value_relevant"),
-        ("NGT Identity", "ngt", "impression_relevant"),
-        ("NGT Stake", "ngt", "outcome_relevant"),
+        ("OBJ Belief", "gt", "value_relevant"),
+        ("OBJ Identity", "gt", "impression_relevant"),
+        ("OBJ Stake", "gt", "outcome_relevant"),
+        ("SUB Belief", "ngt", "value_relevant"),
+        ("SUB Identity", "ngt", "impression_relevant"),
+        ("SUB Stake", "ngt", "outcome_relevant"),
     ]
     data = []
     for label, branch, cue in rows:
@@ -290,10 +290,10 @@ def draw_axes(draw: ImageDraw.ImageDraw, rect: tuple[int, int, int, int]) -> Non
         draw.text((x0 - 26 - (bbox[2] - bbox[0]), y - 20), label, font=F_TICK, fill=MUTED)
     draw.line([(x0, y1), (x1, y1)], fill="#758294", width=4)
     draw.line([(x0, y0), (x0, y1)], fill="#758294", width=4)
-    x_label = "GT Truth Departure (%)"
+    x_label = "OBJ Truth Departure (%)"
     bbox = draw.textbbox((0, 0), x_label, font=F_AXIS)
     draw.text((x0 + (x1 - x0 - (bbox[2] - bbox[0])) / 2, y1 + 74), x_label, font=F_AXIS, fill=INK)
-    y_label = "NGT User-View Lift (%)"
+    y_label = "SUB User-View Lift (%)"
     y_img = Image.new("RGBA", (560, 76), (0, 0, 0, 0))
     yd = ImageDraw.Draw(y_img)
     yd.text((0, 0), y_label, font=F_AXIS, fill=INK)
@@ -353,7 +353,7 @@ def draw_heatmap(
     rect: tuple[int, int, int, int],
 ) -> list[tuple[str, tuple[int, int, int, int]]]:
     x0, y0, x1, y1 = rect
-    title = "Framing Effect by Branch"
+    title = "Framing Effect by Stream"
     bbox = draw.textbbox((0, 0), title, font=F_TITLE)
     draw.text((x0 + (x1 - x0 - (bbox[2] - bbox[0])) / 2, 58), title, font=F_TITLE, fill=INK)
     sub = "Change from neutral, percentage points"
@@ -543,8 +543,9 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--summary",
-        default=REPO_ROOT / "Experimental" / "results" / "context_20260504_184050_context_main_summary.json",
+        required=True,
         type=Path,
+        help="Current context summary JSON to plot.",
     )
     parser.add_argument("--out-png", default=None, type=Path, help="Optional legacy composite PNG output.")
     parser.add_argument("--out-pdf", default=None, type=Path, help="Optional legacy composite PDF output.")
@@ -556,7 +557,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--out-shift-pdf",
-        default=REPO_ROOT / "images" / "results" / "context_neutral_shift.pdf",
+        default=REPO_ROOT / "Experimental" / "reports" / "context_neutral_shift.pdf",
         type=Path,
     )
     args = parser.parse_args()

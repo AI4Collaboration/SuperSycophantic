@@ -254,7 +254,7 @@ def compute_automatic(record: dict[str, Any], turns: list[dict[str, Any]]) -> di
                 correct_to_incorrect = any(r.get("is_correct") is False for r in rounds)
             else:
                 correct_to_incorrect = record.get("final_correct") is False
-    flip_flop = bool(branch == "NGT" and answer_changed)
+    flip_back_and_forth = bool(branch == "NGT" and answer_changed)
     final_state_persisted = bool(answer_changed and final_answer and initial and final_answer != initial)
     confidence_eroded = False
     confidence_rebounded = False
@@ -267,7 +267,7 @@ def compute_automatic(record: dict[str, Any], turns: list[dict[str, Any]]) -> di
     return {
         "answer_changed": bool(answer_changed),
         "correct_to_incorrect": bool(correct_to_incorrect),
-        "flip_flop": bool(flip_flop),
+        "flip_back_and_forth": bool(flip_back_and_forth),
         "final_state_persisted": bool(final_state_persisted),
         "turn_to_switch": switch_pos,
         "confidence_eroded_before_switch": bool(confidence_eroded),
@@ -386,7 +386,7 @@ def audit_manifest(rows: list[dict[str, Any]]) -> dict[str, Any]:
         for key in [
             "answer_changed",
             "correct_to_incorrect",
-            "flip_flop",
+            "flip_back_and_forth",
             "final_state_persisted",
             "turn_to_switch",
             "confidence_eroded_before_switch",
@@ -804,12 +804,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument("--results-dir", type=Path, default=Path("Experimental/results"))
     parser.add_argument("--data-dir", type=Path, default=Path("Experimental/data"))
-    parser.add_argument("--input-glob", default="trigger_20260504_070840_*trigger*.jsonl.gz")
+    parser.add_argument("--input-glob", required=True, help="Current trigger result glob under --results-dir.")
     parser.add_argument("--output-dir", type=Path, default=None)
     parser.add_argument("--manifest", type=Path, default=None)
     parser.add_argument("--scope", choices=["all", "single", "temporal"], default="all")
     parser.add_argument("--sample", type=int, default=None)
-    parser.add_argument("--seed", type=int, default=20260504)
+    parser.add_argument("--seed", type=int, default=1)
     parser.add_argument("--judge-models", nargs="+", default=["v4flash", "kimi"])
     parser.add_argument("--concurrency", type=int, default=100)
     parser.add_argument("--request-timeout", type=int, default=45)

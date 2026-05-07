@@ -15,9 +15,11 @@ from typing import Any
 DATA_DIR = Path(__file__).resolve().parents[1]
 
 PANEL_SPECS = {
+    "mmlu_release_gt": ("mmlu_pro_release_gt_100.jsonl", 100),
     "mixed_gt": ("supersycophantic_mixed_gt_200.jsonl", 200),
     "context_gt": ("supersycophantic_context_gt_200.json", 200),
     "context_ngt": ("supersycophantic_context_ngt_100.json", 100),
+    "context_ngt_swap_control": ("supersycophantic_context_ngt_swap_control_100.json", 100),
     "trigger_gt": ("supersycophantic_trigger_gt_neutral_200.jsonl", 200),
     "trigger_ngt": ("supersycophantic_trigger_ngt_neutral_100.jsonl", 100),
 }
@@ -31,6 +33,17 @@ NGT_VARIANTS = {
     "impression_relevant_B",
     "outcome_relevant_A",
     "outcome_relevant_B",
+}
+SWAP_VARIANTS = {
+    f"{variant}_swap"
+    for variant in NGT_VARIANTS
+    if variant != "neutral"
+}
+MMLU_CATEGORY_BY_DOMAIN = {
+    "Mathematical Science": "math",
+    "Physical Science": "physics",
+    "Chemical Science": "chemistry",
+    "Biomedical Science": "health",
 }
 REQUIRED_PROMPT_MARKERS = ["Reasoning process:", "Confidence:", "Final answer:", "\\boxed"]
 TRIGGER_FORBIDDEN_KEYS = {
@@ -198,7 +211,7 @@ def check_basic_panel(
     if len(rows) != expected_count:
         issues.append(f"{panel_name}: has {len(rows)} rows, expected {expected_count}")
     add_duplicate_issues(issues, panel_name, rows, "id")
-    if panel_name.startswith(("mixed_gt", "context_gt", "trigger_gt")):
+    if panel_name.startswith(("mmlu_release_gt", "mixed_gt", "context_gt", "trigger_gt")):
         add_duplicate_issues(issues, panel_name, rows, "record_id")
         add_duplicate_issues(issues, panel_name, rows, "native_id")
 
@@ -219,8 +232,8 @@ def check_basic_panel(
             issues.append(f"{panel_name}: {item_id} contains unbalanced display-math brackets")
 
         verifiability = row.get("verifiability")
-        gt = verifiability == "GT" or panel_name in {"mixed_gt", "context_gt", "trigger_gt"}
-        ngt = verifiability == "NGT" or panel_name in {"context_ngt", "trigger_ngt"}
+        gt = verifiability == "GT" or panel_name in {"mmlu_release_gt", "mixed_gt", "context_gt", "trigger_gt"}
+        ngt = verifiability == "NGT" or panel_name in {"context_ngt", "context_ngt_swap_control", "trigger_ngt"}
         if "choices" in row:
             check_choices(issues, panel_name, item_id, row, gt=gt, ngt=ngt)
         if gt:
@@ -232,6 +245,85 @@ def check_basic_panel(
                     issues.append(f"{panel_name}: {item_id} HLE row missing hle_choice_source")
                 if choice_source != "source_native_mc" and not row.get("synthetic_mc_generation_rule"):
                     issues.append(f"{panel_name}: {item_id} converted HLE choices missing generation rule")
+
+
+def check_mmlu_release_panel(issues: list[str], rows: list[dict[str, Any]]) -> None:
+    domains = Counter(row.get("domain") for row in rows)
+    if any(count != 25 for count in domains.values()) or len(domains) != 4:
+        issues.append(f"mmlu_release_gt: domain counts not balanced: {dict(domains)}")
+    for row in rows:
+        item_id = row_id(row)
+        domain = row.get("domain")
+        if row.get("source") != "mmlu_pro":
+            issues.append(f"mmlu_release_gt: {item_id} source is not mmlu_pro")
+        if row.get("source_dataset") != "TIGER-Lab/MMLU-Pro":
+            issues.append(f"mmlu_release_gt: {item_id} has wrong source_dataset")
+        expected_category = MMLU_CATEGORY_BY_DOMAIN.get(str(domain))
+        if expected_category and row.get("mmlu_pro_category") != expected_category:
+            issues.append(
+                f"mmlu_release_gt: {item_id} category {row.get('mmlu_pro_category')} "
+                f"does not match domain {domain}"
+            )
+
+
+def check_swap_control(
+    issues: list[str],
+    context_ngt: list[dict[str, Any]],
+    swap_rows: list[dict[str, Any]],
+) -> None:
+    add_duplicate_issues(issues, "context_ngt_swap_control", swap_rows, "item_id")
+    domains = Counter(row.get("domain") for row in swap_rows)
+    if any(count != 25 for count in domains.values()) or len(domains) != 4:
+        issues.append(f"context_ngt_swap_control: domain counts not balanced: {dict(domains)}")
+
+    base_by_id = {row_id(row): row for row in context_ngt}
+    for row in swap_rows:
+        item_id = row_id(row)
+        base = base_by_id.get(item_id)
+        if base is None:
+            issues.append(f"context_ngt_swap_control: {item_id} not found in context_ngt")
+            continue
+        if row.get("control_type") != "ngt_option_position_swap":
+            issues.append(f"context_ngt_swap_control: {item_id} has wrong control_type")
+        if content_key(row.get("scenario")) != content_key(base.get("scenario")):
+            issues.append(f"context_ngt_swap_control/context_ngt: {item_id} scenario mismatch")
+
+        states = row.get("answer_states", {})
+        base_states = base.get("answer_states", {})
+        if set(states) != {"A", "B"}:
+            issues.append(f"context_ngt_swap_control: {item_id} answer_states must be exactly A/B")
+        elif set(base_states) == {"A", "B"}:
+            if content_key(states["A"].get("text")) != content_key(base_states["B"].get("text")):
+                issues.append(f"context_ngt_swap_control: {item_id} Option A is not the original B text")
+            if content_key(states["B"].get("text")) != content_key(base_states["A"].get("text")):
+                issues.append(f"context_ngt_swap_control: {item_id} Option B is not the original A text")
+            if states["A"].get("original_label") != "B" or states["B"].get("original_label") != "A":
+                issues.append(f"context_ngt_swap_control: {item_id} answer_states missing original A/B labels")
+
+        variant_order = row.get("context_variant_order", [])
+        if set(variant_order) != SWAP_VARIANTS or len(variant_order) != len(SWAP_VARIANTS):
+            issues.append(f"context_ngt_swap_control: {item_id} has wrong swap variant order")
+        variants = row.get("context_variants", {})
+        if set(variants) != SWAP_VARIANTS:
+            issues.append(f"context_ngt_swap_control: {item_id} has wrong swap variants")
+        for variant_name, variant in variants.items():
+            if not isinstance(variant, dict) or not variant.get("prompt"):
+                issues.append(f"context_ngt_swap_control: {item_id} {variant_name} missing prompt")
+                continue
+            expected_source = variant_name[:-5] if variant_name.endswith("_swap") else variant_name
+            expected_direction = expected_source.rsplit("_", 1)[-1]
+            expected_cue = expected_source.rsplit("_", 1)[0]
+            if variant.get("source_variant") != expected_source:
+                issues.append(f"context_ngt_swap_control: {item_id} {variant_name} source_variant mismatch")
+            if variant.get("direction") != expected_direction:
+                issues.append(f"context_ngt_swap_control: {item_id} {variant_name} direction mismatch")
+            if variant.get("cue_type") != expected_cue:
+                issues.append(f"context_ngt_swap_control: {item_id} {variant_name} cue_type mismatch")
+            if variant.get("swap_control") is not True:
+                issues.append(f"context_ngt_swap_control: {item_id} {variant_name} missing swap_control flag")
+            if variant.get("option_a_original_label") != "B" or variant.get("option_b_original_label") != "A":
+                issues.append(f"context_ngt_swap_control: {item_id} {variant_name} missing original-label mapping")
+            check_prompt(issues, "context_ngt_swap_control", f"{item_id}/{variant_name}", str(variant["prompt"]))
 
 
 def check_context_panels(
@@ -332,7 +424,9 @@ def audit(data_dir: Path) -> list[str]:
     issues: list[str] = []
     for name, (_, expected_count) in PANEL_SPECS.items():
         check_basic_panel(issues, name, panels[name], expected_count)
+    check_mmlu_release_panel(issues, panels["mmlu_release_gt"])
     check_context_panels(issues, panels["context_gt"], panels["context_ngt"])
+    check_swap_control(issues, panels["context_ngt"], panels["context_ngt_swap_control"])
     check_trigger_panel(issues, "trigger_gt", panels["trigger_gt"])
     check_trigger_panel(issues, "trigger_ngt", panels["trigger_ngt"])
     check_alignment(

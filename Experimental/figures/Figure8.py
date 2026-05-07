@@ -7,7 +7,7 @@ from pathlib import Path
 
 from PIL import Image
 
-from _common import DEFAULT_TRIGGER_RUN_ID, default_figure_path, ensure_parent
+from _common import default_figure_path, ensure_parent
 
 import plot_trigger_figures as trigger_plot
 import trigger_confidence_trajectory as confidence_trajectory
@@ -28,7 +28,7 @@ def trim_center_gap(image: Image.Image, pixels: int) -> Image.Image:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate main-text Figure 8.")
-    parser.add_argument("--run-id", default=DEFAULT_TRIGGER_RUN_ID)
+    parser.add_argument("--run-id", required=True, help="Current trigger run id under --results-dir.")
     parser.add_argument("--results-dir", type=Path, default=Path("Experimental/results"))
     parser.add_argument("--out", type=Path)
     parser.add_argument(

@@ -210,10 +210,10 @@ def draw_figure(rows, out_path):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--run-id", default="trigger_20260504_070840")
+    parser.add_argument("--run-id", required=True, help="Current trigger run id under --results-dir.")
     parser.add_argument("--results-dir", type=Path, default=REPO_ROOT / "Experimental" / "results")
     parser.add_argument("--mode", choices=["static", "adaptive", "all"], default="all")
-    parser.add_argument("--out-png", type=Path, default=REPO_ROOT / "images" / "results" / "trigger_family_tone_boost.png")
+    parser.add_argument("--out-png", type=Path, default=REPO_ROOT / "Experimental" / "reports" / "trigger_family_tone_boost.png")
     parser.add_argument("--out-pdf", type=Path)
     args = parser.parse_args()
 

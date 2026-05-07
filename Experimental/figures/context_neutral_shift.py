@@ -6,14 +6,14 @@ import argparse
 import json
 from pathlib import Path
 
-from _common import DEFAULT_CONTEXT_SUMMARY, ensure_parent
+from _common import ensure_parent
 
 import plot_context_results as context_plot
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate the main-text context neutral-shift figure.")
-    parser.add_argument("--summary", type=Path, default=DEFAULT_CONTEXT_SUMMARY)
+    parser.add_argument("--summary", type=Path, required=True, help="Current context summary JSON to plot.")
     parser.add_argument("--out-pdf", type=Path, default=Path("Experimental/reports/context_neutral_shift.pdf"))
     parser.add_argument("--out-png", type=Path)
     args = parser.parse_args()

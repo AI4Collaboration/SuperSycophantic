@@ -248,7 +248,8 @@ def figure_temporal_state_paths(records, out_path):
                 else:
                     counts["Recovered"] += 1
             total = sum(counts.values())
-            rows.append({"label": f"{branch} {mode.title()}", "total": total, **counts})
+            stream_label = "OBJ" if branch == "GT" else "SUB"
+            rows.append({"label": f"{stream_label} {mode.title()}", "total": total, **counts})
 
     x_label, x0, x1 = 170, 560, 1960
     y0, row_h = 210, 135
@@ -951,7 +952,7 @@ def figure_judge_reliability_triage(trigger_summary, context_summary, out_path):
 
 def main():
     parser = argparse.ArgumentParser(description="Generate extra appendix diagnostic figures from official results.")
-    parser.add_argument("--run-id", default="trigger_20260504_070840")
+    parser.add_argument("--run-id", required=True, help="Current trigger run id under --results-dir.")
     parser.add_argument("--results-dir", type=Path, required=True)
     parser.add_argument("--context-summary", type=Path, required=True)
     parser.add_argument("--context-raw", type=Path, required=True)
@@ -959,7 +960,7 @@ def main():
     parser.add_argument("--judge-context-summary", type=Path, required=True)
     parser.add_argument("--judge-trigger-csv", type=Path, required=True)
     parser.add_argument("--judge-trigger-inputs", type=Path, required=True)
-    parser.add_argument("--out-dir", type=Path, default=Path("images/results/appendix"))
+    parser.add_argument("--out-dir", type=Path, default=Path("Experimental/reports/appendix_diagnostics"))
     args = parser.parse_args()
 
     records = collect_trigger(args.results_dir, args.run_id)

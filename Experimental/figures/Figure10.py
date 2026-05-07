@@ -1,4 +1,4 @@
-"""Generate Figure10.png, the Claude tone-detail trajectory figure."""
+"""Generate Figure10.png, the Opus/Sonnet/Haiku tone-detail trajectory figure."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from pathlib import Path
 from PIL import Image
 from PIL import ImageDraw
 
-from _common import DEFAULT_TRIGGER_RUN_ID, default_figure_path, ensure_parent
+from _common import default_figure_path, ensure_parent
 
 import plot_trigger_figures as trigger_plot
 
@@ -40,8 +40,8 @@ def add_claude_legend(image: Image.Image) -> Image.Image:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Generate the main-text Claude tone-detail figure.")
-    parser.add_argument("--run-id", default=DEFAULT_TRIGGER_RUN_ID)
+    parser = argparse.ArgumentParser(description="Generate the main-text Opus/Sonnet/Haiku tone-detail figure.")
+    parser.add_argument("--run-id", required=True, help="Current trigger run id under --results-dir.")
     parser.add_argument("--results-dir", type=Path, default=Path("Experimental/results"))
     parser.add_argument("--out", type=Path)
     parser.add_argument(
