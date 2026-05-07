@@ -142,12 +142,13 @@ def main() -> None:
     draw.line((65, 130, width - 65, 130), fill="#EEF2F6", width=4)
 
     def panel(x0, y0, w, h, title_text, red_key, blue_key):
-        draw_text(draw, (x0 + w / 2, y0 - 36), title_text, panel_title, anchor="ma")
         plot_x0 = x0 + 520
         plot_x1 = x0 + w - 80
         row_top = y0 + 35
         row_h = 96
         max_x = 90
+        plot_center = plot_x0 + (plot_x1 - plot_x0) / 2
+        draw_text(draw, (plot_center, y0 - 36), title_text, panel_title, anchor="ma")
         draw_text(
             draw,
             (plot_x0 - 24, row_top - 55),
@@ -164,8 +165,8 @@ def main() -> None:
         draw.line((plot_x0, row_top + row_h * len(models) - 18, plot_x1, row_top + row_h * len(models) - 18), fill=MUTED, width=4)
         draw_text(
             draw,
-            (plot_x0 + (plot_x1 - plot_x0) / 2, row_top + row_h * len(models) + 38),
-            "Sycophantic outcome rate (%)",
+            (plot_center, row_top + row_h * len(models) + 58),
+            "Sycophantic Outcome Rate (%)",
             axis_font,
             INK,
             anchor="ma",
