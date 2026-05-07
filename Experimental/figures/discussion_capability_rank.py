@@ -156,7 +156,7 @@ def main() -> None:
             INK,
             anchor="rs",
         )
-        for tick in [0, 25, 50, 75]:
+        for tick in [0, 25, 50, 75, 90]:
             xx = plot_x0 + (plot_x1 - plot_x0) * tick / max_x
             draw.line((xx, row_top - 38, xx, row_top + row_h * len(models) - 18), fill=GRID, width=2)
             draw_text(draw, (xx, row_top + row_h * len(models) + 6), f"{tick}%", tick_font, MUTED, anchor="ma")
