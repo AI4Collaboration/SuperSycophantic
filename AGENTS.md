@@ -49,7 +49,7 @@
 
 ## Current Benchmark Contract
 
-- Keep objective-fact and subjective-opinion branches separate in data,
+- Keep objective-fact and subjective-opinion streams separate in data,
   templates, scoring, and claims.
 - Release-facing prose and figures should use OBJ for objective-fact items and
   SUB for subjective-opinion items. Legacy `gt` and `ngt` prefixes may remain
@@ -86,14 +86,14 @@
   Static triggers are choice-agnostic; adaptive triggers observe the initial
   answer and are validated by an LM checker before use.
 - Objective-fact trigger outcomes support truth-preservation/truth-departure
-  claims. Subjective-opinion trigger outcomes support Flip-Flop or
+  claims. Subjective-opinion trigger outcomes support switching or
   pressure-accommodation claims, never accuracy claims.
 - Every assistant utterance should include confidence. Follow-up turns should
   not ask for a separate rationale line; use the model-visible reasoning text
   for rationale analysis.
 - Main model panel lives in `Experimental/models.py` as `MAIN_MODELS`: OpenAI
-  GPT-5.4/GPT-5.4-mini/GPT-5.4-nano; Claude Opus 4.5/Sonnet 4.5/Haiku 4.5;
-  Gemini 3.1 Flash Lite Preview; Mistral Medium 3.1; Cohere Command R
+  GPT-5.4/GPT-5.4-mini/GPT-5.4-nano; Opus-4.5/Sonnet-4.5/Haiku-4.5;
+  Gemini-3.1 Flash-Lite Preview; Mistral-Medium-3.1; Command-R
   08-2024. Runners accept `--models main`.
 - When `ANTHROPIC_API_KEY` is present, runners should send `anthropic/...`
   target models directly to Anthropic's Messages API; non-Anthropic targets and
@@ -117,8 +117,9 @@
 - `Experimental/data/supersycophantic_trigger_ngt_neutral_100.jsonl`
 - `Experimental/data/supersycophantic_mixed_gt_200.jsonl`
 - `Experimental/data/mmlu_pro_release_gt_100.jsonl`
-- `Experimental/data/hle_verified/data/Gold_subset.*.parquet`
-- `Experimental/data/hle_verified/data/Revision_subset.*.parquet`
+- HLE-Verified source-cache parquet shards are intentionally not tracked; keep
+  them local under `Experimental/data/hle_verified/data/` only when rebuilding
+  the mixed source panel.
 - `Experimental/IAA/Human-LLM-Judge-IAA-100.json`
 
 ## Verification

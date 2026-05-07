@@ -6,6 +6,7 @@ __pycache__/
 Experimental/results/
 Experimental/reports/
 Experimental/data/*_audit.md
+Experimental/data/hle_verified/data/*.parquet
 Experimental/IAA/llm_judge_*/
 Experimental/IAA/*-8-model/
 images/*_latest_*.png

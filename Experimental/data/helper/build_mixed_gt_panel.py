@@ -517,7 +517,13 @@ def hle_source_rows() -> list[dict[str, Any]]:
     ]
     frames = [pd.read_parquet(path) for path in parquet_paths]
     if not frames:
-        raise FileNotFoundError(f"No HLE parquet files found under {HLE_DATA_DIR}")
+        raise FileNotFoundError(
+            "No HLE parquet files found under "
+            f"{HLE_DATA_DIR}. These source-cache shards are not tracked in "
+            "GitHub; download Gold_subset.*.parquet and "
+            "Revision_subset.*.parquet from skylenage-ai/HLE-Verified before "
+            "rebuilding the mixed source panel."
+        )
     df = pd.concat(frames, ignore_index=True)
     rows = []
     slot_replacement_sources = {

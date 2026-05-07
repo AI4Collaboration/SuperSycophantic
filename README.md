@@ -2,25 +2,38 @@
 
 This is the codebase-only GitHub tree for SuperSycophantic experiments. It
 contains benchmark data, data builders, audits, model runners, scoring and
-reporting utilities, and plotting assets used by the experimental pipeline.
+reporting utilities, and code-facing plotting assets used by the experimental
+pipeline.
 
-The paper manuscript is maintained in a separate manuscript source tree. Do not
-use this codebase tree to sync LaTeX sources, bibliography edits, paper-only
-figures, or manuscript build artifacts.
+The paper manuscript is maintained and submitted only through Overleaf. Do not
+use this GitHub codebase tree to sync LaTeX sources, bibliography edits,
+paper-only figures, or manuscript build artifacts.
+
+## Release Workflow
+
+- Codebase changes belong in this GitHub repository only.
+- Manuscript changes belong in the Overleaf paper tree only.
+- Do not mirror code files into Overleaf, and do not mirror manuscript files,
+  paper figures, paper tables, or build artifacts into GitHub.
+- There is no third release target. Keep GitHub and Overleaf as separate
+  submission surfaces.
 
 ## Release Hygiene
 
 - Keep this repository double-blind: do not add author names, institutions,
   private remote URLs, local usernames, absolute local paths, account names,
   unpublished acknowledgments, or API secrets.
+- Do not describe configured remotes, account ownership, local worktree paths,
+  draft acknowledgments, or private collaboration logistics in release-facing
+  files.
 - Do not commit `.env` files, raw API logs, provider response dumps, scratch
   reports, temporary preview images, or local run directories.
 - Store regenerated raw outputs under ignored locations such as
   `Experimental/results/`, `Experimental/reports/`, or local judge-output
   directories.
-- Keep paper-only assets in the manuscript source tree. This codebase should
-  contain only code-facing visual assets, such as source logos and model badges
-  used by the plotting scripts.
+- Keep paper-only assets in Overleaf. This codebase should contain only
+  code-facing visual assets, such as source logos and model badges used by the
+  plotting scripts.
 
 ## Repository Layout
 
@@ -48,19 +61,25 @@ figures, or manuscript build artifacts.
 | `Experimental/data/supersycophantic_trigger_ngt_neutral_100.jsonl` | 100 subjective-opinion neutral trigger items |
 | `Experimental/data/supersycophantic_mixed_gt_200.jsonl` | mixed objective-fact source panel |
 | `Experimental/data/mmlu_pro_release_gt_100.jsonl` | cleaned MMLU-Pro subset used in the mixed objective-fact panel |
-| `Experimental/data/hle_verified/data/Gold_subset.*.parquet` | local HLE-Verified cache, gold subset |
-| `Experimental/data/hle_verified/data/Revision_subset.*.parquet` | local HLE-Verified cache, revision subset |
+| `Experimental/data/hle_verified/README.md` | local-cache instructions for rebuilding from HLE-Verified source shards |
+
+Release-facing prose and figures use OBJ for objective-fact items and SUB for
+subjective-opinion items. Some data files retain legacy `gt` and `ngt` prefixes
+for code compatibility.
 
 Objective-fact uses 200 base items across Mathematical, Physical, Chemical, and
 Biomedical Science. Each domain has 25 MMLU-Pro and 25 HLE-Verified items.
 Records keep provenance through source URL, source quote, source-native or
 documented converted choices, verified answer, and one tracked wrong answer.
+The large HLE-Verified parquet source cache is not tracked in GitHub; the
+released panels above retain the selected records and provenance, and the
+builder documents how to restore local source shards when rebuilding.
 
 Subjective-opinion uses 100 base decisions, 25 each from policy trade-off,
-high-stakes moral dilemma, consequential interpersonal relation, and personal
-choice. Subjective-opinion items have two defensible answer states, no hidden
-correct answer, no item-level source answer, and only domain-level construct
-grounding.
+high-stakes moral dilemma, consequential interpersonal relation, and
+professional-planning choice. Subjective-opinion items have two defensible
+answer states, no hidden correct answer, no item-level source answer, and only
+domain-level construct grounding.
 
 Context framing follows the current prompt-cell schema. Objective-fact has 200
 base items crossed with neutral, value/belief, impression/identity, and
@@ -103,7 +122,7 @@ OpenRouter.
 
 ## Metrics
 
-Keep objective-fact and subjective-opinion branches separate in data, templates,
+Keep objective-fact and subjective-opinion streams separate in data, templates,
 scoring, and claims.
 
 For objective-fact context, the primary endpoint is whether a valid response
@@ -119,7 +138,7 @@ changes that interpretation.
 For objective-fact triggers, analyses condition on valid initially correct
 answers and measure truth departure, persistence, recovery, turn-to-switch, and
 confidence trajectories. For subjective-opinion triggers, analyses operate only
-over committed A/B states and measure Flip-Flop or pressure accommodation
+over committed A/B states and measure switching or pressure accommodation
 without accuracy claims.
 
 Human/LLM judge metrics follow the Figure 3 schema: Social Sycophancy Scale
@@ -216,6 +235,6 @@ images/*_latest_*.png
 images/model_logos/model_badges/_preview.png
 ```
 
-Paper-only images and result figures are maintained with the manuscript source.
-Do not add `images/Figure*.png` or `images/results/` to codebase commits unless
-the user explicitly asks for a code-facing release asset.
+Paper-only images and result figures are maintained in Overleaf. Do not add
+`images/Figure*.png` or `images/results/` to codebase commits unless the user
+explicitly asks for a code-facing release asset.

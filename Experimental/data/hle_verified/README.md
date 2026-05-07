@@ -1,17 +1,20 @@
 # HLE-Verified Local Cache
 
-This directory stores only the HLE-Verified parquet shards needed to rebuild the
-current SuperSycophantic mixed GT source panel.
+This directory is the local cache location for the HLE-Verified parquet shards
+needed to rebuild the current SuperSycophantic mixed GT source panel.
 
-Kept locally:
+The parquet shards are intentionally not tracked in GitHub because they are a
+large source cache. To rebuild the mixed source panel, download the required
+shards from `skylenage-ai/HLE-Verified` into `data/`:
 
 - `data/Gold_subset.*.parquet`
 - `data/Revision_subset.*.parquet`
 
-Removed from the repo-local cache:
+Do not commit:
 
 - `Uncertain_subset.*.parquet`
 - one-off domain-count summaries
+- generated full-dataset caches
 
 The mixed GT builder uses these files through
 `Experimental/data/helper/build_mixed_gt_panel.py`. It filters image-dependent
