@@ -11,6 +11,31 @@ import revision_recheck_experiment as exp
 
 
 class ProtocolTests(unittest.TestCase):
+    def test_source_archive_output_guard_without_git(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / '.gitignore').write_text('Experimental/results/\n', encoding='utf-8')
+            out = (root / 'Experimental/results/recheck').resolve()
+            with patch.object(exp, 'ROOT', root / 'Experimental'), patch.object(exp.subprocess, 'run') as run:
+                exp.verify_output_hygiene(out)
+                run.assert_not_called()
+                with self.assertRaisesRegex(RuntimeError, 'Source archive'):
+                    exp.verify_output_hygiene((root / 'outside').resolve())
+                (root / '.gitignore').write_text('', encoding='utf-8')
+                with self.assertRaisesRegex(RuntimeError, 'Source archive'):
+                    exp.verify_output_hygiene(out)
+
+    def test_git_checkout_still_requires_ignored_output(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / '.git').mkdir()
+            with patch.object(exp, 'ROOT', root / 'Experimental'), patch.object(exp.subprocess, 'run') as run:
+                run.return_value.returncode = 1
+                with self.assertRaisesRegex(RuntimeError, 'Output is not ignored'):
+                    exp.verify_output_hygiene(root / 'Experimental/results/recheck')
+                run.return_value.returncode = 0
+                exp.verify_output_hygiene(root / 'Experimental/results/recheck')
+
     @staticmethod
     def catalog_body():
         return {'data': {'id': 'anthropic/claude-opus-4.6', 'endpoints': [

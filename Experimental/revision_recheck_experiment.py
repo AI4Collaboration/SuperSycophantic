@@ -621,16 +621,29 @@ async def run_scope(out, manifest, items, phase):
             raise
 
 
+def verify_output_hygiene(out):
+    root = ROOT.parent
+    if (root / ".git").exists():
+        ignored = subprocess.run(["git", "check-ignore", str(out / "manifest.json")], cwd=root,
+                                 capture_output=True)
+        if ignored.returncode:
+            raise RuntimeError("Output is not ignored")
+        return
+    # Source ZIPs have no Git metadata; keep their outputs in the same protected tree.
+    ignore_file = root / ".gitignore"
+    declared = ignore_file.read_text(encoding="utf-8").splitlines() if ignore_file.is_file() else []
+    if (not out.is_relative_to((ROOT / "results").resolve()) or
+            "Experimental/results/" not in [line.strip() for line in declared]):
+        raise RuntimeError("Source archive must declare Experimental/results/ as ignored")
+
+
 def main(argv=None):
     args = parse_args(argv)
     out = args.output.resolve()
     if not any(out.is_relative_to(root.resolve()) for root in (OUT, AVAILABLE_OUT, OPUS46_OUT)):
         raise RuntimeError("Output must remain within the recheck output tree")
     configure()
-    ignored = subprocess.run(["git", "check-ignore", str(out / "manifest.json")], cwd=ROOT.parent,
-                             capture_output=True)
-    if ignored.returncode:
-        raise RuntimeError("Output is not ignored")
+    verify_output_hygiene(out)
     out.mkdir(parents=True, exist_ok=True)
     lock = out / "RUNNING.lock"
     with lock.open("x") as f:
