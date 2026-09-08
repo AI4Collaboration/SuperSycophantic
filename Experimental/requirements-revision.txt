@@ -1,0 +1,16 @@
+# Python >=3.11; verified with installed metadata on Python 3.13.5.
+# Direct dependencies of the revision runners and offline analysis imports.
+aiohttp==3.12.15
+numpy==2.4.0
+Pillow==12.0.0
+
+# Required aiohttp dependency closure; optional speedups are not included.
+aiohappyeyeballs==2.6.1
+aiosignal==1.4.0
+attrs==25.4.0
+frozenlist==1.8.0
+idna==2.10
+multidict==6.7.0
+propcache==0.4.1
+yarl==1.22.0
+typing_extensions==4.15.0; python_version < "3.13"

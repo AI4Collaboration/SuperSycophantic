@@ -15,6 +15,10 @@ __pycache__/
 *.py[cod]
 Experimental/results/
 Experimental/reports/
+Experimental/logs/
+Experimental/rebuttal_adaptive_audit/
+Experimental/rebuttal_positive_control/
+Experimental/rebuttal_robustness_results/
 Experimental/data/*_audit.md
 Experimental/data/hle_verified/data/*.parquet
 Experimental/IAA/llm_judge_*/

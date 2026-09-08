@@ -131,3 +131,4 @@
 - Do not run local LaTeX builds from the GitHub codebase tree.
 - Keep generated raw outputs in ignored paths unless the user explicitly asks
   to publish them.
+- When generating a replacement PNG, remove the obsolete PNG it replaces.

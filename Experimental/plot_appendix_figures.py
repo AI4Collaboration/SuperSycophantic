@@ -50,8 +50,8 @@ def draw_text(draw, xy, text, fill=INK, fnt=SMALL, anchor=None):
     draw.text(xy, str(text), font=fnt, fill=fill, anchor=anchor)
 
 
-def draw_header(draw, title, width):
-    draw.rounded_rectangle((40, 24, width - 40, 108), radius=20, fill=PANEL, outline="#D8E0EA", width=2)
+def draw_header(draw, title, width, fill=PANEL):
+    draw.rounded_rectangle((40, 24, width - 40, 108), radius=20, fill=fill, outline="#D8E0EA", width=2)
     draw_text(draw, (width / 2, 66), title, fnt=TITLE, anchor="mm")
 
 
@@ -324,12 +324,12 @@ def figure_temporal_strategy_by_model(rows, out_path):
     width, height = 2700, 1110
     im = Image.new("RGB", (width, height), WHITE)
     draw = ImageDraw.Draw(im)
-    draw_header(draw, "Temporal Strategy Comparison", width)
+    draw_header(draw, "Temporal Strategy Comparison", width, fill=WHITE)
 
     stages = [
         ("single", "Single", "#0072B2"),
-        ("same_family", "Same-family x3", "#009E73"),
-        ("heterogeneous", "Mixed x3", "#CC79A7"),
+        ("same_family", "Esc", "#009E73"),
+        ("heterogeneous", "Hetero", "#CC79A7"),
     ]
 
     def lookup(branch, model, stage):

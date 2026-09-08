@@ -175,6 +175,8 @@ def parse_args():
     parser.add_argument("--results-dir", type=Path, default=Path("Experimental/results"))
     parser.add_argument("--report-dir", type=Path, default=None)
     parser.add_argument("--clean", action="store_true", help="Remove existing trigger figures before writing new ones.")
+    parser.add_argument("--legacy-response-intervals", action="store_true",
+                        help="Show legacy response-wise confidence intervals; not paired base-item intervals.")
     return parser.parse_args()
 
 
@@ -212,6 +214,56 @@ def pct(value):
 
 def fmt_pct(value, digits=1):
     return f"{pct(value):.{digits}f}%"
+
+
+def normal_ci_from_values(values, z=1.96, lower=1.0, upper=5.0):
+    n = len(values)
+    if n <= 0:
+        return 0.0, 0.0, 0.0
+    mean = sum(values) / n
+    if n == 1:
+        return mean, mean, mean
+    var = sum((value - mean) ** 2 for value in values) / (n - 1)
+    half_width = z * math.sqrt(var / n)
+    return mean, max(lower, mean - half_width), min(upper, mean + half_width)
+
+
+def combine_confidence_rows(rows, predicate, turn, z=1.96, *, intervals=True):
+    """Pool means; optional legacy response-wise intervals require exact moments."""
+    subset = [row for row in rows if row["turn"] == turn and predicate(row)]
+    n = sum(row.get("n", 0) for row in subset)
+    if n <= 0:
+        raise ValueError(f"Missing confidence rows for turn={turn}")
+    subset = [row for row in subset if row.get("n", 0) > 0]
+    if intervals and any(row.get("sum_confidence") is None or row.get("sum_sq_confidence") is None for row in subset):
+        raise ValueError("Legacy response-wise intervals require sum_confidence and sum_sq_confidence for every nonempty row")
+    total = sum(row["sum_confidence"] if row.get("sum_confidence") is not None else row["mean_confidence"] * row["n"] for row in subset)
+    mean = total / n
+    if not math.isfinite(mean):
+        raise ValueError("Non-finite confidence mean")
+    if not intervals:
+        return mean, None, None
+    total_sq = sum(row["sum_sq_confidence"] for row in subset)
+    if not math.isfinite(total_sq):
+        raise ValueError("Non-finite confidence second moment")
+    squared_deviations = total_sq - total * total / n
+    if squared_deviations < 0 and not math.isclose(total_sq, total * total / n, rel_tol=1e-12, abs_tol=1e-12):
+        raise ValueError("Inconsistent confidence moments imply negative variance")
+    if n == 1:
+        return mean, mean, mean
+    var = max(0.0, squared_deviations / (n - 1))
+    half_width = z * math.sqrt(var / n)
+    return mean, max(1.0, mean - half_width), min(5.0, mean + half_width)
+
+
+def wilson_interval(events, denom, z=1.96):
+    if denom <= 0:
+        return 0.0, 0.0
+    p = events / denom
+    denom_adj = 1.0 + z * z / denom
+    center = (p + z * z / (2 * denom)) / denom_adj
+    half = z * math.sqrt((p * (1 - p) + z * z / (4 * denom)) / denom) / denom_adj
+    return max(0.0, center - half), min(1.0, center + half)
 
 
 def draw_text(draw, xy, text, font, fill=INK, anchor=None):
@@ -631,8 +683,8 @@ def build_trigger_figure_tables(records):
                     }
                 )
                 for stage, stage_label in [
-                    ("same_family", "Same-family x3"),
-                    ("heterogeneous", "Mixed x3"),
+                    ("same_family", "Esc"),
+                    ("heterogeneous", "Hetero"),
                 ]:
                     rate, denom, events = aggregate_rate(
                         temporal,
@@ -681,6 +733,7 @@ def build_trigger_figure_tables(records):
                         if isinstance(value, (int, float)):
                             by_turn[turn].append(float(value))
                 for turn, values in by_turn.items():
+                    mean_confidence, ci_low, ci_high = normal_ci_from_values(values)
                     confidence.append(
                         {
                             "branch": branch,
@@ -690,7 +743,11 @@ def build_trigger_figure_tables(records):
                             "category": category,
                             "turn": turn,
                             "turn_label": ["Initial", "Turn 1", "Turn 2", "Turn 3"][turn],
-                            "mean_confidence": sum(values) / len(values) if values else 0.0,
+                            "mean_confidence": mean_confidence,
+                            "ci_low": ci_low,
+                            "ci_high": ci_high,
+                            "sum_confidence": sum(values),
+                            "sum_sq_confidence": sum(value * value for value in values),
                             "n": len(values),
                         }
                     )
@@ -909,7 +966,7 @@ def figure_temporal_sequences(path, sequence_rows):
     draw_header(
         draw,
         "Three-turn trajectories amplify pressure accommodation",
-        "SUB temporal answer-switch rate by sequence; same-family and mixed-family sequences share the same mild -> moderate -> strong tone ramp.",
+        "SUB temporal answer-switch rate by sequence; same-family and heterogeneous sequences share the same mild -> moderate -> strong tone ramp.",
         width,
     )
     x0, y0 = 610, 220
@@ -1338,7 +1395,7 @@ def figure_trigger_dynamics(path, tone_rows, temporal_rows, confidence_rows):
         draw_text(draw, (plot_x + plot_w / 2, panel_y + panel_h - 62), "Single-follow-up movement (%)", axis_bold, INK, anchor="ma")
         y_label = Image.new("RGBA", (560, 44), (255, 255, 255, 0))
         yd = ImageDraw.Draw(y_label)
-        yd.text((0, 0), "Mixed three-turn movement (%)", font=axis_bold, fill=INK)
+        yd.text((0, 0), "Heterogeneous three-turn movement (%)", font=axis_bold, fill=INK)
         y_label = y_label.rotate(90, expand=True)
         im.alpha_composite(y_label, (int(panel_x + 52), int(plot_y + 125)))
 
@@ -1485,7 +1542,7 @@ def figure_temporal_pressure(path, rows):
             label = row_lookup(rows, branch=branch, model=MODELS[0], mode="adaptive", stage=stage)["stage_label"]
             draw_wrapped(draw, label, cell_x + ci * (cell_w + gap) - 8, top - 52, cell_w + 16, FONT_TINY, INK, anchor_center=True)
         delta_x = cell_x + 3 * (cell_w + gap) + 10
-        draw_text(draw, (delta_x + 61, top - 34), "Delta pp", FONT_AXIS_BOLD, INK, anchor="ma")
+        draw_text(draw, (delta_x + 61, top - 34), "Delta", FONT_AXIS_BOLD, INK, anchor="ma")
         for ri, model in enumerate(MODELS):
             yy = top + ri * row_h
             draw_text(draw, (label_x, yy + 23), model_display(model), FONT_SMALL, INK, anchor="lm")
@@ -1499,10 +1556,10 @@ def figure_temporal_pressure(path, rows):
     save_tight(im, path)
 
 
-def figure_confidence_trajectory(path, rows):
+def figure_confidence_trajectory(path, rows, *, legacy_response_intervals=False):
     width, height = 2620, 980
-    im = Image.new("RGB", (width, height), PAPER_BG)
-    draw = ImageDraw.Draw(im)
+    im = Image.new("RGBA", (width, height), PAPER_BG)
+    draw = ImageDraw.Draw(im, "RGBA")
     panel_font = load_font(43, True)
     axis_font = load_font(31)
     axis_bold = load_font(34, True)
@@ -1510,12 +1567,8 @@ def figure_confidence_trajectory(path, rows):
     turns = [0, 1, 2, 3]
     turn_labels = ["Initial", "T1", "T2", "T3"]
 
-    def weighted_mean(predicate, turn):
-        subset = [row for row in rows if row["turn"] == turn and predicate(row)]
-        denom = sum(row.get("n", 0) for row in subset)
-        if denom <= 0:
-            raise ValueError(f"Missing confidence rows for turn={turn}")
-        return sum(row["mean_confidence"] * row.get("n", 0) for row in subset) / denom
+    def color_alpha(hex_color, alpha):
+        return (*ImageColor.getrgb(hex_color), alpha)
 
     def draw_line_panel(panel_x, panel_y, panel_w, panel_h, title, line_defs, show_y_label=False):
         draw.rounded_rectangle(
@@ -1553,10 +1606,23 @@ def figure_confidence_trajectory(path, rows):
         for line_def in line_defs:
             label, predicate, color, line_w = line_def[:4]
             label_dy = line_def[4] if len(line_def) > 4 else 0
-            values = [weighted_mean(predicate, turn) for turn in turns]
+            stats = [combine_confidence_rows(rows, predicate, turn, intervals=legacy_response_intervals) for turn in turns]
+            values = [stat[0] for stat in stats]
+            lows = [stat[1] for stat in stats]
+            highs = [stat[2] for stat in stats]
             points = [(x_pos(i), y_pos(value)) for i, value in enumerate(values)]
+            if legacy_response_intervals:
+                band = [(x_pos(i), y_pos(highs[i])) for i in range(len(turns))]
+                band.extend((x_pos(i), y_pos(lows[i])) for i in reversed(range(len(turns))))
+                draw.polygon(band, fill=color_alpha(color, 32))
             draw.line(points, fill=color, width=line_w)
-            for xx, yy in points:
+            for i, (xx, yy) in enumerate(points):
+                if legacy_response_intervals:
+                    y_low = y_pos(lows[i])
+                    y_high = y_pos(highs[i])
+                    draw.line((xx, y_high, xx, y_low), fill=color_alpha(color, 145), width=3)
+                    draw.line((xx - 12, y_high, xx + 12, y_high), fill=color_alpha(color, 145), width=3)
+                    draw.line((xx - 12, y_low, xx + 12, y_low), fill=color_alpha(color, 145), width=3)
                 draw.ellipse((xx - 11, yy - 11, xx + 11, yy + 11), fill=color, outline="white", width=3)
             if label:
                 draw_text(draw, (points[-1][0] + 22, points[-1][1] + label_dy), label, label_font, color, anchor="lm")
@@ -1645,7 +1711,10 @@ def main():
     written = []
     for filename, fn, rows in figures:
         path = figure_dir / filename
-        fn(path, rows)
+        if fn is figure_confidence_trajectory:
+            fn(path, rows, legacy_response_intervals=args.legacy_response_intervals)
+        else:
+            fn(path, rows)
         written.append(filename)
     figure_tone_temporal(
         figure_dir / "trigger_tone_temporal.png",
@@ -1683,9 +1752,9 @@ def main():
                 "- `trigger_model_comparison.png`: side-by-side OBJ correct-to-wrong and SUB switching rates by model.",
                 "- `trigger_tone_gradient_opus.png`: Opus/Sonnet/Haiku mild/moderate/strong tone gradients against the denominator-weighted all-model baseline.",
                 "- `trigger_static_vs_adaptive.png`: per-model static vs adaptive OBJ and SUB rates.",
-                "- `trigger_temporal_pressure.png`: per-model adaptive single, same-family escalation, heterogeneous temporal pressure, and mixed-minus-single deltas.",
+                "- `trigger_temporal_pressure.png`: per-model adaptive single, same-family escalation, heterogeneous temporal pressure, and hetero-minus-single deltas.",
                 "- `trigger_tone_temporal.png`: compact main-text composite of per-model tone gradients and adaptive temporal pressure.",
-                "- `trigger_dynamics_summary.png`: 1x2 main-text scatter comparing single-follow-up and mixed three-turn movement by model for OBJ and SUB.",
+                "- `trigger_dynamics_summary.png`: 1x2 main-text scatter comparing single-follow-up and heterogeneous three-turn movement by model for OBJ and SUB.",
                 "- `trigger_confidence_trajectory.png`: two-panel confidence trends for OBJ/SUB and stable/sycophantic temporal trajectories.",
                 "",
                 "The CSV files in this directory contain the exact plotted aggregates.",

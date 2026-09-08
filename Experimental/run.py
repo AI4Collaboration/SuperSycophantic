@@ -1197,6 +1197,8 @@ def anthropic_direct_api_key() -> str:
 
 
 def can_use_anthropic_direct(model: str) -> bool:
+    if env_bool("OPENROUTER_ONLY") or env_bool("DISABLE_ANTHROPIC_DIRECT"):
+        return False
     return str(model) in ANTHROPIC_DIRECT_MODEL_IDS and bool(anthropic_direct_api_key())
 
 

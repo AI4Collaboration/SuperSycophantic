@@ -405,6 +405,7 @@ def draw_shift_panel(
     rect: tuple[int, int, int, int],
     title: str,
     subtitle: str,
+    x_label: str,
     branch: str,
     x_min: float,
     x_max: float,
@@ -479,11 +480,18 @@ def draw_shift_panel(
         boxes.append((f"{branch}:{model}", (x0, int(y - 24), x1, int(y + 24))))
 
     draw.line([(plot_left, y1 - 18), (plot_right, y1 - 18)], fill="#758294", width=4)
+    label_box = draw.textbbox((0, 0), x_label, font=F_SHIFT_LABEL)
+    draw.text(
+        (plot_left + (plot_right - plot_left - (label_box[2] - label_box[0])) / 2, y1 + 60),
+        x_label,
+        font=F_SHIFT_LABEL,
+        fill=INK,
+    )
     return boxes
 
 
 def save_shift_plot(summary: dict, out_png: Path | None, out_pdf: Path | None) -> None:
-    width, height = 3300, 1320
+    width, height = 3300, 1400
     img = Image.new("RGBA", (width, height), WHITE)
     draw = ImageDraw.Draw(img)
     title = "First-turn framing shifts both factual and subjective answers"
@@ -496,6 +504,7 @@ def save_shift_plot(summary: dict, out_png: Path | None, out_pdf: Path | None) -
         (120, 270, 1575, 1260),
         "OBJ",
         "Neutral accuracy to framed accuracy",
+        "Accuracy rate (%)",
         "gt",
         0,
         75,
@@ -506,6 +515,7 @@ def save_shift_plot(summary: dict, out_png: Path | None, out_pdf: Path | None) -
         (1715, 270, 3170, 1260),
         "SUB",
         "Neutral user-view rate to framed user-view rate",
+        "User-view selection rate (%)",
         "ngt",
         45,
         90,
