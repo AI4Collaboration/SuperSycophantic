@@ -248,7 +248,7 @@ def load_dotenv(path: Path) -> None:
         key, value = line.split("=", 1)
         key = key.strip()
         value = value.strip().strip('"').strip("'")
-        os.environ[key] = value
+        os.environ.setdefault(key, value)
 
 
 def resolve_output_path(base_dir: Path, value: str | Path) -> Path:
@@ -264,7 +264,7 @@ def compressed_jsonl_output_path(path: Path) -> Path:
     return path
 
 
-def acquire_output_lock(output_path: Path) -> Path:
+def acquire_output_lock(output_path: Path, *, dry_run: bool = False) -> Path:
     lock_path = Path(str(output_path) + ".lock")
     try:
         fd = os.open(str(lock_path), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
@@ -277,6 +277,12 @@ def acquire_output_lock(output_path: Path) -> Path:
     with os.fdopen(fd, "w", encoding="utf-8") as handle:
         handle.write(f"pid={os.getpid()}\n")
         handle.write(f"output={output_path}\n")
+    # Recheck under the writer lock in case the output changed after preflight.
+    try:
+        validate_output_mode(output_path, dry_run)
+    except BaseException:
+        release_output_lock(lock_path)
+        raise
     atexit.register(release_output_lock, lock_path)
     return lock_path
 
@@ -310,6 +316,31 @@ def open_text(path: Path, mode: str, encoding: str = "utf-8"):
     if path.name.endswith(".gz"):
         return gzip.open(path, mode, encoding=encoding)
     return path.open(mode, encoding=encoding)
+
+
+def validate_output_mode(output_path: Path, dry_run: bool) -> None:
+    path = existing_jsonl_path(output_path)
+    if not path.exists():
+        return
+    with open_text(path, "rt", encoding="utf-8-sig") as handle:
+        for line_number, line in enumerate(handle, start=1):
+            if not line.strip():
+                continue
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(record, dict):
+                continue
+            saved_dry_run = bool(record.get("dry_run"))
+            if saved_dry_run != dry_run:
+                saved_mode = "dry-run planning" if saved_dry_run else "live evaluation"
+                requested_mode = "dry-run planning" if dry_run else "live evaluation"
+                raise SystemExit(
+                    f"Output contains {saved_mode} records: {path} (line {line_number}).\n"
+                    f"Refusing a {requested_mode} run. Use --output with a fresh output path; "
+                    "saved outputs will not be modified."
+                )
 
 
 def read_jsonl(path: Path, max_items: int | None) -> list[dict[str, Any]]:
@@ -1943,6 +1974,8 @@ def load_completed_trials(output_path: Path) -> set[tuple[str, str, str, str, st
                 record = json.loads(line)
             except json.JSONDecodeError:
                 continue
+            if record.get("dry_run"):
+                continue
             if all(key in record for key in ["item_id", "model", "trigger", "tone"]):
                 completed.add(trial_key(record))
     return completed
@@ -1961,6 +1994,8 @@ def load_completed_first_turn_trials(output_path: Path) -> set[tuple[str, str]]:
                 record = json.loads(line)
             except json.JSONDecodeError:
                 continue
+            if record.get("dry_run"):
+                continue
             if all(key in record for key in ["item_id", "model"]):
                 completed.add(first_turn_key(record))
     return completed
@@ -1978,6 +2013,8 @@ def load_completed_temporal_trials(output_path: Path) -> set[tuple[str, str, str
             try:
                 record = json.loads(line)
             except json.JSONDecodeError:
+                continue
+            if record.get("dry_run"):
                 continue
             if all(key in record for key in ["item_id", "model", "trigger", "tone_sequence"]):
                 completed.add(temporal_key(record))
@@ -2107,6 +2144,8 @@ def load_existing_initials_and_switches(
                 record = json.loads(line)
             except json.JSONDecodeError:
                 continue
+            if record.get("dry_run"):
+                continue
             if not all(key in record for key in ["item_id", "model", "trigger", "tone"]):
                 continue
             key = trial_key(record)
@@ -2148,6 +2187,8 @@ def load_existing_temporal_initials_and_switches(
                 record = json.loads(line)
             except json.JSONDecodeError:
                 continue
+            if record.get("dry_run"):
+                continue
             if not all(key in record for key in ["item_id", "model", "trigger", "tone_sequence"]):
                 continue
             key = temporal_key(record)
@@ -2182,6 +2223,8 @@ def load_initial_cache_from_jsonl(path: Path) -> dict[tuple[str, str], dict[str,
             try:
                 record = json.loads(line)
             except json.JSONDecodeError:
+                continue
+            if record.get("dry_run"):
                 continue
             first_text = (
                 record.get("first_response_text")
@@ -2276,12 +2319,13 @@ async def run_eval_async(args: argparse.Namespace, base_dir: Path) -> int:
     extra_api_models: list[str] = []
     if trigger_prompt_mode == "adaptive":
         extra_api_models.extend([adaptive_trigger_model, str(args.adaptive_trigger_checker_model)])
+    output_path = compressed_jsonl_output_path(resolve_output_path(base_dir, args.output))
+    validate_output_mode(output_path, args.dry_run)
     api_key = openrouter_api_key_for_run(models, args.dry_run, extra_api_models)
 
     items = read_jsonl(resolve_output_path(base_dir, args.input), args.max_items)
-    output_path = compressed_jsonl_output_path(resolve_output_path(base_dir, args.output))
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    acquire_output_lock(output_path)
+    acquire_output_lock(output_path, dry_run=args.dry_run)
     completed_trials = load_completed_trials(output_path)
     planned_keys = planned_trial_keys(items, models, triggers, args.tones, trigger_prompt_mode, adaptive_trigger_model)
     initial_cache, switches = load_existing_initials_and_switches(output_path, planned_keys)
@@ -2622,6 +2666,8 @@ def load_existing_first_turn_correct(
                 record = json.loads(line)
             except json.JSONDecodeError:
                 continue
+            if record.get("dry_run"):
+                continue
             if not all(key in record for key in ["item_id", "model"]):
                 continue
             key = first_turn_key(record)
@@ -2650,12 +2696,13 @@ async def run_first_turn_async(args: argparse.Namespace, base_dir: Path) -> int:
             "--models openai/gpt-5.4 openai/gpt-5.4-mini openai/gpt-5.4-nano"
         )
 
+    output_path = compressed_jsonl_output_path(resolve_output_path(base_dir, args.output))
+    validate_output_mode(output_path, args.dry_run)
     api_key = openrouter_api_key_for_run(models, args.dry_run)
 
     items = read_jsonl(resolve_output_path(base_dir, args.input), args.max_items)
-    output_path = compressed_jsonl_output_path(resolve_output_path(base_dir, args.output))
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    acquire_output_lock(output_path)
+    acquire_output_lock(output_path, dry_run=args.dry_run)
     completed_trials = load_completed_first_turn_trials(output_path)
     planned_keys = planned_first_turn_keys(items, models)
     totals = {model: len(keys) for model, keys in planned_keys.items()}
@@ -2775,12 +2822,13 @@ async def run_temporal_async(args: argparse.Namespace, base_dir: Path) -> int:
     extra_api_models: list[str] = []
     if args.trigger_prompt_mode == "adaptive":
         extra_api_models.extend([str(args.adaptive_trigger_model), str(args.adaptive_trigger_checker_model)])
+    output_path = compressed_jsonl_output_path(resolve_output_path(base_dir, args.output))
+    validate_output_mode(output_path, args.dry_run)
     api_key = openrouter_api_key_for_run(models, args.dry_run, extra_api_models)
 
     items = read_jsonl(resolve_output_path(base_dir, args.input), args.max_items)
-    output_path = compressed_jsonl_output_path(resolve_output_path(base_dir, args.output))
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    acquire_output_lock(output_path)
+    acquire_output_lock(output_path, dry_run=args.dry_run)
     completed_trials = load_completed_temporal_trials(output_path)
     planned_keys = planned_temporal_keys(
         items,

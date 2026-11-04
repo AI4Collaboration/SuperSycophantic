@@ -3,9 +3,10 @@ param(
     [string]$Models = "main",
     [int]$Concurrency = 200,
     [int]$RequestTimeout = 30,
-    [int]$MaxAttempts = 12,
-    [int]$MaxGt = 0,
-    [int]$MaxNgt = 0,
+    [int]$MaxAttempts = 8,
+    [int]$MaxGt = -1,
+    [int]$MaxNgt = -1,
+    [switch]$RebuildPanels,
     [switch]$DryRun
 )
 
@@ -41,11 +42,13 @@ function Invoke-Step {
 
 Push-Location $RepoRoot
 try {
-    Invoke-Step "build context panels" @(
-        "Experimental\data\helper\build_supersycophantic_context_panels.py",
-        "--write",
-        "--audit", "Experimental\data\context_source_traceability_audit.md"
-    )
+    if ($RebuildPanels -and -not $DryRun) {
+        Invoke-Step "build context panels" @(
+            "Experimental\data\helper\build_supersycophantic_context_panels.py",
+            "--write",
+            "--audit", "Experimental\data\context_source_traceability_audit.md"
+        )
+    }
     Invoke-Step "panel audit" @("Experimental\data\helper\audit_supersycophantic_panels.py")
     Invoke-Step "context panel integrity audit" @(
         "Experimental\data\helper\audit_context_panel_integrity.py",
@@ -65,10 +68,10 @@ try {
         "--request-timeout", [string]$RequestTimeout,
         "--max-attempts", [string]$MaxAttempts
     )
-    if ($MaxGt -gt 0) {
+    if ($MaxGt -ge 0) {
         $ContextArgs = $ContextArgs + @("--max-gt", [string]$MaxGt)
     }
-    if ($MaxNgt -gt 0) {
+    if ($MaxNgt -ge 0) {
         $ContextArgs = $ContextArgs + @("--max-ngt", [string]$MaxNgt)
     }
     Invoke-Step "context eval" $ContextArgs

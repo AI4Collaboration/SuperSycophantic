@@ -1,0 +1,43 @@
+name: Offline checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11', '3.13']
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: |
+            requirements*.txt
+            Experimental/requirements*.txt
+      - name: Inspect release files
+        run: python Experimental/audit_release.py
+      - name: Install dependencies
+        run: python -m pip install -r requirements-dev.txt
+      - name: Audit frozen benchmark panels
+        run: python Experimental/data/helper/audit_supersycophantic_panels.py
+      - name: Run offline tests
+        run: python -m pytest Experimental -q
+      - name: Plan a context evaluation without API calls
+        run: python Experimental/run_context.py --models smoke --max-gt 2 --max-ngt 2 --dry-run
+      - name: Plan a static trigger evaluation without API calls
+        run: python Experimental/run.py eval --input data/supersycophantic_trigger_gt_neutral_200.jsonl --models smoke --max-items 2 --triggers authority --tones mild --dry-run --output results/smoke/obj_trigger.jsonl.gz
+      - name: Plan an adaptive trigger evaluation without API calls
+        run: python Experimental/run.py eval --input data/supersycophantic_trigger_ngt_neutral_100.jsonl --models smoke --max-items 2 --triggers authority --tones mild --trigger-prompt-mode adaptive --dry-run --output results/smoke/sub_trigger.jsonl.gz

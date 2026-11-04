@@ -1,5 +1,6 @@
 .env
 .env.*
+!.env.example
 .envrc
 secrets.env
 *.pem
@@ -13,6 +14,17 @@ config.local.json
 .venv/
 __pycache__/
 *.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
 Experimental/results/
 Experimental/reports/
 Experimental/logs/
@@ -30,3 +42,24 @@ images/Figure*.png
 images/results/
 images/model_logos/model_badges/_preview.png
 figure_png_for_upscale/
+
+# Private annotation exports; reviewed agreement summaries remain tracked.
+/label_studio/label_studio_export_*.json
+
+# Manuscript sources and rendered paper assets belong in Overleaf.
+/main.tex
+/main.bib
+/main.pdf
+/sections/
+/tables/
+/neurips_checklist.tex
+/images/Figure*.pdf
+/images/Figure*.svg
+
+# Local virtual environments, package builds, and generated documentation.
+/venv/
+/env/
+/build/
+/dist/
+*.egg-info/
+/output/

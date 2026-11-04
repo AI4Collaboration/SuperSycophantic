@@ -3,7 +3,7 @@ param(
     [string]$Models = "main",
     [int]$Concurrency = 200,
     [int]$RequestTimeout = 30,
-    [int]$MaxAttempts = 12,
+    [int]$MaxAttempts = 8,
     [int]$MaxItems = 0,
     [string]$AdaptiveTriggerModel = "openai/gpt-5.4-mini",
     [string]$AdaptiveTriggerCheckerModel = "openai/gpt-5.4-mini",
@@ -150,6 +150,11 @@ try {
                 Invoke-Step "$Branch $Mode hetero temporal eval" $HeteroArgs
             }
         }
+    }
+
+    if ($DryRun) {
+        Write-Host "DryRun complete; skipped reports and figures because no model responses were collected."
+        return
     }
 
     $ReportArgs = @(

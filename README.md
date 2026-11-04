@@ -1,39 +1,56 @@
-# SuperSycophantic Codebase
+# SuperSycophantic
 
-This is the codebase-only GitHub tree for SuperSycophantic experiments. It
-contains benchmark data, data builders, audits, model runners, scoring and
-reporting utilities, and code-facing plotting assets used by the experimental
-pipeline.
+Benchmark data and tools for testing how user framing and follow-up pressure
+affect language-model answers. The benchmark separates objective (OBJ) questions
+with verified answers from subjective (SUB) decisions with two defensible options.
+It covers first-turn framing, static and adaptive follow-ups, and multi-turn pressure.
 
-The paper manuscript is maintained and submitted only through Overleaf. Do not
-use this GitHub codebase tree to sync LaTeX sources, bibliography edits,
-paper-only figures, or manuscript build artifacts.
+## Quick Start
 
-## Release Workflow
+Use Python 3.11 or newer. From the repository root, create a virtual environment
+and install the evaluation and analysis dependencies:
 
-- Codebase changes belong in this GitHub repository only.
-- Manuscript changes belong in the Overleaf paper tree only.
-- Do not mirror code files into Overleaf, and do not mirror manuscript files,
-  paper figures, paper tables, or build artifacts into GitHub.
-- There is no third release target. Keep GitHub and Overleaf as separate
-  submission surfaces.
+```sh
+python -m venv .venv
+```
 
-## Release Hygiene
+Activate it with `.venv\Scripts\Activate.ps1` in PowerShell or
+`source .venv/bin/activate` on Linux/macOS, then run:
 
-- Keep this repository double-blind: do not add author names, institutions,
-  private remote URLs, local usernames, absolute local paths, account names,
-  unpublished acknowledgments, or API secrets.
-- Do not describe configured remotes, account ownership, local worktree paths,
-  draft acknowledgments, or private collaboration logistics in release-facing
-  files.
-- Do not commit `.env` files, raw API logs, provider response dumps, scratch
-  reports, temporary preview images, or local run directories.
-- Store regenerated raw outputs under ignored locations such as
-  `Experimental/results/`, `Experimental/reports/`, or local judge-output
-  directories.
-- Keep paper-only assets in Overleaf. This codebase should contain only
-  code-facing visual assets, such as source logos and model badges used by the
-  plotting scripts.
+```sh
+python -m pip install -r requirements.txt
+python Experimental/data/helper/audit_supersycophantic_panels.py
+python Experimental/run_context.py --models smoke --max-gt 2 --max-ngt 2 --dry-run
+python Experimental/run.py eval --input data/supersycophantic_trigger_gt_neutral_200.jsonl --models smoke --max-items 2 --triggers authority --tones mild --dry-run --output results/smoke/obj_trigger.jsonl.gz
+```
+
+These checks make no model calls and need no API credentials. Dry-run outputs
+contain planned prompts, not model responses; use a different output path for a
+live run. The released panels are ready to use without downloading source caches.
+Rebuilding the mixed OBJ panel additionally requires
+`python -m pip install -r Experimental/requirements-data.txt` and the shards
+listed in [the cache instructions](Experimental/data/hle_verified/README.md).
+
+For live evaluations, set `OPENROUTER_API_KEY` in your environment or copy
+`.env.example` to a local `.env` and fill in the key. Existing environment
+variables take precedence. Provider calls incur charges; start with a small
+item subset before running the full model panel. Provider routing is described
+under [Main Models](#main-models).
+
+## Tests And Release Checks
+
+```sh
+python -m pip install -r requirements-dev.txt
+python -m pytest Experimental
+python Experimental/audit_release.py
+```
+
+Tests use synthetic records and mocked provider responses. The release check
+inspects tracked files for credential patterns, private paths, and generated
+artifacts. Use `--include-untracked` to check new, non-ignored files before
+staging them. Keep local credentials, raw responses, annotation exports and
+generated reports in ignored locations. Manuscript sources and rendered paper
+assets are maintained separately.
 
 ## Repository Layout
 
@@ -43,12 +60,21 @@ paper-only figures, or manuscript build artifacts.
 | `Experimental/data/helper/` | panel builders, panel audits, and data utilities |
 | `Experimental/run.py` | first-turn, single-trigger, and temporal-trigger runner |
 | `Experimental/run_context.py` | single-turn context runner |
-| `Experimental/run_llm_judge_*.py` | Figure-3-aligned LLM judge runners |
+| `Experimental/run_llm_judge_*.py` | transcript-scoring LLM judge runners |
 | `Experimental/summarize_*.py` | result and judge-agreement summaries |
 | `Experimental/plot_*.py` | scripts for result figures and diagnostics |
+| `Experimental/figures/` | figure entrypoints and their manuscript mapping |
+| `Experimental/revision_*.py` | revised paired analyses, trace audits, and re-check experiment |
+| `Experimental/rebuttal_*.py` | supplementary controls and generator robustness analyses |
+| `Experimental/test_*.py` | offline regression tests |
 | `Experimental/IAA/Human-LLM-Judge-IAA-100.json` | fixed 100-transcript human calibration set |
+| `label_studio/` | annotation-agreement utility and reviewed summaries |
 | `images/logos/` | small source logos used by plotting scripts |
 | `images/model_logos/` | generated model badge assets used by plotting scripts |
+
+Existing script names are retained for reproducibility. Use the revised
+analysis entrypoints for paired estimates; legacy statistical exporters and
+figure wrappers remain available for reproducing earlier outputs.
 
 ## Core Data Files
 
@@ -127,7 +153,7 @@ source keys match the frozen OBJ data; the included follow-up discloses the key.
 Runner defaults live in `Experimental/run.py`: adaptive generator/checker
 `openai/gpt-5.4-mini`, concurrency `200`, request timeout `30`, and max
 attempts `8`. `Experimental/run_context.py` shares these defaults. The helper
-PowerShell wrappers may override `--max-attempts` for long unattended runs.
+PowerShell wrappers use the same defaults and accept explicit overrides.
 
 When `ANTHROPIC_API_KEY` or `ANTHROPIC_DIRECT_API_KEY` is present, supported
 `anthropic/...` targets are sent directly to Anthropic's Messages API.
@@ -268,6 +294,11 @@ Full context wrapper:
 powershell -ExecutionPolicy Bypass -File Experimental/run_context_eval_and_report.ps1 -Models main
 ```
 
+The context wrapper uses the frozen panels by default. Pass `-RebuildPanels`
+only when intentionally regenerating them. Omitted item limits use all items;
+`-MaxGt 0` or `-MaxNgt 0` skips that stream. `-DryRun` does not rebuild panels
+or generate reports.
+
 Trigger smoke test:
 
 ```powershell
@@ -328,6 +359,9 @@ Offline revision tests:
 ```powershell
 python -m unittest discover -s Experimental -p "test_revision*.py"
 ```
+
+This command runs the revision subset. Use `python -m pytest Experimental`
+for the complete offline suite, including release checks and wrapper tests.
 
 ## Generated Artifacts
 

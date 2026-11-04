@@ -1,0 +1,4 @@
+# Optional: rebuilding the mixed OBJ panel from the original parquet shards.
+-r ../requirements.txt
+pandas==2.3.3
+pyarrow==23.0.1
