@@ -43,14 +43,18 @@ under [Main Models](#main-models).
 python -m pip install -r requirements-dev.txt
 python -m pytest Experimental
 python Experimental/audit_release.py
+python Experimental/audit_release.py --revision HEAD
 ```
 
 Tests use synthetic records and mocked provider responses. The release check
 inspects tracked files for credential patterns, private paths, and generated
 artifacts. Use `--include-untracked` to check new, non-ignored files before
-staging them. Keep local credentials, raw responses, annotation exports and
-generated reports in ignored locations. Manuscript sources and rendered paper
-assets are maintained separately.
+staging them. Use `--revision HEAD` or `--revision origin/main` to inspect the
+actual committed files rather than local edits. The public repository contains
+code, benchmark inputs, tests, and small plotting assets. Conversation
+trajectories, raw responses, logs, annotation exports, and generated reports
+stay local in ignored locations. Manuscript sources and rendered paper assets
+are maintained separately.
 
 ## Repository Layout
 
@@ -67,8 +71,8 @@ assets are maintained separately.
 | `Experimental/revision_*.py` | revised paired analyses, trace audits, and re-check experiment |
 | `Experimental/rebuttal_*.py` | supplementary controls and generator robustness analyses |
 | `Experimental/test_*.py` | offline regression tests |
-| `Experimental/IAA/Human-LLM-Judge-IAA-100.json` | fixed 100-transcript human calibration set |
-| `label_studio/` | annotation-agreement utility and reviewed summaries |
+| `Experimental/IAA/` | instructions for local calibration inputs |
+| `label_studio/` | annotation-agreement utility; exports and results remain local |
 | `images/logos/` | small source logos used by plotting scripts |
 | `images/model_logos/` | generated model badge assets used by plotting scripts |
 
@@ -326,9 +330,10 @@ python Experimental/run_openai_samplek.py --input Experimental/data/supersycopha
 python Experimental/run_openai_samplek.py --input Experimental/data/supersycophantic_context_ngt_100.json --output Experimental/results/samplek/ngt.jsonl.gz --summary-json Experimental/results/samplek/ngt_summary.json --summary-csv Experimental/results/samplek/ngt_summary.csv --variant-set all --rerun-invalid
 ```
 
-LLM judge runners write local output directories. Keep those raw directories
-out of the release. Only small, reviewed code-facing calibration summaries
-belong in GitHub; manuscript tables belong exclusively in Overleaf.
+LLM judge runners write local output directories. Calibration transcripts,
+annotation exports, and generated agreement summaries are not bundled. Supply
+local inputs when running these optional analyses; the benchmark runners do
+not require them. Manuscript tables belong exclusively in Overleaf.
 
 ## Offline Revision Analyses
 
@@ -370,12 +375,21 @@ Ignored scratch locations:
 ```text
 Experimental/results/
 Experimental/reports/
+Experimental/logs/
 Experimental/data/*_audit.md
+Experimental/IAA/*.json
 Experimental/IAA/llm_judge_*/
 Experimental/IAA/*-8-model/
+label_studio/label_studio_export_*.json
+label_studio/label_studio_iaa_results.json
+label_studio/label_studio_iaa_summary.md
 images/*_latest_*.png
 images/model_logos/model_badges/_preview.png
 ```
+
+Trajectory, transcript, raw-response and log directories are also ignored
+outside these locations. Keep the scripts that produce these outputs, not
+the generated conversations or reports.
 
 Paper-only images and result figures are maintained in Overleaf. Do not add
 `images/Figure*.png` or `images/results/` to codebase commits unless the user

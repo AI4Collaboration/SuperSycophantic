@@ -28,6 +28,32 @@ Thumbs.db
 Experimental/results/
 Experimental/reports/
 Experimental/logs/
+# Generated conversations and run outputs, regardless of their output folder.
+logs/
+trajectories/
+trajectory/
+transcripts/
+traces/
+raw_responses/
+*.log
+*.log.*
+*.jsonl.gz
+*_stdout.txt
+*_stderr.txt
+*_trajectory.json
+*_trajectories.json
+*_transcript.json
+*_transcripts.json
+*_responses.json
+*_responses.jsonl
+trajectory*.json
+trajectory*.jsonl
+trajectories*.json
+trajectories*.jsonl
+transcript*.json
+transcript*.jsonl
+responses*.json
+responses*.jsonl
 Experimental/rebuttal_adaptive_audit/
 Experimental/rebuttal_positive_control/
 Experimental/rebuttal_robustness_results/
@@ -43,8 +69,11 @@ images/results/
 images/model_logos/model_badges/_preview.png
 figure_png_for_upscale/
 
-# Private annotation exports; reviewed agreement summaries remain tracked.
+# Annotation conversations, exports, and generated agreement summaries stay local.
+/Experimental/IAA/*.json
 /label_studio/label_studio_export_*.json
+/label_studio/label_studio_iaa_results.json
+/label_studio/label_studio_iaa_summary.md
 
 # Manuscript sources and rendered paper assets belong in Overleaf.
 /main.tex

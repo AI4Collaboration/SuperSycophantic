@@ -1,7 +1,10 @@
 # Human/LLM Judge Calibration
 
-`Human-LLM-Judge-IAA-100.json` is the fixed 100-transcript calibration set used
-for Human/LLM judge agreement and judge-accuracy checks.
+Calibration transcripts and annotations are local inputs, not release data.
+The core benchmark runners use the frozen panels in `Experimental/data/`
+and do not require this directory's local files.
 
-Raw judge-output directories are local run artifacts and are intentionally kept
-out of the release.
+Supply local calibration inputs when running the optional judge-agreement
+analyses. The historical input filename is `Human-LLM-Judge-IAA-100.json`.
+JSON inputs, raw judge outputs, and generated agreement summaries remain
+ignored; only analysis code and these instructions are published.

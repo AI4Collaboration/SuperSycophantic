@@ -40,7 +40,8 @@
 - `Experimental/data/`: frozen benchmark panels, source caches, and helper
   data.
 - `Experimental/data/helper/`: builders and audits for the frozen benchmark panels.
-- `Experimental/IAA/`: small reviewed Human/LLM judge calibration artifacts.
+- `Experimental/IAA/`: local calibration inputs and public usage instructions;
+  never publish calibration transcripts, raw responses, or generated summaries.
 - `images/logos/`: small source logos used by plotting scripts.
 - `images/model_logos/`: generated model badge assets used by plotting scripts.
 - Paper-only folders such as LaTeX `sections/`, `tables/`, `main.tex`,
@@ -122,7 +123,8 @@
 - HLE-Verified source-cache parquet shards are intentionally not tracked; keep
   them local under `Experimental/data/hle_verified/data/` only when rebuilding
   the mixed source panel.
-- `Experimental/IAA/Human-LLM-Judge-IAA-100.json`
+- `Experimental/IAA/Human-LLM-Judge-IAA-100.json` is an optional local input,
+  not a tracked release file.
 
 ## Verification
 
@@ -131,4 +133,7 @@
 - Do not run local LaTeX builds from the GitHub codebase tree.
 - Keep generated raw outputs in ignored paths unless the user explicitly asks
   to publish them.
+- Publish code and benchmark inputs, not trajectories, logs, raw responses,
+  annotation exports, or generated agreement reports. Verify committed files
+  with `python Experimental/audit_release.py --revision HEAD` before release.
 - When generating a replacement PNG, remove the obsolete PNG it replaces.

@@ -28,7 +28,7 @@ jobs:
             requirements*.txt
             Experimental/requirements*.txt
       - name: Inspect release files
-        run: python Experimental/audit_release.py
+        run: python Experimental/audit_release.py --revision HEAD
       - name: Install dependencies
         run: python -m pip install -r requirements-dev.txt
       - name: Audit frozen benchmark panels

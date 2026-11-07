@@ -95,11 +95,13 @@ class ProtocolTests(unittest.TestCase):
             response.read.return_value = exp.json.dumps(self.catalog_body()).encode()
             success = exp.subprocess.CompletedProcess([], 0, stdout='panel audit passed', stderr='')
             with patch.object(exp, 'OPUS46_OUT', Path(directory)), patch.object(exp, 'configure'), \
+                 patch.object(exp, 'verify_output_hygiene') as hygiene, \
                  patch.object(exp.subprocess, 'run', return_value=success), \
                  patch.object(exp.urllib.request, 'build_opener') as factory, \
                  patch.object(exp, 'Experiment') as experiment:
                 factory.return_value.open.return_value.__enter__.return_value = response
                 exp.main(['prepare', '--models', 'anthropic/claude-opus-4.6', '--provider', 'Amazon Bedrock', '--output', str(out)])
+                hygiene.assert_called_once_with(out)
                 experiment.assert_not_called()
                 self.assertEqual(exp.read(out / 'manifest.json')['protocol']['public_catalog_sha256'], exp.filehash(out / 'catalog.json'))
                 original_catalog = (out / 'catalog.json').read_bytes()
@@ -167,9 +169,11 @@ class ProtocolTests(unittest.TestCase):
             target = root / 'protocol_v2'
             success = exp.subprocess.CompletedProcess([], 0, stdout='panel audit passed', stderr='')
             with patch.object(exp, 'OUT', root), patch.object(exp, 'configure'), \
+                 patch.object(exp, 'verify_output_hygiene') as hygiene, \
                  patch.object(exp.subprocess, 'run', return_value=success), \
                  patch.object(exp, 'Experiment') as experiment:
                 exp.main(['prepare', '--output', str(target)])
+                hygiene.assert_called_once_with(target)
                 experiment.assert_not_called()
             self.assertEqual(previous.read_bytes(), original)
             manifest = exp.read(target / 'manifest.json')
