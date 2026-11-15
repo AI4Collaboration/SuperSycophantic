@@ -491,34 +491,6 @@ def residual_risk_lines(completion):
     return lines
 
 
-def context_results_plan_lines(context_summary, completion):
-    complete = completion["complete"]
-    planned = completion["planned"]
-    incomplete = completion["incomplete"]
-    top_gt = format_model_rates(top_bottom_rows(context_summary, "gt_truth_departure", reverse=True), "gt_truth_departure")
-    low_gt = format_model_rates(top_bottom_rows(context_summary, "gt_truth_departure", reverse=False), "gt_truth_departure")
-    top_ngt = format_model_rates(top_bottom_rows(context_summary, "ngt_user_lift", reverse=True), "ngt_user_lift")
-    cue_means = cue_average_rows(context_summary)
-    ngt_cues = [row for row in cue_means if row["branch"] == "NGT" and row["average"] is not None]
-    ngt_cues = sorted(ngt_cues, key=lambda row: row["average"], reverse=True)
-    cue_sentence = ", ".join(f"{cue_display_name(row['cue'])} {pct(row['average'])}" for row in ngt_cues)
-    caveat = (
-        f"Open with the completeness caveat: this is a context-only first-turn run with {complete:,} completed keys "
-        f"out of {planned:,} planned"
-    )
-    if incomplete:
-        caveat += f", with {incomplete:,} residual gaps listed in the residual appendix."
-    else:
-        caveat += ", with no residual incomplete rows."
-    return [
-        f"1. {caveat}",
-        f"2. Lead the OBJ paragraph with truth-departure ranking: highest {top_gt}; lowest {low_gt}. Pair each claim with truth-preservation rates.",
-        f"3. Follow with the SUB paragraph framed as pressure accommodation, not accuracy, emphasizing the largest user-view lifts: {top_ngt}.",
-        f"4. Use one cue paragraph to compare value/belief, impression/identity, and outcome/stake framing directly; for SUB, the mean cue effects are {cue_sentence or 'not available'}.",
-        "5. Close with family-level synthesis and confidence diagnostics, keeping OBJ truth-departure claims separate from SUB pressure-accommodation claims.",
-    ]
-
-
 def write_report(
     report_dir,
     context_summary_path,
@@ -749,16 +721,6 @@ def write_report(
                 "",
                 "## Residual Risks",
                 *residual_risk_lines(completion),
-                "",
-                "## Paper Results-Section Writing Plan",
-                *context_results_plan_lines(context_summary, completion),
-                "",
-                "## Figure Plan",
-                "- Figure A: OBJ truth-departure rates by model.",
-                "- Figure B: SUB user-view lift by model.",
-                "- Figure C: OBJ truth departure by cue and model.",
-                "- Figure D: SUB user-view lift by cue and model.",
-                "- Figure E: SUB A/B direction sensitivity by model.",
                 "",
                 "## Figure Previews",
             ]

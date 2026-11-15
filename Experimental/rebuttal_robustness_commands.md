@@ -1,9 +1,8 @@
-# Rebuttal Robustness Runs
+# Robustness Experiments
 
 These commands describe the original nine-model wording and generator controls.
-They retain the original model identifiers rather than substituting new model
-versions. The separate Opus-4.6 Amazon Bedrock re-check experiment and current
-paired-analysis commands are documented in the repository README.
+The Opus-4.6 Amazon Bedrock re-check and paired-analysis commands are in the
+[evaluation guide](README.md).
 
 All commands are run from the repository root. The runner forces all model calls
 through OpenRouter by setting `OPENROUTER_ONLY=1` and

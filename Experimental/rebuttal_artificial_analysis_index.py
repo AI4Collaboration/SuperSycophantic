@@ -1,7 +1,6 @@
 """Correlate Artificial Analysis Intelligence Index with rebuttal metrics.
 
-The reviewer suggested replacing a coarse model-capability rank with the
-Artificial Analysis Intelligence Index. This script fetches the official
+This script fetches the official
 Artificial Analysis evaluation page, extracts model scores, matches them to the
 SuperSycophantic main model set, and computes correlations against existing
 rebuttal result summaries.
@@ -379,14 +378,6 @@ def write_summary(scores: list[dict[str, object]], correlations: list[dict[str, 
         lines.append(
             f"- {metric}: Spearman rho={row['spearman_rho']}, n={row['n']}"
         )
-    lines.extend(
-        [
-            "",
-            "Interpretation: AA capability score does not yield a monotonic explanation of sycophancy. "
-            "Capability alone is insufficient: high-score models can remain vulnerable under persuasive "
-            "pressure, while lower-score models are not uniformly more sycophantic across OBJ and SUB settings.",
-        ]
-    )
     (REPORT_DIR / "artificial_analysis_index_summary.md").write_text(
         "\n".join(lines) + "\n", encoding="utf-8"
     )

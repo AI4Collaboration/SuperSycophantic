@@ -18,7 +18,7 @@ PRIVATE_DIRS = (
     "images/results/", "figure_png_for_upscale/", "output/", "sections/", "tables/",
 )
 PRIVATE_FILES = {
-    "main.tex", "main.bib", "main.pdf", "neurips_checklist.tex", "secrets.env",
+    "main.tex", "main.bib", "main.pdf", "neurips_checklist.tex", "secrets.env", "AGENTS.md",
     "label_studio/label_studio_iaa_results.json", "label_studio/label_studio_iaa_summary.md",
 }
 OUTPUT_DIRS = {"logs", "trajectory", "trajectories", "transcripts", "traces", "raw_responses"}

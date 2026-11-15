@@ -11,16 +11,10 @@ shards from `skylenage-ai/HLE-Verified` into
 - `data/Gold_subset.*.parquet`
 - `data/Revision_subset.*.parquet`
 
-The release cache manifest records the exact shard filenames, byte sizes, and
-former Git blob SHA-1s used by the frozen panel before the cache was removed
-from GitHub. Rebuilds should match `source_cache_manifest.tsv` or intentionally
-update that manifest with a dated note explaining the data refresh.
-
-Do not commit:
-
-- `Uncertain_subset.*.parquet`
-- one-off domain-count summaries
-- generated full-dataset caches
+`source_cache_manifest.tsv` lists the expected shard filenames, byte sizes,
+and Git blob SHA-1 identifiers for the frozen panel. Use these to verify the
+downloaded cache. The builder uses the Gold and Revision subsets; the
+Uncertain subset is not required.
 
 The mixed OBJ builder uses these files through
 `Experimental/data/helper/build_mixed_gt_panel.py`. It filters image-dependent

@@ -12,7 +12,7 @@ from run import load_dotenv
 
 class ReleaseHygieneTests(unittest.TestCase):
     def test_private_and_generated_paths_are_rejected(self):
-        for name in [".env", ".env.production", "nested/.env", "key.pem", "id_ed25519",
+        for name in [".env", ".env.production", "nested/.env", "key.pem", "id_ed25519", "AGENTS.md",
                      "settings.local.json", "Experimental/results/run.jsonl.gz",
                      "Experimental/IAA/llm_judge_run/raw.json", "main.tex", "sections/intro.tex",
                      "images/Figure1.png", "label_studio/label_studio_export_1.json",
@@ -88,7 +88,7 @@ class ReleaseHygieneTests(unittest.TestCase):
 
     def test_generated_outputs_are_ignored(self):
         root = Path(__file__).resolve().parents[1]
-        paths = ["run.log", "run.log.1", "nested/logs/run.txt", "run_stdout.txt",
+        paths = ["AGENTS.md", "run.log", "run.log.1", "nested/logs/run.txt", "run_stdout.txt",
                  "trajectories/model.json", "nested/transcripts/run.jsonl",
                  "trajectory.json", "responses.jsonl", "run.jsonl.gz",
                  "Experimental/IAA/Human-LLM-Judge-IAA-100.json",
