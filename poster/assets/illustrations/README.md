@@ -1,5 +1,7 @@
-# Robot Avatar
+# Robot Expressions
 
-`robot.png` is a transparent illustration generated from the robot in the project's existing logo. It is used in the dialogue and experimental-design diagrams. The original logo is unchanged.
+`robot-expressions.png` is a transparent 2-by-2 sprite sheet generated with the built-in image tool, using the paper's blue target-model robot as the visual reference. CSS selects one quadrant per state without modifying the image. The original project logo is unchanged.
 
-Generation brief: isolate the same rounded blue-gray robot as a front-facing head-and-shoulders avatar, with dark outlines, round eyes and one antenna. Use a transparent background with no text, monitor, rainbow or external shadow.
+Generation brief: four uniformly positioned head-and-shoulders versions of the same white-and-blue robot, with a dark screen face, white eyes, blue antenna and plain blue chest. Expressions progress from assured to hesitant, wavering and self-doubting. Keep the background transparent and omit text, arrows and borders.
+
+The expressions are illustrative, not annotations of model emotions or reasoning. The displayed choices and response excerpts come from the recorded conversation.

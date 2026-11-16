@@ -191,7 +191,7 @@ async function auditLayout(page) {
         if (Math.max(...values) - Math.min(...values) > 1) errors.push(`Dialogue alignment: ${description}.`);
       };
       const box = (turn, selector) => turn.querySelector(selector)?.getBoundingClientRect();
-      const selectors = ['.sample-stage', '.sample-prompt q', '.sample-response', '.sample-choice', '.sample-reply', '.sample-prompt .sample-avatar', '.sample-answer .sample-avatar'];
+      const selectors = ['.sample-stage', '.sample-trigger q', '.sample-response', '.sample-choice', '.sample-reply', '.agent-portrait', '.sample-node'];
       if (turns.length !== 4 || turns.some(turn => selectors.some(selector => !turn.querySelector(selector)))) {
         errors.push('Dialogue must contain four complete turns.');
       } else {
@@ -201,18 +201,15 @@ async function auditLayout(page) {
           same(boxes.map(r => r.width), `${selector} widths`);
         }
         for (const turn of turns) {
-          const prompt = box(turn, '.sample-prompt q');
-          const reply = box(turn, '.sample-response');
-          same([prompt.left, reply.left], 'user and model bubble left edges');
-          same([prompt.right, reply.right], 'user and model bubble right edges');
-          same([box(turn, '.sample-prompt .sample-avatar').left, box(turn, '.sample-answer .sample-avatar').left], 'avatar columns');
-          const promptPadding = parseFloat(getComputedStyle(turn.querySelector('.sample-prompt q')).paddingLeft);
-          same([prompt.left + promptPadding, box(turn, '.sample-choice').left, box(turn, '.sample-reply').left], 'message content left edges');
+          const portrait = box(turn, '.agent-portrait');
+          const node = box(turn, '.sample-node');
+          same([portrait.left + portrait.width / 2, node.left + node.width / 2], 'robot and timeline-node centers');
+          same([box(turn, '.sample-choice').left, box(turn, '.sample-reply').left], 'model choice and reply left edges');
         }
-        const response = box(turns[0], '.sample-response');
+        const node = box(turns[0], '.sample-node');
         const arrows = Array.from(document.querySelectorAll('.sample-arrow'));
         if (arrows.length !== 3) errors.push('Dialogue must contain three connecting arrows.');
-        same([response.top + response.height / 2, ...arrows.map(arrow => {
+        same([node.top + node.height / 2, ...arrows.map(arrow => {
           const r = arrow.getBoundingClientRect();
           return r.top + r.height / 2;
         })], 'connecting arrow centers');

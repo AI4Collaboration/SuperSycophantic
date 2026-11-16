@@ -21,7 +21,7 @@ STEM = "SuperSycophantic-NeurIPS-2026-Sydney"
 URL = "https://github.com/AI4Collaboration/SuperSycophantic"
 OBJ, SUB, NEUTRAL = "#087F8C", "#C45D37", "#929C9F"
 INK, GRID = "#25343B", "#C6D6DA"
-TEXT, SMALL, EMPHASIS = 30, 28, 34
+TEXT, SMALL, EMPHASIS = 32, 30, 36
 
 # Camera-ready context/controlled-intervention tables and a supplementary
 # mode-separated Claude recount. Only aggregate counts are included.
@@ -67,7 +67,7 @@ def save(fig, name, transparent=True):
 
 def context_plot():
     # Match the HTML slot in physical units so plot text retains its point size.
-    fig, axes = plt.subplots(1, 2, figsize=(420 / 25.4, 258 / 25.4), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(420 / 25.4, 244 / 25.4), sharey=True)
     fig.subplots_adjust(left=.32, right=.97, bottom=.11, top=.855, wspace=.27)
     y = np.arange(len(MODELS))
     for ax, before, after, color, title in zip(
@@ -124,7 +124,7 @@ def claude_plot():
 
 
 def certainty_plot():
-    fig, ax = plt.subplots(figsize=(420 / 25.4, 210 / 25.4))
+    fig, ax = plt.subplots(figsize=(420 / 25.4, 220 / 25.4))
     fig.subplots_adjust(left=.13, right=.97, bottom=.17, top=.80)
     for name, color, marker, ls in [("SUB", SUB, "s", "-"), ("OBJ", OBJ, "o", "--")]:
         counts, n = CERTAINTY[name]
@@ -145,7 +145,7 @@ def certainty_plot():
 
 
 def recheck_plot():
-    fig, axes = plt.subplots(1, 2, figsize=(420 / 25.4, 244 / 25.4), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(420 / 25.4, 232 / 25.4), sharey=True)
     fig.subplots_adjust(left=.13, right=.97, bottom=.10, top=.92, wspace=.22)
     for ax, name, color in zip(axes, ["OBJ", "SUB"], [OBJ, SUB]):
         counts, n = RECHECK[name]
