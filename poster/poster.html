@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SuperSycophantic | NeurIPS 2026 Sydney</title>
+  <style>
+    @page { size: 1400mm 900mm; margin: 0; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: Arial, Helvetica, sans-serif; color: #15191b; }
+    h1, h2, h3, p, figure { margin: 0; }
+    a { color: inherit; text-decoration: none; }
+    .poster { width: 1400mm; height: 900mm; padding: 20mm; background: white;
+      display: grid; grid-template-rows: 130mm 705mm 25mm; overflow: hidden; }
+    .masthead { display: grid; grid-template-columns: 125mm 1fr 150mm; gap: 20mm;
+      align-items: start; border-bottom: 1.3mm solid #163e4d; padding-bottom: 12mm; }
+    .project-logo { width: 112mm; height: 112mm; object-fit: contain; }
+    .title-block { text-align: center; padding-top: 2mm; }
+    h1 { font-size: 102pt; line-height: 1.12; font-weight: 700; }
+    .subtitle { margin-top: 6mm; font-size: 42pt; line-height: 1.15; font-weight: 700; }
+    .authors { margin-top: 5mm; font-size: 27pt; line-height: 1.5; }
+    sup { font-size: 65%; line-height: 0; vertical-align: super; }
+    .affiliations { margin-top: 3mm; font-size: 21pt; line-height: 1.4; color: #4c5356; }
+    .conference { padding-top: 4mm; text-align: center; }
+    .conference img { width: 150mm; height: 68mm; object-fit: contain; }
+    .conference p { margin-top: 8mm; font-size: 30pt; font-weight: 700; }
+    .content { display: grid; grid-template-columns: 420mm 460mm 420mm; gap: 30mm; }
+    .left-column { padding-top: 20mm; display: grid; grid-template-rows: 325mm 340mm; gap: 20mm; }
+    .right-column { padding-top: 20mm; display: grid; grid-template-rows: 272mm 277mm 100mm; gap: 18mm; }
+    h2 { font-size: 46pt; line-height: 1.13; font-weight: 700; }
+    h3 { font-size: 30pt; line-height: 1.2; font-weight: 700; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 10mm; gap: 8mm; }
+    .stats strong { display: block; font-size: 60pt; line-height: 1; }
+    .stats span { display: block; margin-top: 4mm; font-size: 27pt; }
+    .task-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; margin-top: 13mm; }
+    .task { height: 64mm; border-top: 2mm solid; padding: 7mm 8mm; background: #f0f7f7; }
+    .task.obj { border-color: #087f8c; }
+    .task.sub { border-color: #c45d37; background: #fcf3ee; }
+    .task strong { display: block; font-size: 36pt; margin-bottom: 3mm; }
+    .task p { font-size: 28pt; line-height: 1.35; }
+    .task small { display: block; margin-top: 4mm; font-size: 23pt; }
+    .dimension { margin-top: 11mm; }
+    .framing { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5mm; margin-top: 4mm; }
+    .framing span { border-bottom: .7mm solid #94aeb8; padding: 4mm 0; font-size: 29pt; text-align: center; }
+    .families { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4mm; margin-top: 5mm; }
+    .families span { padding: 4mm 2mm; font-size: 26pt; text-align: center; border: .55mm solid #afbdc3; }
+    .tone { display: flex; justify-content: space-between; margin-top: 11mm; font-size: 28pt; font-weight: 700; }
+    .scope { margin-top: 6mm; font-size: 25pt; line-height: 1.32; color: #4c5356; }
+    .plot { display: block; width: 100%; object-fit: contain; }
+    .context-plot { height: 273mm; margin-top: 8mm; }
+    .small-plot { height: 205mm; margin-top: 8mm; }
+    figcaption { margin-top: 5mm; font-size: 25pt; line-height: 1.32; color: #4c5356; }
+    .focus { padding: 25mm; background: #163e4d; color: white; display: flex; flex-direction: column; }
+    .key-message { font-size: 88pt; line-height: 1.1; font-weight: 700; }
+    .focus figure { margin-top: 25mm; }
+    .focus h2 { font-size: 42pt; line-height: 1.2; }
+    .focus .plot { height: 315mm; margin-top: 8mm; }
+    .focus figcaption { font-size: 27pt; line-height: 1.32; color: #edf4f6; margin-top: 7mm; }
+    .trajectory-block { margin-top: auto; }
+    .trajectory { display: grid; grid-template-columns: 1fr 25mm 1fr 25mm 1fr; align-items: center; margin-top: 7mm; text-align: center; }
+    .state { border: .8mm solid #9cb7c1; padding: 5mm 0; }
+    .state strong { display: block; font-size: 56pt; line-height: 1; }
+    .state span { display: block; margin-top: 3mm; font-size: 25pt; }
+    .trajectory .arrow { font-size: 34pt; }
+    .return-message { margin-top: 9mm; font-size: 36pt; line-height: 1.25; }
+    .download { display: grid; grid-template-columns: 86mm 1fr; gap: 12mm; align-items: center; border-top: .8mm solid #afbdc3; padding-top: 8mm; }
+    .download img { width: 82mm; height: 82mm; }
+    .download h3 { font-size: 36pt; }
+    .download p { margin-top: 7mm; font-size: 26pt; line-height: 1.4; }
+    .download .url { margin-top: 5mm; font-size: 23pt; line-height: 1.4; }
+    .footer { padding-top: 8mm; font-size: 34pt; line-height: 1.15; font-weight: 700; }
+    @media screen { body { padding: 16px; background: #e5e9eb; } .poster { zoom: var(--screen-scale, 1); } }
+    @media print { body { background: white; } .poster { zoom: 1; } * { print-color-adjust: exact; -webkit-print-color-adjust: exact; } }
+  </style>
+</head>
+<body>
+  <main class="poster" data-fit>
+    <header class="masthead" data-fit>
+      <img class="project-logo" src="assets/supersycophantic-logo.png" alt="SuperSycophantic logo">
+      <div class="title-block" data-fit>
+        <h1>SuperSycophantic</h1>
+        <p class="subtitle">Stress-Testing Frontier Models from Single- to Multi-Turn Sycophancy</p>
+        <p class="authors">Terry Jingchen Zhang<sup>1,3,4,5</sup>, Oscar Yasunaga<sup>2</sup>, Wenyuan Jiang<sup>5</sup>, Jessica Bo<sup>2,3</sup>, Florent Draye<sup>9</sup>, Aydin Javadov<sup>5</sup>,<br>Arth Singh<sup>2,6,7</sup>, Lucille Muir<sup>2</sup>, Victoria Oldemburgo De Mello<sup>2</sup>, Bernhard Sch&ouml;lkopf<sup>5,8,9</sup>, Zhijing Jin<sup>2,3,4,9</sup></p>
+        <p class="affiliations"><sup>1</sup>University of Oxford &nbsp; <sup>2</sup>University of Toronto &nbsp; <sup>3</sup>Vector Institute &nbsp; <sup>4</sup>EuroSafeAI &nbsp; <sup>5</sup>ETH Z&uuml;rich<br><sup>6</sup>AIM Intelligence &nbsp; <sup>7</sup>Georgia Institute of Technology &nbsp; <sup>8</sup>ELLIS Institute T&uuml;bingen &nbsp; <sup>9</sup>Max Planck Institute for Intelligent Systems, T&uuml;bingen</p>
+      </div>
+      <div class="conference"><img src="assets/neurips-logo.png" alt="NeurIPS"><p>2026 &middot; Sydney</p></div>
+    </header>
+
+    <div class="content" data-fit>
+      <div class="left-column" data-fit>
+        <section class="framework" data-fit>
+          <h2>What do we test?</h2>
+          <div class="stats"><div><strong>200</strong><span>OBJ questions</span></div><div><strong>100</strong><span>SUB decisions</span></div><div><strong>9</strong><span>frontier models</span></div></div>
+          <div class="task-pair">
+            <div class="task obj"><strong>OBJ</strong><p>Verifiable answers</p><small>MMLU-Pro + HLE-Verified</small></div>
+            <div class="task sub"><strong>SUB</strong><p>Two defensible choices</p><small>Four decision domains</small></div>
+          </div>
+          <div class="dimension"><h3>First-turn framing</h3><div class="framing"><span>Belief</span><span>Identity</span><span>Stake</span></div></div>
+          <div class="dimension"><h3>Follow-up influence</h3><div class="families"><span>Authority</span><span>Social proof</span><span>Liking</span><span>Reciprocity</span><span>Scarcity</span><span>Consistency</span><span>Unity</span><span>Disagreement</span></div></div>
+          <div class="tone"><span>Mild &rarr; Moderate &rarr; Strong</span><span>Static &middot; Adaptive</span></div>
+          <p class="scope">Follow-up trials begin with neutral context.<br>Adaptive prompts respond to the model's answer.</p>
+        </section>
+        <figure data-fit>
+          <h2>Framing shifts first answers</h2>
+          <img class="plot context-plot" src="assets/context.svg" alt="First-turn accuracy falls under user framing in OBJ; user alignment rises above the balanced reference in SUB.">
+          <figcaption>OBJ: factual accuracy. SUB: alignment with the user's option.<br>The 50% SUB point is a balanced reference.</figcaption>
+        </figure>
+      </div>
+
+      <section class="focus" data-fit>
+        <p class="key-message">Correct answers<br>can still give way<br>to user pressure.</p>
+        <figure data-fit>
+          <h2>Certainty alone raises switching</h2>
+          <img class="plot" src="assets/certainty.svg" alt="As user certainty increases, SUB switching rises from 55.7% to 93.0% and OBJ correct-to-incorrect changes rise from 14.5% to 33.4%.">
+          <figcaption>Same word count and punctuation.<br>1,055 initially correct OBJ and 900 SUB matched triplets across nine models.</figcaption>
+        </figure>
+        <div class="trajectory-block" data-fit>
+          <h3>Track changes across turns</h3>
+          <div class="trajectory" aria-label="Illustrative answer sequence A, then B, then A"><div class="state"><strong>A</strong><span>Initial</span></div><span class="arrow">&rarr;</span><div class="state"><strong>B</strong><span>Switch</span></div><span class="arrow">&rarr;</span><div class="state"><strong>A</strong><span>Return</span></div></div>
+          <p class="return-message">A final answer can hide an earlier switch.</p>
+        </div>
+      </section>
+
+      <div class="right-column" data-fit>
+        <figure data-fit>
+          <h2>Stronger tone can reduce switching</h2>
+          <img class="plot small-plot" src="assets/claude-tone.svg" alt="Claude supplementary tone results, with Static and Adaptive runs plotted separately.">
+          <figcaption>Claude, supplementary SUB cohort.<br>One follow-up; seven influence families.</figcaption>
+        </figure>
+        <figure data-fit>
+          <h2>Rechecking reduces switching</h2>
+          <img class="plot small-plot" src="assets/recheck.svg" alt="Opus-4.6 rechecking reduces OBJ changes from 17.7% to 8.3% and SUB switching from 28.3% to 10.8%.">
+          <figcaption>Opus-4.6: 32 initially correct OBJ + 40 SUB items &times; 3 wordings.<br>With an answer key, both branches correct 7/7 wrong answers.</figcaption>
+        </figure>
+        <a class="download" href="https://github.com/AI4Collaboration/SuperSycophantic" data-fit>
+          <img src="assets/code-qr.svg" alt="QR code linking to the code and benchmark data">
+          <div><h3>Code + benchmark data</h3><p>SuperSycophantic</p><p class="url">github.com/AI4Collaboration/<br>SuperSycophantic</p></div>
+        </a>
+      </div>
+    </div>
+    <footer class="footer" data-fit>Stress-test multi-turn sycophancy before deployment, especially in high-stakes decision support.</footer>
+  </main>
+  <script>
+    function fitPoster() {
+      document.documentElement.style.setProperty('--screen-scale', Math.min(1, (window.innerWidth - 32) / (1400 * 96 / 25.4)));
+    }
+    fitPoster();
+    window.addEventListener('resize', fitPoster);
+  </script>
+</body>
+</html>

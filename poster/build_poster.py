@@ -1,9 +1,9 @@
-"""Generate vector plots, compile the LaTeX poster, and export web images."""
+"""Generate vector plots, print the HTML poster, and export web images."""
 
 from pathlib import Path
+from io import StringIO
 import shutil
 import subprocess
-import tempfile
 
 import matplotlib
 matplotlib.use("Agg")
@@ -12,15 +12,14 @@ import numpy as np
 import pymupdf
 from PIL import Image
 from reportlab.graphics.barcode.qr import QrCodeWidget
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfgen.canvas import Canvas
+from reportlab.graphics import renderSVG
+from reportlab.graphics.shapes import Drawing
 
 ROOT = Path(__file__).resolve().parent
 ASSETS = ROOT / "assets"
 STEM = "SuperSycophantic-NeurIPS-2026-Sydney"
 URL = "https://github.com/AI4Collaboration/SuperSycophantic"
-OBJ, SUB, NEUTRAL = "#007C87", "#B34B35", "#89949A"
+OBJ, SUB, NEUTRAL = "#087F8C", "#C45D37", "#929C9F"
 INK, GRID = "#25343B", "#DCE2E5"
 
 # Camera-ready context/controlled-intervention tables and a supplementary
@@ -43,21 +42,26 @@ RECHECK = {"OBJ": ([17, 8], 96), "SUB": ([34, 13], 120)}
 
 
 def style():
-    plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 18,
+    matplotlib.font_manager.findfont("Arial", fallback_to_default=False)
+    plt.rcParams.update({"font.family": "Arial", "font.size": 20,
+        "svg.fonttype": "none", "svg.hashsalt": "supersycophantic-poster",
         "pdf.fonttype": 42, "axes.spines.top": False, "axes.spines.right": False,
         "axes.spines.left": False, "axes.edgecolor": GRID, "axes.labelcolor": INK,
         "text.color": INK, "xtick.color": INK, "ytick.color": INK,
         "axes.titleweight": "bold", "axes.titlesize": 20, "legend.frameon": False})
 
 
-def save(fig, name):
-    fig.savefig(ASSETS / name, facecolor="white")
+def save(fig, name, transparent=False):
+    buffer = StringIO()
+    fig.savefig(buffer, format="svg", transparent=transparent,
+                facecolor="none" if transparent else "white", metadata={"Date": None})
+    (ASSETS / name).write_text("\n".join(line.rstrip() for line in buffer.getvalue().splitlines()) + "\n", encoding="utf-8")
     plt.close(fig)
 
 
 def context_plot():
-    fig, axes = plt.subplots(1, 2, figsize=(12, 7.1), sharey=True)
-    fig.subplots_adjust(left=.31, right=.97, bottom=.14, top=.84, wspace=.25)
+    fig, axes = plt.subplots(1, 2, figsize=(12, 7.8), sharey=True)
+    fig.subplots_adjust(left=.32, right=.97, bottom=.13, top=.83, wspace=.27)
     y = np.arange(len(MODELS))
     for ax, before, after, color, title in zip(
             axes, [CONTEXT_OBJ_NEUTRAL, [50] * 9],
@@ -66,9 +70,9 @@ def context_plot():
         ax.scatter(before, y, color=NEUTRAL, s=75, marker="o", zorder=3)
         ax.scatter(after, y, color=color, s=95, marker="D", zorder=4)
         ax.set_title(title, pad=18, color=color)
-        ax.set_yticks(y, MODELS, fontsize=16)
+        ax.set_yticks(y, MODELS, fontsize=17)
         ax.tick_params(axis="both", length=0, pad=7)
-        ax.set_xlabel("Accuracy (%)" if title == "OBJ" else "User alignment (%)", fontsize=17)
+        ax.set_xlabel("Accuracy (%)" if title == "OBJ" else "User alignment (%)", fontsize=18)
         ax.set_xlim((0, 80) if title == "OBJ" else (45, 95))
         ax.set_xticks([0, 40, 80] if title == "OBJ" else [50, 70, 90])
         ax.grid(axis="x", color=GRID)
@@ -77,14 +81,14 @@ def context_plot():
     from matplotlib.lines import Line2D
     fig.legend(handles=[Line2D([], [], marker="o", color=NEUTRAL, ls="", label="Neutral / balanced reference"),
                         Line2D([], [], marker="D", color=INK, ls="", label="User framing")],
-               loc="upper center", ncol=2, fontsize=16, bbox_to_anchor=(.54, .99))
-    save(fig, "context.pdf")
+               loc="upper center", ncol=1, fontsize=17, bbox_to_anchor=(.61, 1.0))
+    save(fig, "context.svg")
 
 
 def claude_plot():
-    fig, axes = plt.subplots(1, 2, figsize=(12, 7.1), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(12, 6.1), sharey=True)
     fig.subplots_adjust(left=.12, right=.97, bottom=.15, top=.79, wspace=.17)
-    palette = ["#72528B", "#007C87", "#BC6B28"]
+    palette = ["#7963A1", "#087F8C", "#C45D37"]
     for ax, (mode, records) in zip(axes, CLAUDE_SUB.items()):
         for (name, (counts, ns)), color, marker, ls in zip(records.items(), palette, ["o", "s", "^"], ["-", "--", "-."]):
             values = np.array(counts) / np.array(ns) * 100
@@ -92,36 +96,40 @@ def claude_plot():
             if name == "Opus-4.5":
                 for i in [1, 2]:
                     ax.annotate(f"{values[i]:.1f}%", (i, values[i]), xytext=(0, -27), textcoords="offset points",
-                                ha="center", color=color, weight="bold", fontsize=18)
+                                ha="center", color=color, weight="bold", fontsize=19,
+                                bbox={"facecolor": "white", "edgecolor": "none", "pad": 1.5})
         ax.set(xticks=range(3), xticklabels=["Mild", "Moderate", "Strong"], ylim=(0, 100), xlim=(-.25, 2.25),
                yticks=range(0, 101, 20))
-        ax.tick_params(axis="x", labelsize=16)
+        ax.tick_params(axis="x", labelsize=17)
         ax.set_title(mode, pad=18, fontsize=19)
         ax.grid(axis="y", color=GRID)
         ax.set_axisbelow(True)
     axes[0].set_ylabel("SUB switching (%)")
     handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper center", bbox_to_anchor=(.55, .99), ncol=3, fontsize=16, columnspacing=1.0)
-    save(fig, "claude-tone.pdf")
+    fig.legend(handles, labels, loc="upper center", bbox_to_anchor=(.55, .99), ncol=3, fontsize=17, columnspacing=.8)
+    save(fig, "claude-tone.svg")
 
 
 def certainty_plot():
-    fig, ax = plt.subplots(figsize=(12, 6.1))
-    fig.subplots_adjust(left=.13, right=.96, bottom=.19, top=.80)
-    for name, color, marker, ls in [("SUB", SUB, "s", "-"), ("OBJ", OBJ, "o", "--")]:
+    fig, ax = plt.subplots(figsize=(12, 9.2))
+    fig.subplots_adjust(left=.13, right=.95, bottom=.15, top=.84)
+    for name, color, marker, ls in [("SUB", "#FFB18C", "s", "-"), ("OBJ", "#8EE0E5", "o", "--")]:
         counts, n = CERTAINTY[name]
         values = np.array(counts) / n * 100
         ax.plot(range(3), values, color=color, marker=marker, linestyle=ls, linewidth=3, markersize=11,
                 label="SUB switch" if name == "SUB" else "OBJ correct to incorrect")
         for i, v in enumerate(values):
             ax.annotate(f"{v:.1f}%", (i, v), xytext=(0, 13), textcoords="offset points",
-                        ha="center", fontsize=21, weight="bold", color=color)
+                        ha="center", fontsize=24, weight="bold", color=color)
     ax.set(ylim=(0, 108), xlim=(-.16, 2.16), ylabel="Outcome rate (%)", yticks=range(0, 101, 20),
            xticks=range(3), xticklabels=["Might be\nwrong", "Probably\nwrong", "Definitely\nwrong"])
-    ax.legend(loc="upper center", bbox_to_anchor=(.48, 1.28), ncol=2, fontsize=17)
-    ax.grid(axis="y", color=GRID)
+    ax.legend(loc="upper left", bbox_to_anchor=(-.02, 1.21), ncol=1, fontsize=20, labelcolor="white")
+    ax.tick_params(colors="white", labelsize=20)
+    ax.yaxis.label.set_color("white")
+    ax.spines["bottom"].set_color("#87A4AF")
+    ax.grid(axis="y", color="#61808B", alpha=.55)
     ax.set_axisbelow(True)
-    save(fig, "certainty.pdf")
+    save(fig, "certainty.svg", transparent=True)
 
 
 def recheck_plot():
@@ -140,21 +148,15 @@ def recheck_plot():
         ax.grid(axis="y", color=GRID)
         ax.set_axisbelow(True)
     axes[0].set_ylabel("Outcome rate (%)")
-    save(fig, "recheck.pdf")
+    save(fig, "recheck.svg")
 
 
 def qr():
     code = QrCodeWidget(URL)
     x0, y0, x1, y1 = code.getBounds()
-    pdfmetrics.registerFont(TTFont("PosterQR", matplotlib.font_manager.findfont("DejaVu Sans")))
-    canvas = Canvas(str(ASSETS / "code-qr.pdf"), pagesize=(200, 200), initialFontName="PosterQR")
-    canvas.scale(200 / (x1 - x0), 200 / (y1 - y0))
-    canvas.setFillColorRGB(0, 0, 0)
-    for rect in code.draw().contents:
-        if rect.fillColor is not None:
-            canvas.rect(rect.x, rect.y, rect.width, rect.height, stroke=0, fill=1)
-    canvas.showPage()
-    canvas.save()
+    drawing = Drawing(200, 200, transform=[200 / (x1 - x0), 0, 0, 200 / (y1 - y0), 0, 0])
+    drawing.add(code)
+    renderSVG.drawToFile(drawing, str(ASSETS / "code-qr.svg"))
 
 
 def verify_and_export():
@@ -162,8 +164,10 @@ def verify_and_export():
         assert len(doc) == 1, "Poster must be a single page"
         p = doc[0]
         assert "SuperSycophantic" in p.get_text(), "Poster content is missing"
-        assert abs(p.rect.width * 2.54 / 72 - 140) < .01
-        assert abs(p.rect.height * 2.54 / 72 - 90) < .01
+        assert abs(p.rect.width * 2.54 / 72 - 140) < .04
+        assert abs(p.rect.height * 2.54 / 72 - 90) < .04
+        # Chromium rounds custom paper sizes; normalize the empty outer margin.
+        p.set_mediabox(pymupdf.Rect(0, 0, 140 / 2.54 * 72, 90 / 2.54 * 72))
         for b in p.get_text("dict")["blocks"]:
             for line in b.get("lines", []):
                 for s in line["spans"]:
@@ -171,10 +175,13 @@ def verify_and_export():
                     assert "\ufffd" not in s["text"], s
         for font in p.get_fonts(full=True):
             assert doc.extract_font(font[0])[3], font
+            assert "Arial" in font[3], f"Unexpected font: {font[3]}"
         assert any(x.get("uri") == URL for x in p.get_links())
+        pdf_bytes = doc.tobytes(garbage=4, deflate=True)
         pix = p.get_pixmap(matrix=pymupdf.Matrix(2880 / p.rect.height, 2880 / p.rect.height), alpha=False)
         im = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
         im.save(ROOT / f"{STEM}.png", optimize=True)
+    (ROOT / f"{STEM}.pdf").write_bytes(pdf_bytes)
     logo = Image.open(ASSETS / "supersycophantic-logo.png").convert("RGB")
     logo.thumbnail((320, 256), Image.Resampling.LANCZOS)
     logo.save(ROOT / "thumbnail.png", optimize=True)
@@ -183,30 +190,17 @@ def verify_and_export():
         with Image.open(p) as im:
             assert im.mode == "RGB" and im.width <= width and im.height <= height
         assert p.stat().st_size < limit
-    print("Verified: one-page 140 x 90 cm LaTeX PDF, embedded fonts, text bounds, code link, and web image limits.")
+    print("Verified: one-page 140 x 90 cm HTML PDF, embedded fonts, text bounds, code link, and web image limits.")
 
 
 def main():
     style()
     for fn in [context_plot, claude_plot, certainty_plot, recheck_plot, qr]:
         fn()
-    engine = shutil.which("xelatex")
-    if not engine:
-        raise SystemExit("Install XeLaTeX (TeX Live or MiKTeX) before building the poster.")
-    with tempfile.TemporaryDirectory(prefix="supersycophantic-poster-latex-") as directory:
-        command = [engine, "-interaction=nonstopmode", "-halt-on-error", "-no-shell-escape",
-                   f"-output-directory={directory}", "poster.tex"]
-        # TikZ page-relative positions require a second LaTeX pass.
-        for _ in range(2):
-            run = subprocess.run(command, cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-            if run.returncode:
-                print(run.stdout)
-                raise SystemExit(run.returncode)
-        log = (Path(directory) / "poster.log").read_text(encoding="utf-8", errors="replace")
-        problems = [line for line in log.splitlines() if any(word in line for word in ["Overfull", "Missing character", "Undefined control sequence"])]
-        if problems:
-            raise RuntimeError("\n".join(problems))
-        shutil.copy2(Path(directory) / "poster.pdf", ROOT / f"{STEM}.pdf")
+    node = shutil.which("node")
+    if not node:
+        raise SystemExit("Install Node.js and the poster's npm dependencies before building.")
+    subprocess.run([node, str(ROOT / "render_poster.cjs")], cwd=ROOT, check=True)
     verify_and_export()
 
 

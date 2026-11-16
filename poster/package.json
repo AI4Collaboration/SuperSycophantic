@@ -1,0 +1,10 @@
+{
+  "name": "supersycophantic-poster",
+  "private": true,
+  "scripts": {
+    "render": "node render_poster.cjs"
+  },
+  "dependencies": {
+    "playwright": "1.62.1"
+  }
+}
