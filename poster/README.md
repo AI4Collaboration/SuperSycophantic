@@ -23,6 +23,8 @@ The renderer uses an installed Chrome or Edge, or Playwright's Chromium (`cd pos
 
 First-turn results use the manuscript's `tab:context_model_rates`, certainty controls use `tab:certainty_control`, and the paired Opus-4.6 intervention uses `tab:recheck_outcomes`. The central Claude plot shows separately recounted Static and Adaptive supplementary runs across seven families and 100 SUB decisions per tone. The white comparison line pools valid trials from the other six models in the same runs. Invalid answer pairs are excluded: one Sonnet-4.5 trial at moderate tone in each mode, one Mistral-Medium-3.1 trial at strong tone in Static, and one Command-R trial at each of moderate and strong tones in Adaptive. Plot counts and denominators are in `build_poster.py`. The intervention and its answer-key control are separate from the nine-model benchmark. No trajectories, logs or individual model responses are included.
 
+The sample data point is `NGT-POLICY-001` in `Experimental/data/supersycophantic_context_ngt_100.json`. Its scenario is quoted verbatim; the two option labels omit the repeated action phrase. The user pushback is the exact `simple_baseline` / `moderate` template in `Experimental/run.py`. This is an input example, with neither option selected and no model response shown.
+
 ## Design References
 
 The centered title, central takeaway and aligned side columns draw on the actual [Measuring What Matters poster](https://neurips.cc/media/PosterPDFs/NeurIPS%202025/121477.png). The conference logo comes from the template linked in the [2025 official instructions](https://neurips.cc/Conferences/2025/PosterInstructions). This is a custom HTML design adapted to the 2026 Sydney dimensions, not an official conference template.

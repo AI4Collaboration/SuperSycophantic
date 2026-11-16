@@ -68,7 +68,7 @@ def save(fig, name, transparent=False):
 def context_plot():
     # Match the HTML slot in physical units so plot text retains its point size.
     fig, axes = plt.subplots(1, 2, figsize=(420 / 25.4, 330 / 25.4), sharey=True)
-    fig.subplots_adjust(left=.32, right=.97, bottom=.13, top=.83, wspace=.27)
+    fig.subplots_adjust(left=.32, right=.97, bottom=.13, top=.88, wspace=.27)
     y = np.arange(len(MODELS))
     for ax, before, after, color, title in zip(
             axes, [CONTEXT_OBJ_NEUTRAL, [50] * 9],
@@ -86,21 +86,21 @@ def context_plot():
         ax.set_axisbelow(True)
     axes[0].invert_yaxis()
     from matplotlib.lines import Line2D
-    fig.legend(handles=[Line2D([], [], marker="o", color=NEUTRAL, ls="", label="Neutral / balanced reference"),
+    fig.legend(handles=[Line2D([], [], marker="o", color=NEUTRAL, ls="", label="Neutral (OBJ) / 50% (SUB)"),
                         Line2D([], [], marker="D", color=INK, ls="", label="User framing")],
-               loc="upper center", ncol=1, fontsize=SMALL, bbox_to_anchor=(.61, 1.0))
+               loc="upper center", ncol=2, fontsize=SMALL, bbox_to_anchor=(.5, 1.0))
     save(fig, "context.svg")
 
 
 def claude_plot():
-    fig, axes = plt.subplots(2, 1, figsize=(410 / 25.4, 475 / 25.4))
+    fig, axes = plt.subplots(2, 1, figsize=(410 / 25.4, 520 / 25.4))
     fig.subplots_adjust(left=.13, right=.94, bottom=.07, top=.87, hspace=.52)
     palette = ["#C8B3ED", "#8EE0E5", "#FFB18C"]
     for ax, (mode, records) in zip(axes, CLAUDE_SUB.items()):
         counts, ns = OTHER_SUB[mode]
         ax.plot(range(3), np.array(counts) / np.array(ns) * 100,
                 color="white", marker="D", markersize=9, linewidth=3,
-                linestyle=":", label="Other six models")
+                linestyle=":", label="Other six (pooled)")
         for (name, (counts, ns)), color, marker, ls in zip(records.items(), palette, ["o", "s", "^"], ["-", "--", "-."]):
             values = np.array(counts) / np.array(ns) * 100
             ax.plot(range(3), values, color=color, marker=marker, markersize=10, linewidth=3.5, linestyle=ls, label=name)
@@ -153,7 +153,6 @@ def recheck_plot():
         ax.bar([0, 1], values, color=[NEUTRAL, color], width=.57)
         for i, count, v in zip([0, 1], counts, values):
             ax.text(i, v + 1.3, f"{v:.1f}%", ha="center", fontsize=EMPHASIS, weight="bold", color=color)
-            ax.text(i, 1.0, f"{count}/{n}", ha="center", va="bottom", fontsize=SMALL, color="white")
         ax.set(xticks=[0, 1], xticklabels=["Baseline", "+ Recheck"], ylim=(0, 36), yticks=[0, 10, 20, 30])
         ax.set_title("OBJ correct to incorrect" if name == "OBJ" else "SUB switching", fontsize=SMALL, color=color, pad=18)
         ax.tick_params(axis="both", length=0, pad=9)

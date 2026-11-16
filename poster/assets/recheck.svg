@@ -1180,137 +1180,6 @@ z
     </g>
    </g>
    <g id="text_9">
-    <!-- 17/96 -->
-    <g style="fill: #ffffff" transform="translate(210.78027 472.089951) scale(0.28 -0.28)">
-     <defs>
-      <path id="Lato-Regular-37" d="M 3459 4586
-L 3459 4330
-Q 3459 4221 3435 4150
-Q 3411 4080 3389 4032
-L 1488 202
-Q 1446 118 1372 59
-Q 1299 0 1178 0
-L 768 0
-L 2694 3782
-Q 2736 3862 2781 3929
-Q 2826 3997 2877 4058
-L 483 4058
-Q 429 4058 387 4101
-Q 346 4144 346 4198
-L 346 4586
-L 3459 4586
-z
-" transform="scale(0.015625)"/>
-      <path id="Lato-Regular-2f" d="M 765 -67
-Q 723 -179 635 -233
-Q 547 -288 454 -288
-L 214 -288
-L 2138 4502
-Q 2176 4605 2254 4659
-Q 2333 4714 2435 4714
-L 2678 4714
-L 765 -67
-z
-" transform="scale(0.015625)"/>
-      <path id="Lato-Regular-39" d="M 906 3238
-Q 906 3021 968 2849
-Q 1030 2678 1147 2560
-Q 1264 2442 1432 2381
-Q 1600 2320 1808 2320
-Q 2038 2320 2216 2395
-Q 2394 2470 2515 2595
-Q 2637 2720 2701 2883
-Q 2765 3046 2765 3222
-Q 2765 3437 2696 3611
-Q 2627 3786 2505 3907
-Q 2384 4029 2216 4094
-Q 2048 4160 1846 4160
-Q 1635 4160 1462 4091
-Q 1290 4022 1165 3900
-Q 1040 3779 973 3609
-Q 906 3440 906 3238
-z
-M 2237 1827
-Q 2307 1920 2368 2003
-Q 2429 2086 2483 2170
-Q 2307 2029 2086 1955
-Q 1866 1882 1619 1882
-Q 1360 1882 1128 1968
-Q 896 2054 720 2222
-Q 544 2390 440 2635
-Q 336 2880 336 3197
-Q 336 3498 448 3760
-Q 560 4022 761 4217
-Q 963 4413 1241 4525
-Q 1520 4637 1853 4637
-Q 2182 4637 2451 4528
-Q 2720 4419 2912 4224
-Q 3104 4029 3208 3757
-Q 3312 3485 3312 3155
-Q 3312 2957 3275 2779
-Q 3238 2602 3169 2430
-Q 3101 2259 3001 2091
-Q 2902 1923 2778 1747
-L 1661 134
-Q 1619 74 1542 37
-Q 1466 0 1366 0
-L 842 0
-L 2237 1827
-z
-" transform="scale(0.015625)"/>
-      <path id="Lato-Regular-36" d="M 1850 422
-Q 2080 422 2267 496
-Q 2454 570 2587 701
-Q 2720 832 2792 1011
-Q 2864 1190 2864 1402
-Q 2864 1626 2793 1806
-Q 2723 1987 2593 2113
-Q 2464 2240 2285 2307
-Q 2106 2374 1891 2374
-Q 1661 2374 1475 2296
-Q 1290 2218 1160 2085
-Q 1030 1952 961 1777
-Q 893 1603 893 1414
-Q 893 1194 957 1011
-Q 1021 829 1144 697
-Q 1267 566 1444 494
-Q 1622 422 1850 422
-z
-M 1517 2867
-Q 1456 2790 1400 2718
-Q 1344 2646 1293 2576
-Q 1456 2688 1651 2749
-Q 1846 2810 2077 2810
-Q 2355 2810 2601 2718
-Q 2848 2627 3032 2452
-Q 3216 2278 3325 2024
-Q 3434 1770 3434 1443
-Q 3434 1126 3318 854
-Q 3203 582 2996 380
-Q 2790 179 2500 64
-Q 2211 -51 1862 -51
-Q 1517 -51 1235 59
-Q 954 170 757 373
-Q 560 576 453 865
-Q 346 1155 346 1514
-Q 346 1814 478 2155
-Q 611 2496 902 2883
-L 2067 4448
-Q 2112 4506 2190 4546
-Q 2269 4586 2371 4586
-L 2877 4586
-L 1517 2867
-z
-" transform="scale(0.015625)"/>
-     </defs>
-     <use xlink:href="#Lato-Regular-31"/>
-     <use xlink:href="#Lato-Regular-37" transform="translate(58 0)"/>
-     <use xlink:href="#Lato-Regular-2f" transform="translate(116 0)"/>
-     <use xlink:href="#Lato-Regular-39" transform="translate(161.199997 0)"/>
-     <use xlink:href="#Lato-Regular-36" transform="translate(219.199997 0)"/>
-    </g>
-   </g>
-   <g id="text_10">
     <!-- 8.3% -->
     <g style="fill: #087f8c" transform="translate(472.743893 384.816142) scale(0.34 -0.34)">
      <defs>
@@ -1434,81 +1303,7 @@ z
      <use xlink:href="#Lato-Bold-25" transform="translate(139.75 0)"/>
     </g>
    </g>
-   <g id="text_11">
-    <!-- 8/96 -->
-    <g style="fill: #ffffff" transform="translate(479.744987 472.089951) scale(0.28 -0.28)">
-     <defs>
-      <path id="Lato-Regular-38" d="M 1856 403
-Q 2080 403 2257 465
-Q 2435 528 2558 641
-Q 2682 755 2747 913
-Q 2813 1072 2813 1264
-Q 2813 1501 2734 1669
-Q 2656 1837 2523 1942
-Q 2390 2048 2217 2097
-Q 2045 2147 1856 2147
-Q 1667 2147 1494 2097
-Q 1322 2048 1189 1942
-Q 1056 1837 977 1669
-Q 899 1501 899 1264
-Q 899 1072 964 913
-Q 1030 755 1153 641
-Q 1277 528 1454 465
-Q 1632 403 1856 403
-z
-M 1856 4195
-Q 1651 4195 1496 4134
-Q 1341 4074 1237 3968
-Q 1133 3862 1080 3721
-Q 1027 3581 1027 3421
-Q 1027 3264 1072 3117
-Q 1117 2970 1216 2856
-Q 1315 2742 1473 2673
-Q 1632 2605 1856 2605
-Q 2080 2605 2238 2673
-Q 2397 2742 2496 2856
-Q 2595 2970 2640 3117
-Q 2685 3264 2685 3421
-Q 2685 3581 2632 3721
-Q 2579 3862 2475 3968
-Q 2371 4074 2216 4134
-Q 2061 4195 1856 4195
-z
-M 2512 2390
-Q 2941 2269 3171 1984
-Q 3402 1699 3402 1254
-Q 3402 954 3288 712
-Q 3174 470 2971 300
-Q 2768 131 2483 40
-Q 2198 -51 1856 -51
-Q 1514 -51 1229 40
-Q 944 131 739 300
-Q 534 470 422 712
-Q 310 954 310 1254
-Q 310 1699 540 1984
-Q 771 2269 1200 2390
-Q 838 2525 654 2792
-Q 470 3059 470 3430
-Q 470 3683 569 3904
-Q 669 4125 851 4288
-Q 1034 4451 1288 4544
-Q 1542 4637 1856 4637
-Q 2166 4637 2422 4544
-Q 2678 4451 2860 4288
-Q 3043 4125 3142 3904
-Q 3242 3683 3242 3430
-Q 3242 3059 3058 2792
-Q 2874 2525 2512 2390
-z
-" transform="scale(0.015625)"/>
-     </defs>
-     <use xlink:href="#Lato-Regular-38"/>
-     <use xlink:href="#Lato-Regular-2f" transform="translate(58 0)"/>
-     <use xlink:href="#Lato-Regular-39" transform="translate(103.199997 0)"/>
-     <use xlink:href="#Lato-Regular-36" transform="translate(161.199997 0)"/>
-    </g>
-   </g>
-   <g id="text_12">
+   <g id="text_10">
     <!-- OBJ correct to incorrect -->
     <g style="fill: #087f8c" transform="translate(229.220129 85.606299) scale(0.28 -0.28)">
      <defs>
@@ -1865,7 +1660,7 @@ z
    <g id="matplotlib.axis_3">
     <g id="xtick_3">
      <g id="line2d_11"/>
-     <g id="text_13">
+     <g id="text_11">
       <!-- Baseline -->
       <g style="fill: #25343b" transform="translate(744.176781 518.65593) scale(0.3 -0.3)">
        <use xlink:href="#Lato-Regular-42"/>
@@ -1881,7 +1676,7 @@ z
     </g>
     <g id="xtick_4">
      <g id="line2d_12"/>
-     <g id="text_14">
+     <g id="text_12">
       <!-- + Recheck -->
       <g style="fill: #25343b" transform="translate(991.926966 518.65593) scale(0.3 -0.3)">
        <use xlink:href="#Lato-Regular-2b"/>
@@ -1952,7 +1747,7 @@ z
 L 1154.834646 487.559055
 " style="fill: none; stroke: #dce2e5; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
    </g>
-   <g id="text_15">
+   <g id="text_13">
     <!-- 28.3% -->
     <g style="fill: #c45d37" transform="translate(751.623344 171.509055) scale(0.34 -0.34)">
      <defs>
@@ -2006,45 +1801,7 @@ z
      <use xlink:href="#Lato-Bold-25" transform="translate(197.75 0)"/>
     </g>
    </g>
-   <g id="text_16">
-    <!-- 34/120 -->
-    <g style="fill: #ffffff" transform="translate(752.244437 472.089951) scale(0.28 -0.28)">
-     <defs>
-      <path id="Lato-Regular-34" d="M 2336 1654
-L 2336 3546
-Q 2336 3629 2342 3728
-Q 2349 3827 2362 3930
-L 691 1654
-L 2336 1654
-z
-M 3530 1654
-L 3530 1328
-Q 3530 1277 3499 1241
-Q 3469 1206 3405 1206
-L 2835 1206
-L 2835 0
-L 2336 0
-L 2336 1206
-L 301 1206
-Q 237 1206 190 1243
-Q 144 1280 131 1334
-L 74 1626
-L 2304 4586
-L 2835 4586
-L 2835 1654
-L 3530 1654
-z
-" transform="scale(0.015625)"/>
-     </defs>
-     <use xlink:href="#Lato-Regular-33"/>
-     <use xlink:href="#Lato-Regular-34" transform="translate(58 0)"/>
-     <use xlink:href="#Lato-Regular-2f" transform="translate(116 0)"/>
-     <use xlink:href="#Lato-Regular-31" transform="translate(161.199997 0)"/>
-     <use xlink:href="#Lato-Regular-32" transform="translate(219.199997 0)"/>
-     <use xlink:href="#Lato-Regular-30" transform="translate(277.199997 0)"/>
-    </g>
-   </g>
-   <g id="text_17">
+   <g id="text_14">
     <!-- 10.8% -->
     <g style="fill: #c45d37" transform="translate(1012.46806 358.152756) scale(0.34 -0.34)">
      <defs>
@@ -2093,18 +1850,7 @@ z
      <use xlink:href="#Lato-Bold-25" transform="translate(197.75 0)"/>
     </g>
    </g>
-   <g id="text_18">
-    <!-- 13/120 -->
-    <g style="fill: #ffffff" transform="translate(1013.089154 472.089951) scale(0.28 -0.28)">
-     <use xlink:href="#Lato-Regular-31"/>
-     <use xlink:href="#Lato-Regular-33" transform="translate(58 0)"/>
-     <use xlink:href="#Lato-Regular-2f" transform="translate(116 0)"/>
-     <use xlink:href="#Lato-Regular-31" transform="translate(161.199997 0)"/>
-     <use xlink:href="#Lato-Regular-32" transform="translate(219.199997 0)"/>
-     <use xlink:href="#Lato-Regular-30" transform="translate(277.199997 0)"/>
-    </g>
-   </g>
-   <g id="text_19">
+   <g id="text_15">
     <!-- SUB switching -->
     <g style="fill: #c45d37" transform="translate(839.258046 85.606299) scale(0.28 -0.28)">
      <defs>
