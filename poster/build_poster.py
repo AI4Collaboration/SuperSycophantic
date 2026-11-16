@@ -20,7 +20,7 @@ ASSETS = ROOT / "assets"
 STEM = "SuperSycophantic-NeurIPS-2026-Sydney"
 URL = "https://github.com/AI4Collaboration/SuperSycophantic"
 OBJ, SUB, NEUTRAL = "#087F8C", "#C45D37", "#929C9F"
-INK, GRID = "#25343B", "#DCE2E5"
+INK, GRID = "#25343B", "#C6D6DA"
 TEXT, SMALL, EMPHASIS = 30, 28, 34
 
 # Camera-ready context/controlled-intervention tables and a supplementary
@@ -57,7 +57,7 @@ def style():
         "axes.titleweight": "bold", "axes.titlesize": TEXT, "legend.frameon": False})
 
 
-def save(fig, name, transparent=False):
+def save(fig, name, transparent=True):
     buffer = StringIO()
     fig.savefig(buffer, format="svg", transparent=transparent,
                 facecolor="none" if transparent else "white", metadata={"Date": None})

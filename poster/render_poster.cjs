@@ -185,6 +185,39 @@ async function auditLayout(page) {
         }
       }
     }
+    const turns = Array.from(document.querySelectorAll('.sample-turn'));
+    if (turns.length) {
+      const same = (values, description) => {
+        if (Math.max(...values) - Math.min(...values) > 1) errors.push(`Dialogue alignment: ${description}.`);
+      };
+      const box = (turn, selector) => turn.querySelector(selector)?.getBoundingClientRect();
+      const selectors = ['.sample-stage', '.sample-prompt q', '.sample-response', '.sample-choice', '.sample-reply', '.sample-prompt .sample-avatar', '.sample-answer .sample-avatar'];
+      if (turns.length !== 4 || turns.some(turn => selectors.some(selector => !turn.querySelector(selector)))) {
+        errors.push('Dialogue must contain four complete turns.');
+      } else {
+        for (const selector of selectors) {
+          const boxes = turns.map(turn => box(turn, selector));
+          same(boxes.map(r => r.top), `${selector} row tops`);
+          same(boxes.map(r => r.width), `${selector} widths`);
+        }
+        for (const turn of turns) {
+          const prompt = box(turn, '.sample-prompt q');
+          const reply = box(turn, '.sample-response');
+          same([prompt.left, reply.left], 'user and model bubble left edges');
+          same([prompt.right, reply.right], 'user and model bubble right edges');
+          same([box(turn, '.sample-prompt .sample-avatar').left, box(turn, '.sample-answer .sample-avatar').left], 'avatar columns');
+          const promptPadding = parseFloat(getComputedStyle(turn.querySelector('.sample-prompt q')).paddingLeft);
+          same([prompt.left + promptPadding, box(turn, '.sample-choice').left, box(turn, '.sample-reply').left], 'message content left edges');
+        }
+        const response = box(turns[0], '.sample-response');
+        const arrows = Array.from(document.querySelectorAll('.sample-arrow'));
+        if (arrows.length !== 3) errors.push('Dialogue must contain three connecting arrows.');
+        same([response.top + response.height / 2, ...arrows.map(arrow => {
+          const r = arrow.getBoundingClientRect();
+          return r.top + r.height / 2;
+        })], 'connecting arrow centers');
+      }
+    }
     if (!hasContent) errors.push('.poster has no visible text or graphics.');
     return errors;
   }, PRINT);
