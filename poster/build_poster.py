@@ -67,8 +67,8 @@ def save(fig, name, transparent=False):
 
 def context_plot():
     # Match the HTML slot in physical units so plot text retains its point size.
-    fig, axes = plt.subplots(1, 2, figsize=(420 / 25.4, 338 / 25.4), sharey=True)
-    fig.subplots_adjust(left=.32, right=.97, bottom=.085, top=.89, wspace=.27)
+    fig, axes = plt.subplots(1, 2, figsize=(420 / 25.4, 258 / 25.4), sharey=True)
+    fig.subplots_adjust(left=.32, right=.97, bottom=.11, top=.855, wspace=.27)
     y = np.arange(len(MODELS))
     for ax, before, after, color, title in zip(
             axes, [CONTEXT_OBJ_NEUTRAL, [50] * 9],

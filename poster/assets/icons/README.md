@@ -1,3 +1,10 @@
 # Diagram Icons
 
-Unmodified SVGs from [Lucide](https://github.com/lucide-icons/lucide/tree/799c2ca5e1ca7e39772b53165177d2e7a6266d7b/icons), commit `799c2ca5e1ca7e39772b53165177d2e7a6266d7b`: ambulance, building-complex, house, arrow-right, user-round and bot. The upstream license is included in `LICENSE`.
+Unmodified SVGs from [Lucide](https://github.com/lucide-icons/lucide/tree/799c2ca5e1ca7e39772b53165177d2e7a6266d7b/icons), commit `799c2ca5e1ca7e39772b53165177d2e7a6266d7b`. The upstream license is included in `LICENSE`.
+
+- Dialogue: ambulance, building-complex, house, arrow-right, user-round.
+- Tasks and framing: file-check, scale, brain, fingerprint-pattern, target.
+- Influence: badge-check, users-round, circle-check, heart, gift, repeat-2, ticket, undo-2, message-circle-more, message-circle-x.
+- Tone and follow-ups: message-circle-question-mark, message-circle-exclamation-point, messages-square.
+
+The HTML composes these into small diagrams. Their colors and symbols identify experimental factors, not measured outcomes.

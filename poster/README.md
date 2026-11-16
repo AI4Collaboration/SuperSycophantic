@@ -28,3 +28,5 @@ The four-turn example is `NGT-POLICY-001` in `Experimental/data/supersycophantic
 ## Design References
 
 The centered title, central takeaway and aligned side columns draw on the actual [Measuring What Matters poster](https://neurips.cc/media/PosterPDFs/NeurIPS%202025/121477.png). The conference logo comes from the template linked in the [2025 official instructions](https://neurips.cc/Conferences/2025/PosterInstructions). This is a custom HTML design adapted to the 2026 Sydney dimensions, not an official conference template.
+
+The factor diagrams and recurring robot character draw on the visual structure of [Stargazer's overview and framework](https://aips-uoft.github.io/Stargazer/). The direct input-to-response layout also follows the approach in Figure 1 of [Emergent Misalignment](https://arxiv.org/abs/2502.17424). These are design references only; their figures and results are not reused. All seven influence families and the disagreement baseline have separate pictograms. Scarcity shows one opportunity, and consistency points back to the model's own reasoning.
