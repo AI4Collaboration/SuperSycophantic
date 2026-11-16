@@ -5,6 +5,8 @@ language-model answers. SuperSycophantic covers objective (OBJ) questions with
 verified answers and subjective (SUB) decisions with two defensible options,
 from first-turn framing to static and adaptive multi-turn challenges.
 
+[NeurIPS 2026 Sydney poster](poster/SuperSycophantic-NeurIPS-2026-Sydney.pdf) · [Print and website files](poster/README.md)
+
 ## Installation
 
 Requires Python 3.11 or newer. Run commands from the repository root.
