@@ -21,6 +21,7 @@ STEM = "SuperSycophantic-NeurIPS-2026-Sydney"
 URL = "https://github.com/AI4Collaboration/SuperSycophantic"
 OBJ, SUB, NEUTRAL = "#087F8C", "#C45D37", "#929C9F"
 INK, GRID = "#25343B", "#DCE2E5"
+TEXT, SMALL, EMPHASIS = 30, 28, 34
 
 # Camera-ready context/controlled-intervention tables and a supplementary
 # mode-separated Claude recount. Only aggregate counts are included.
@@ -42,13 +43,14 @@ RECHECK = {"OBJ": ([17, 8], 96), "SUB": ([34, 13], 120)}
 
 
 def style():
-    matplotlib.font_manager.findfont("Arial", fallback_to_default=False)
-    plt.rcParams.update({"font.family": "Arial", "font.size": 20,
-        "svg.fonttype": "none", "svg.hashsalt": "supersycophantic-poster",
+    for weight in ["Regular", "Bold"]:
+        matplotlib.font_manager.fontManager.addfont(ASSETS / "fonts" / f"Lato-{weight}.ttf")
+    plt.rcParams.update({"font.family": "Lato", "font.size": TEXT,
+        "svg.fonttype": "path", "svg.hashsalt": "supersycophantic-poster",
         "pdf.fonttype": 42, "axes.spines.top": False, "axes.spines.right": False,
         "axes.spines.left": False, "axes.edgecolor": GRID, "axes.labelcolor": INK,
         "text.color": INK, "xtick.color": INK, "ytick.color": INK,
-        "axes.titleweight": "bold", "axes.titlesize": 20, "legend.frameon": False})
+        "axes.titleweight": "bold", "axes.titlesize": TEXT, "legend.frameon": False})
 
 
 def save(fig, name, transparent=False):
@@ -60,7 +62,8 @@ def save(fig, name, transparent=False):
 
 
 def context_plot():
-    fig, axes = plt.subplots(1, 2, figsize=(12, 7.8), sharey=True)
+    # Match the HTML slot in physical units so plot text retains its point size.
+    fig, axes = plt.subplots(1, 2, figsize=(420 / 25.4, 273 / 25.4), sharey=True)
     fig.subplots_adjust(left=.32, right=.97, bottom=.13, top=.83, wspace=.27)
     y = np.arange(len(MODELS))
     for ax, before, after, color, title in zip(
@@ -70,9 +73,9 @@ def context_plot():
         ax.scatter(before, y, color=NEUTRAL, s=75, marker="o", zorder=3)
         ax.scatter(after, y, color=color, s=95, marker="D", zorder=4)
         ax.set_title(title, pad=18, color=color)
-        ax.set_yticks(y, MODELS, fontsize=17)
+        ax.set_yticks(y, MODELS, fontsize=SMALL)
         ax.tick_params(axis="both", length=0, pad=7)
-        ax.set_xlabel("Accuracy (%)" if title == "OBJ" else "User alignment (%)", fontsize=18)
+        ax.set_xlabel("Accuracy (%)" if title == "OBJ" else "User alignment (%)", fontsize=TEXT)
         ax.set_xlim((0, 80) if title == "OBJ" else (45, 95))
         ax.set_xticks([0, 40, 80] if title == "OBJ" else [50, 70, 90])
         ax.grid(axis="x", color=GRID)
@@ -81,12 +84,12 @@ def context_plot():
     from matplotlib.lines import Line2D
     fig.legend(handles=[Line2D([], [], marker="o", color=NEUTRAL, ls="", label="Neutral / balanced reference"),
                         Line2D([], [], marker="D", color=INK, ls="", label="User framing")],
-               loc="upper center", ncol=1, fontsize=17, bbox_to_anchor=(.61, 1.0))
+               loc="upper center", ncol=1, fontsize=SMALL, bbox_to_anchor=(.61, 1.0))
     save(fig, "context.svg")
 
 
 def claude_plot():
-    fig, axes = plt.subplots(1, 2, figsize=(12, 6.1), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(420 / 25.4, 205 / 25.4), sharey=True)
     fig.subplots_adjust(left=.12, right=.97, bottom=.15, top=.79, wspace=.17)
     palette = ["#7963A1", "#087F8C", "#C45D37"]
     for ax, (mode, records) in zip(axes, CLAUDE_SUB.items()):
@@ -96,22 +99,22 @@ def claude_plot():
             if name == "Opus-4.5":
                 for i in [1, 2]:
                     ax.annotate(f"{values[i]:.1f}%", (i, values[i]), xytext=(0, -27), textcoords="offset points",
-                                ha="center", color=color, weight="bold", fontsize=19,
+                                ha="center", color=color, weight="bold", fontsize=TEXT,
                                 bbox={"facecolor": "white", "edgecolor": "none", "pad": 1.5})
         ax.set(xticks=range(3), xticklabels=["Mild", "Moderate", "Strong"], ylim=(0, 100), xlim=(-.25, 2.25),
                yticks=range(0, 101, 20))
-        ax.tick_params(axis="x", labelsize=17)
-        ax.set_title(mode, pad=18, fontsize=19)
+        ax.tick_params(axis="x", labelsize=SMALL)
+        ax.set_title(mode, pad=18, fontsize=TEXT)
         ax.grid(axis="y", color=GRID)
         ax.set_axisbelow(True)
     axes[0].set_ylabel("SUB switching (%)")
     handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper center", bbox_to_anchor=(.55, .99), ncol=3, fontsize=17, columnspacing=.8)
+    fig.legend(handles, labels, loc="upper center", bbox_to_anchor=(.55, .99), ncol=3, fontsize=SMALL, columnspacing=.8)
     save(fig, "claude-tone.svg")
 
 
 def certainty_plot():
-    fig, ax = plt.subplots(figsize=(12, 9.2))
+    fig, ax = plt.subplots(figsize=(410 / 25.4, 315 / 25.4))
     fig.subplots_adjust(left=.13, right=.95, bottom=.15, top=.84)
     for name, color, marker, ls in [("SUB", "#FFB18C", "s", "-"), ("OBJ", "#8EE0E5", "o", "--")]:
         counts, n = CERTAINTY[name]
@@ -120,11 +123,11 @@ def certainty_plot():
                 label="SUB switch" if name == "SUB" else "OBJ correct to incorrect")
         for i, v in enumerate(values):
             ax.annotate(f"{v:.1f}%", (i, v), xytext=(0, 13), textcoords="offset points",
-                        ha="center", fontsize=24, weight="bold", color=color)
+                        ha="center", fontsize=EMPHASIS, weight="bold", color=color)
     ax.set(ylim=(0, 108), xlim=(-.16, 2.16), ylabel="Outcome rate (%)", yticks=range(0, 101, 20),
            xticks=range(3), xticklabels=["Might be\nwrong", "Probably\nwrong", "Definitely\nwrong"])
-    ax.legend(loc="upper left", bbox_to_anchor=(-.02, 1.21), ncol=1, fontsize=20, labelcolor="white")
-    ax.tick_params(colors="white", labelsize=20)
+    ax.legend(loc="upper left", bbox_to_anchor=(-.02, 1.21), ncol=1, fontsize=TEXT, labelcolor="white")
+    ax.tick_params(colors="white", labelsize=TEXT)
     ax.yaxis.label.set_color("white")
     ax.spines["bottom"].set_color("#87A4AF")
     ax.grid(axis="y", color="#61808B", alpha=.55)
@@ -133,17 +136,17 @@ def certainty_plot():
 
 
 def recheck_plot():
-    fig, axes = plt.subplots(1, 2, figsize=(12, 6.1), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(420 / 25.4, 205 / 25.4), sharey=True)
     fig.subplots_adjust(left=.13, right=.97, bottom=.20, top=.83, wspace=.22)
     for ax, name, color in zip(axes, ["OBJ", "SUB"], [OBJ, SUB]):
         counts, n = RECHECK[name]
         values = np.array(counts) / n * 100
         ax.bar([0, 1], values, color=[NEUTRAL, color], width=.57)
         for i, count, v in zip([0, 1], counts, values):
-            ax.text(i, v + 1.3, f"{v:.1f}%", ha="center", fontsize=22, weight="bold", color=color)
-            ax.text(i, 1.0, f"{count}/{n}", ha="center", va="bottom", fontsize=17, color="white", weight="bold")
+            ax.text(i, v + 1.3, f"{v:.1f}%", ha="center", fontsize=EMPHASIS, weight="bold", color=color)
+            ax.text(i, 1.0, f"{count}/{n}", ha="center", va="bottom", fontsize=SMALL, color="white")
         ax.set(xticks=[0, 1], xticklabels=["Baseline", "+ Recheck"], ylim=(0, 36), yticks=[0, 10, 20, 30])
-        ax.set_title("OBJ correct to incorrect" if name == "OBJ" else "SUB switching", fontsize=18, color=color, pad=18)
+        ax.set_title("OBJ correct to incorrect" if name == "OBJ" else "SUB switching", fontsize=SMALL, color=color, pad=18)
         ax.tick_params(axis="both", length=0, pad=9)
         ax.grid(axis="y", color=GRID)
         ax.set_axisbelow(True)
@@ -175,7 +178,7 @@ def verify_and_export():
                     assert "\ufffd" not in s["text"], s
         for font in p.get_fonts(full=True):
             assert doc.extract_font(font[0])[3], font
-            assert "Arial" in font[3], f"Unexpected font: {font[3]}"
+            assert any(name in font[3] for name in ["Raleway", "Lato"]), f"Unexpected font: {font[3]}"
         assert any(x.get("uri") == URL for x in p.get_links())
         pdf_bytes = doc.tobytes(garbage=4, deflate=True)
         pix = p.get_pixmap(matrix=pymupdf.Matrix(2880 / p.rect.height, 2880 / p.rect.height), alpha=False)

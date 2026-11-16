@@ -9,7 +9,7 @@ The print dimensions follow the [2026 main-conference instructions](https://neur
 
 ## Rebuild
 
-Use Python, Node.js 20+, and an installed Arial font. From the repository root, run:
+Use Python and Node.js 20+. Fonts are included in `assets/fonts/` under the SIL Open Font License. From the repository root, run:
 
 ```sh
 python -m pip install -r poster/requirements.txt
@@ -19,7 +19,7 @@ python poster/build_poster.py
 
 The renderer uses an installed Chrome or Edge, or Playwright's Chromium (`cd poster && npx playwright install chromium`). `CHROMIUM_EXECUTABLE` can select another Chromium executable. Each build uses a fresh headless browser; it does not use existing browser sessions.
 
-[poster.html](poster.html) controls the layout. The Python script regenerates four SVG plots and the QR code, prints through Chromium, and exports the web images. It normalizes Chromium's paper-size rounding to exactly 140 x 90 cm and checks page count, text bounds, embedded Arial fonts, the code link and image limits. The renderer also checks asset loading and layout overflow. The original project and conference logos are retained; no manuscript files are modified.
+[poster.html](poster.html) controls the layout. Raleway is used for headings and Lato for body text and plots. The Python script regenerates four SVG plots and the QR code, prints through Chromium, and exports the web images. Plot text is outlined in the SVGs so it renders consistently without system fonts. Plot dimensions match their HTML slots to preserve physical text sizes. The build normalizes Chromium's paper-size rounding to exactly 140 x 90 cm and checks page count, text bounds, embedded fonts, the code link and image limits. The renderer also checks asset loading and layout overflow. The original project and conference logos are retained; no manuscript files are modified.
 
 First-turn results use the manuscript's `tab:context_model_rates`, certainty controls use `tab:certainty_control`, and the paired Opus-4.6 intervention uses `tab:recheck_outcomes`. The Claude plot shows separately recounted Static and Adaptive supplementary runs, not the manuscript's original pooled aggregates. It includes seven families and 100 SUB decisions per tone; one invalid Sonnet-4.5 trial is excluded at moderate tone in each mode. Plot values and denominators are in `build_poster.py`. The intervention and its answer-key control are separate from the nine-model benchmark. No trajectories, logs or individual model responses are included.
 
