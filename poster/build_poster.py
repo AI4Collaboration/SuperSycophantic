@@ -124,8 +124,8 @@ def claude_plot():
 
 
 def certainty_plot():
-    fig, ax = plt.subplots(figsize=(420 / 25.4, 180 / 25.4))
-    fig.subplots_adjust(left=.13, right=.94, bottom=.17, top=.80)
+    fig, ax = plt.subplots(figsize=(420 / 25.4, 210 / 25.4))
+    fig.subplots_adjust(left=.13, right=.97, bottom=.17, top=.80)
     for name, color, marker, ls in [("SUB", SUB, "s", "-"), ("OBJ", OBJ, "o", "--")]:
         counts, n = CERTAINTY[name]
         values = np.array(counts) / n * 100
@@ -145,7 +145,7 @@ def certainty_plot():
 
 
 def recheck_plot():
-    fig, axes = plt.subplots(1, 2, figsize=(420 / 25.4, 266 / 25.4), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(420 / 25.4, 244 / 25.4), sharey=True)
     fig.subplots_adjust(left=.13, right=.97, bottom=.10, top=.92, wspace=.22)
     for ax, name, color in zip(axes, ["OBJ", "SUB"], [OBJ, SUB]):
         counts, n = RECHECK[name]

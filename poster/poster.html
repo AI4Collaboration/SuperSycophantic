@@ -45,12 +45,11 @@
     .conference > img { display: block; width: 145mm; height: 44mm; object-fit: contain; }
     .conference p { font-size: 28pt; }
     .content { display: grid; grid-template-columns: 420mm 460mm 420mm; gap: 30mm; }
-    .left-column { padding-top: 20mm; display: grid; grid-template-rows: 260mm 304mm; gap: 12mm; }
-    .right-column { padding-top: 20mm; display: grid; grid-template-rows: 230mm 326mm; gap: 20mm; }
+    .left-column, .right-column { padding-top: 20mm; display: grid; grid-template-rows: 260mm 304mm; gap: 12mm; }
     h2 { font-size: 44pt; line-height: 1.2; font-weight: 700; }
     h3 { font-size: 30pt; line-height: 1.2; font-weight: 700; }
     .design-equation { font-size: 44pt; }
-    .design-overview { display: grid; grid-template-columns: 184mm 20mm 216mm; align-items: center; height: 52mm; margin-top: 4mm; }
+    .design-overview { display: grid; grid-template-columns: 201mm 18mm 201mm; align-items: center; height: 52mm; margin-top: 4mm; }
     .task-pair { display: grid; grid-template-rows: repeat(2, 24mm); gap: 4mm; }
     .task { display: flex; align-items: center; gap: 5mm; }
     .task img { width: 22mm; height: 22mm; padding: 2mm; background: #e1f0ef; }
@@ -67,20 +66,22 @@
     .family { display: flex; flex-direction: column; align-items: center; gap: 2mm; font-size: 28pt; line-height: 1.15; }
     .family-name { white-space: nowrap; }
     .scene { position: relative; width: 86mm; height: 32mm; }
-    .scene img { position: absolute; width: 29mm; height: 29mm; left: 28mm; top: 1mm; }
+    .scene img { position: absolute; width: 29mm; height: 29mm; left: 28.5mm; top: 1.5mm; }
     .scene .accent { width: 17mm; height: 17mm; left: 51mm; top: 14mm; padding: 1mm; background: #f7dca3; border-radius: 50%; }
-    .scene.social img:first-child { width: 39mm; left: 21mm; }
-    .scene.social .accent { background: #dcecd8; }
-    .scene.liking .accent { background: #f5d7df; }
-    .scene.reciprocity img:first-child { left: 15mm; }
-    .scene.reciprocity img:last-child { width: 23mm; height: 23mm; left: 49mm; top: 4mm; }
-    .scene.scarcity img { width: 40mm; height: 32mm; left: 23mm; background: #fae5c8; border-radius: 2mm; padding: 1mm; }
+    .scene.authority img:first-child, .scene.liking img:first-child { left: 23mm; }
+    .scene.authority .accent { left: 46mm; }
+    .scene.social img:first-child { width: 39mm; left: 20mm; }
+    .scene.social .accent { left: 49mm; background: #dcecd8; }
+    .scene.liking .accent { left: 46mm; background: #f5d7df; }
+    .scene.reciprocity img:first-child { left: 14.5mm; }
+    .scene.reciprocity img:last-child { width: 23mm; height: 23mm; left: 48.5mm; top: 4.5mm; }
+    .scene.scarcity img { width: 40mm; height: 32mm; left: 23mm; top: 0; background: #fae5c8; border-radius: 2mm; padding: 1mm; }
     .scene.scarcity b { position: absolute; left: 33mm; top: 7mm; width: 12mm; background: #fae5c8; text-align: center; font-size: 32pt; }
-    .scene.consistency img { width: 25mm; height: 25mm; left: 6mm; top: 4mm; }
+    .scene.consistency img { width: 25mm; height: 25mm; left: 6mm; top: 3.5mm; }
     .scene.consistency .direction { width: 16mm; height: 16mm; left: 35mm; top: 8mm; }
     .scene.consistency img:last-child { left: 55mm; }
     .scene.unity { width: 69mm; border: .6mm dashed #6c9a8c; border-radius: 3mm; background: #edf4ed; }
-    .scene.unity img { width: 24mm; height: 26mm; left: 6mm; top: 2mm; }
+    .scene.unity img { width: 24mm; height: 26mm; left: 6mm; top: 2.5mm; }
     .scene.unity img:last-child { left: 38mm; }
     .scene.disagreement img { background: #f6e1df; border-radius: 2mm; padding: 2mm; }
     .tone-strip { display: grid; grid-template-columns: 1fr 18mm 1fr 18mm 1fr; align-items: center; margin-top: 5mm; height: 25mm; }
@@ -88,9 +89,9 @@
     .tone-level img { width: 23mm; height: 23mm; padding: 2mm; background: #f6ede7; border-radius: 2mm; }
     .tone-level.moderate img { background: #f3d8c8; }
     .tone-level.strong img { background: #e8b69e; }
-    .tone-strip > img { width: 14mm; height: 14mm; }
+    .tone-strip > img { width: 14mm; height: 14mm; justify-self: center; }
     .regimes { display: grid; grid-template-columns: 1fr 18mm 1fr; align-items: center; height: 29mm; margin-top: 3mm; }
-    .modes { display: flex; align-items: center; justify-content: space-around; gap: 7mm; }
+    .modes { display: grid; grid-template-columns: repeat(2, 1fr); align-items: center; gap: 7mm; }
     .mode { display: flex; flex-direction: column; align-items: center; gap: 1mm; font-size: 26pt; line-height: 1.1; }
     .mode-diagram { display: flex; align-items: center; gap: 2mm; height: 14mm; }
     .mode-diagram img { width: 13mm; height: 13mm; }
@@ -129,8 +130,8 @@
     .sample-arrow { width: 24mm; height: 20mm; margin-top: 73mm; justify-self: center; }
     .plot { display: block; width: 100%; object-fit: contain; }
     .context-plot { height: 258mm; margin-top: 8mm; }
-    .small-plot { height: 180mm; margin-top: 8mm; }
-    .recheck-plot { height: 266mm; }
+    .small-plot { height: 210mm; margin-top: 8mm; }
+    .recheck-plot { height: 244mm; }
     figcaption { margin-top: 5mm; font-size: 28pt; line-height: 1.3; color: #4c5356; }
     .focus { padding: 20mm 25mm; background: #163e4d; color: white; display: flex; flex-direction: column; }
     .key-message { font-size: 64pt; line-height: 1.15; font-weight: 700; }
