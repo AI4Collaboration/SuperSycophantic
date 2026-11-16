@@ -2,3 +2,4 @@
 *.png binary
 *.ttf binary
 assets/fonts/*-OFL.txt -text -whitespace
+assets/institutions/*.svg -text -whitespace

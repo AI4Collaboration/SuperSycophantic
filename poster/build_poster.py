@@ -38,6 +38,10 @@ CLAUDE_SUB = {
                  "Sonnet-4.5": ([585, 648, 610], [700, 699, 700]),
                  "Haiku-4.5": ([583, 644, 625], [700, 700, 700])},
 }
+OTHER_SUB = {
+    "Static": ([701, 2728, 3300], [4200, 4200, 4199]),
+    "Adaptive": ([1676, 3098, 3246], [4200, 4199, 4199]),
+}
 CERTAINTY = {"OBJ": ([153, 215, 352], 1055), "SUB": ([501, 714, 837], 900)}
 RECHECK = {"OBJ": ([17, 8], 96), "SUB": ([34, 13], 120)}
 
@@ -89,50 +93,55 @@ def context_plot():
 
 
 def claude_plot():
-    fig, axes = plt.subplots(1, 2, figsize=(420 / 25.4, 205 / 25.4), sharey=True)
-    fig.subplots_adjust(left=.12, right=.97, bottom=.15, top=.79, wspace=.17)
-    palette = ["#7963A1", "#087F8C", "#C45D37"]
+    fig, axes = plt.subplots(2, 1, figsize=(410 / 25.4, 455 / 25.4))
+    fig.subplots_adjust(left=.13, right=.94, bottom=.07, top=.87, hspace=.52)
+    palette = ["#C8B3ED", "#8EE0E5", "#FFB18C"]
     for ax, (mode, records) in zip(axes, CLAUDE_SUB.items()):
+        counts, ns = OTHER_SUB[mode]
+        ax.plot(range(3), np.array(counts) / np.array(ns) * 100,
+                color="white", marker="D", markersize=9, linewidth=3,
+                linestyle=":", label="Other six models")
         for (name, (counts, ns)), color, marker, ls in zip(records.items(), palette, ["o", "s", "^"], ["-", "--", "-."]):
             values = np.array(counts) / np.array(ns) * 100
-            ax.plot(range(3), values, color=color, marker=marker, markersize=9, linewidth=2.6, linestyle=ls, label=name)
-            if name == "Opus-4.5":
+            ax.plot(range(3), values, color=color, marker=marker, markersize=10, linewidth=3.5, linestyle=ls, label=name)
+            if name == "Opus-4.5" and mode == "Adaptive":
                 for i in [1, 2]:
-                    ax.annotate(f"{values[i]:.1f}%", (i, values[i]), xytext=(0, -27), textcoords="offset points",
+                    ax.annotate(f"{values[i]:.1f}%", (i, values[i]), xytext=(0, -33), textcoords="offset points",
                                 ha="center", color=color, weight="bold", fontsize=TEXT,
-                                bbox={"facecolor": "white", "edgecolor": "none", "pad": 1.5})
-        ax.set(xticks=range(3), xticklabels=["Mild", "Moderate", "Strong"], ylim=(0, 100), xlim=(-.25, 2.25),
-               yticks=range(0, 101, 20))
-        ax.tick_params(axis="x", labelsize=SMALL)
-        ax.set_title(mode, pad=18, fontsize=TEXT)
-        ax.grid(axis="y", color=GRID)
+                                bbox={"facecolor": "#163e4d", "edgecolor": "none", "pad": 1.5})
+        ax.set(xticks=range(3), xticklabels=["Mild", "Moderate", "Strong"], ylim=(0, 105), xlim=(-.15, 2.15),
+               yticks=[0, 50, 100])
+        ax.tick_params(colors="white", labelsize=TEXT, length=0, pad=8)
+        ax.set_title(mode, pad=20, fontsize=TEXT, color="white", loc="left")
+        ax.spines["bottom"].set_color("#87A4AF")
+        ax.grid(axis="y", color="#61808B", alpha=.55)
         ax.set_axisbelow(True)
-    axes[0].set_ylabel("SUB switching (%)")
+    fig.supylabel("SUB switching (%)", x=.012, fontsize=TEXT, color="white")
     handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper center", bbox_to_anchor=(.55, .99), ncol=3, fontsize=SMALL, columnspacing=.8)
-    save(fig, "claude-tone.svg")
+    fig.legend(handles, labels, loc="upper center", bbox_to_anchor=(.53, 1.01),
+               ncol=2, fontsize=SMALL, columnspacing=1.3, labelcolor="white")
+    save(fig, "claude-tone.svg", transparent=True)
 
 
 def certainty_plot():
-    fig, ax = plt.subplots(figsize=(410 / 25.4, 315 / 25.4))
-    fig.subplots_adjust(left=.13, right=.95, bottom=.15, top=.84)
-    for name, color, marker, ls in [("SUB", "#FFB18C", "s", "-"), ("OBJ", "#8EE0E5", "o", "--")]:
+    fig, ax = plt.subplots(figsize=(420 / 25.4, 205 / 25.4))
+    fig.subplots_adjust(left=.13, right=.94, bottom=.17, top=.80)
+    for name, color, marker, ls in [("SUB", SUB, "s", "-"), ("OBJ", OBJ, "o", "--")]:
         counts, n = CERTAINTY[name]
         values = np.array(counts) / n * 100
         ax.plot(range(3), values, color=color, marker=marker, linestyle=ls, linewidth=3, markersize=11,
                 label="SUB switch" if name == "SUB" else "OBJ correct to incorrect")
-        for i, v in enumerate(values):
+        for i in [0, 2]:
+            v = values[i]
             ax.annotate(f"{v:.1f}%", (i, v), xytext=(0, 13), textcoords="offset points",
                         ha="center", fontsize=EMPHASIS, weight="bold", color=color)
     ax.set(ylim=(0, 108), xlim=(-.16, 2.16), ylabel="Outcome rate (%)", yticks=range(0, 101, 20),
            xticks=range(3), xticklabels=["Might be\nwrong", "Probably\nwrong", "Definitely\nwrong"])
-    ax.legend(loc="upper left", bbox_to_anchor=(-.02, 1.21), ncol=1, fontsize=TEXT, labelcolor="white")
-    ax.tick_params(colors="white", labelsize=TEXT)
-    ax.yaxis.label.set_color("white")
-    ax.spines["bottom"].set_color("#87A4AF")
-    ax.grid(axis="y", color="#61808B", alpha=.55)
+    ax.legend(loc="upper left", bbox_to_anchor=(-.02, 1.33), ncol=1, fontsize=SMALL)
+    ax.tick_params(labelsize=TEXT, length=0, pad=7)
+    ax.grid(axis="y", color=GRID)
     ax.set_axisbelow(True)
-    save(fig, "certainty.svg", transparent=True)
+    save(fig, "certainty.svg")
 
 
 def recheck_plot():
