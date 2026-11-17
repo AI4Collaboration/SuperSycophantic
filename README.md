@@ -1,15 +1,14 @@
 # SuperSycophantic
 
-Code and data for testing how user framing and follow-up pressure affect
-language-model answers. SuperSycophantic covers objective (OBJ) questions with
-verified answers and subjective (SUB) decisions with two defensible options,
-from first-turn framing to static and adaptive multi-turn challenges.
+Code and data for testing language-model sycophancy under user framing and
+multi-turn pressure. OBJ questions have verified answers; SUB decisions have
+two defensible options.
 
 [NeurIPS 2026 Sydney poster](poster/SuperSycophantic-NeurIPS-2026-Sydney.pdf) · [Print and website files](poster/README.md)
 
 ## Installation
 
-Requires Python 3.11 or newer. Run commands from the repository root.
+Python 3.11+. Run commands from the repository root.
 
 ```sh
 python -m venv .venv
@@ -22,9 +21,8 @@ Activate the environment with `.venv\Scripts\Activate.ps1` in PowerShell or
 python -m pip install -r requirements.txt
 ```
 
-For live evaluations, set `OPENROUTER_API_KEY` in the environment or in a local
-`.env` file using [.env.example](.env.example). Existing environment variables
-take precedence. Model calls incur provider charges.
+Set `OPENROUTER_API_KEY` for live evaluations; see [.env.example](.env.example).
+Model calls incur provider charges.
 
 ## Quick Start
 
@@ -52,14 +50,12 @@ the PowerShell wrapper:
 powershell -ExecutionPolicy Bypass -File Experimental/run_trigger_eval_and_report.ps1 -Models main
 ```
 
-The [evaluation guide](Experimental/README.md) covers scoring, provider routing,
-additional experiments, and analysis of saved results. Each runner also accepts
-`--help`.
+See the [evaluation guide](Experimental/README.md) for scoring, provider routing,
+controls, and saved-result analyses. Runners accept `--help`.
 
 ## Data
 
-The included inputs are ready to use; source-cache downloads are only needed
-when rebuilding the mixed OBJ panel.
+Inputs are ready to use. Source caches are needed only to rebuild OBJ data.
 
 | Files under `Experimental/data/` | Contents |
 | --- | --- |
@@ -72,15 +68,13 @@ when rebuilding the mixed OBJ panel.
 | `mmlu_pro_release_gt_100.jsonl` | MMLU-Pro subset |
 | `rebuttal_positive_control/positive_update_gt_hard40.jsonl` | 40-item OBJ updating control |
 
-OBJ contains 50 items per science domain: mathematical, physical, chemical,
-and biomedical. Each domain has 25 MMLU-Pro and 25 HLE-Verified items. SUB
-contains 25 decisions per domain: policy, moral dilemmas, interpersonal
-relations, and professional planning. SUB has no hidden correct answer.
+OBJ has 50 items per science domain: mathematical, physical, chemical, and
+biomedical, each split equally between MMLU-Pro and HLE-Verified. SUB has 25
+decisions each in policy, moral dilemmas, interpersonal relations, and
+professional planning, with no hidden correct answer.
 
-Data files retain the legacy `gt` and `ngt` names for OBJ and SUB. Builders and
-validation scripts are in `Experimental/data/helper/`; see the
-[source-cache instructions](Experimental/data/hle_verified/README.md) for
-rebuilding the mixed panel.
+Filenames use `gt` for OBJ and `ngt` for SUB. Builders and audits are in
+`Experimental/data/helper/`; see [source-cache setup](Experimental/data/hle_verified/README.md).
 
 ## Models
 
@@ -89,14 +83,14 @@ GPT-5.4, GPT-5.4-mini, GPT-5.4-nano, Claude Opus-4.5, Sonnet-4.5, Haiku-4.5,
 Gemini-3.1-Flash-Lite Preview, Mistral-Medium-3.1, and Command-R.
 `--models smoke` selects Gemini-3.1-Flash-Lite Preview.
 
-The default adaptive generator is GPT-5.4-mini. Main runner defaults are 200
-concurrent requests, a 30-second timeout, and at most eight attempts.
+Default adaptive generator: GPT-5.4-mini. Runner defaults: concurrency 200,
+timeout 30 seconds, maximum eight attempts.
 Anthropic targets use the direct Messages API when an Anthropic key is present;
 set `OPENROUTER_ONLY=1` to route all targets through OpenRouter.
 
 ## Tests
 
-The tests and data audit run without model API calls:
+Offline checks:
 
 ```sh
 python -m pip install -r requirements-dev.txt
@@ -105,18 +99,6 @@ python Experimental/data/helper/audit_supersycophantic_panels.py
 python Experimental/audit_release.py --revision HEAD
 ```
 
-The release check scans committed files for credentials, private paths, and
-generated conversations. Use `--include-untracked` to check new files before
-staging them.
-
-## Repository Contents
-
-- `Experimental/run*.py`: evaluation runners.
-- `Experimental/revision_*.py` and `Experimental/rebuttal_*.py`: paired analyses,
-  re-checking experiments, and additional controls.
-- `Experimental/plot_*.py` and `Experimental/figures/`: plotting scripts.
-- `label_studio/`: annotation-agreement calculation code.
-- `images/`: small assets used by plotting scripts.
-
-Run outputs, trajectories, logs, and annotation exports stay local and are
-excluded from the repository. The code is available under the [MIT license](LICENSE).
+The release audit checks for credentials, private paths, and raw model outputs.
+Use `--include-untracked` to inspect new files. Trajectories, logs, and annotation
+exports stay local. Code: [MIT license](LICENSE).

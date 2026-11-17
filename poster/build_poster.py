@@ -94,21 +94,35 @@ def context_plot():
 
 def claude_plot():
     fig, axes = plt.subplots(2, 1, figsize=(410 / 25.4, 438 / 25.4))
-    fig.subplots_adjust(left=.13, right=.94, bottom=.045, top=.87, hspace=.28)
+    fig.subplots_adjust(left=.13, right=.72, bottom=.045, top=.94, hspace=.29)
     palette = ["#C8B3ED", "#8EE0E5", "#FFB18C"]
     for ax, (mode, records) in zip(axes, CLAUDE_SUB.items()):
         counts, ns = OTHER_SUB[mode]
-        ax.plot(range(3), np.array(counts) / np.array(ns) * 100,
-                color="white", marker="D", markersize=9, linewidth=3,
-                linestyle=":", label="Other six (pooled)")
+        series = [("Other six\n(pooled)", np.array(counts) / np.array(ns) * 100,
+                   "white", "D", ":", 75)]
         for (name, (counts, ns)), color, marker, ls in zip(records.items(), palette, ["o", "s", "^"], ["-", "--", "-."]):
             values = np.array(counts) / np.array(ns) * 100
-            ax.plot(range(3), values, color=color, marker=marker, markersize=10, linewidth=3.5, linestyle=ls, label=name)
+            label_y = {"Opus-4.5": 60, "Sonnet-4.5": 88, "Haiku-4.5": 101}[name]
+            series.append((name, values, color, marker, ls, label_y))
             if name == "Opus-4.5" and mode == "Adaptive":
-                for i in [1, 2]:
-                    ax.annotate(f"{values[i]:.1f}%", (i, values[i]), xytext=(0, -33), textcoords="offset points",
-                                ha="center", color=color, weight="bold", fontsize=TEXT,
-                                bbox={"facecolor": "#163e4d", "edgecolor": "none", "pad": 1.5})
+                midpoint = (values[1] + values[2]) / 2
+                ax.annotate("", (1.5, midpoint), xytext=(1.4, midpoint - 7),
+                            arrowprops={"arrowstyle": "-", "color": color, "linewidth": 1.5})
+                ax.text(1.4, midpoint - 13, f"{values[1]:.1f}% \u2192 {values[2]:.1f}%",
+                        ha="center", va="center", color=color, weight="bold", fontsize=SMALL,
+                        bbox={"facecolor": "#163e4d", "edgecolor": "none", "pad": 2})
+        for name, values, color, marker, ls, label_y in series:
+            # Keep the earlier segment visible while emphasizing the tested contrast.
+            ax.plot([0, 1], values[:2], color=color, marker=marker, markersize=8,
+                    linewidth=2.3, linestyle=ls, alpha=.3)
+            ax.plot([1, 2], values[1:], color=color, marker=marker, markersize=10,
+                    linewidth=4.2, linestyle=ls)
+            ax.annotate("", (2, values[2]), xytext=(1.06, label_y),
+                        textcoords=ax.get_yaxis_transform(),
+                        arrowprops={"arrowstyle": "-", "color": color, "linewidth": 1.5,
+                                    "connectionstyle": "arc3,rad=0"})
+            ax.text(1.08, label_y, name, transform=ax.get_yaxis_transform(),
+                    ha="left", va="center", color=color, fontsize=SMALL, linespacing=1.05)
         ax.set(xticks=range(3), xticklabels=["Mild", "Moderate", "Strong"], ylim=(0, 105), xlim=(-.15, 2.15),
                yticks=[0, 50, 100])
         ax.tick_params(colors="white", labelsize=TEXT, length=0, pad=8)
@@ -117,9 +131,6 @@ def claude_plot():
         ax.grid(axis="y", color="#61808B", alpha=.55)
         ax.set_axisbelow(True)
     fig.supylabel("SUB switching (%)", x=.012, fontsize=TEXT, color="white")
-    handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper center", bbox_to_anchor=(.53, 1.01),
-               ncol=2, fontsize=SMALL, columnspacing=1.3, labelcolor="white")
     save(fig, "claude-tone.svg", transparent=True)
 
 
