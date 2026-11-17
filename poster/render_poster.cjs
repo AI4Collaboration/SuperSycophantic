@@ -232,11 +232,11 @@ async function auditLayout(page) {
         })], 'connecting arrow centers');
       }
     }
-    const factors = Array.from(document.querySelectorAll('.design-overview .task img, .design-overview .framing img'));
+    const factors = Array.from(document.querySelectorAll('.design-overview .task img, .design-overview .mode-diagram'));
     if (factors.length) {
       const tops = factors.map(element => element.getBoundingClientRect().top);
       if (factors.length !== 4 || Math.max(...tops) - Math.min(...tops) > 1) {
-        errors.push('Task and framing icons must share one horizontal row.');
+        errors.push('Task and mode diagrams must share one horizontal row.');
       }
     }
     for (const selector of ['.subtitle', '.key-message', '.context-title']) {

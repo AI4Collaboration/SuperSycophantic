@@ -59,10 +59,7 @@
     .task.sub strong { color: #a34423; }
     .task p { font-size: 24pt; line-height: 1.12; }
     .cross { font-size: 36pt; color: #6f838a; text-align: center; }
-    .framing { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4mm; }
     .design-overview > .cross { line-height: 26mm; }
-    .framing > div { display: flex; flex-direction: column; align-items: center; gap: 2mm; font-size: 30pt; line-height: 1.12; }
-    .framing img { width: 26mm; height: 26mm; }
     .dimension { margin-top: 4mm; }
     .families { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 47mm); gap: 3mm 4mm; margin-top: 4mm; }
     .family { display: flex; flex-direction: column; align-items: center; gap: 2mm; font-size: 32pt; line-height: 1.15; }
@@ -93,16 +90,16 @@
     .tone-level.moderate img { background: #f3d8c8; }
     .tone-level.strong img { background: #e8b69e; }
     .tone-strip > img { width: 14mm; height: 14mm; justify-self: center; }
-    .regimes { display: grid; grid-template-columns: 1fr 18mm 1fr; align-items: center; height: 29mm; margin-top: 3mm; }
+    .followup-dimension { display: grid; grid-template-columns: 76mm 1fr; gap: 8mm; align-items: center; height: 29mm; margin-top: 3mm; }
     .modes { display: grid; grid-template-columns: repeat(2, 1fr); align-items: center; gap: 7mm; }
-    .mode { display: flex; flex-direction: column; align-items: center; gap: 1mm; font-size: 28pt; line-height: 1.1; }
-    .mode-diagram { display: flex; align-items: center; gap: 2mm; height: 14mm; }
-    .mode-diagram img { width: 13mm; height: 13mm; }
-    .mode-diagram img.connector { width: 10mm; height: 10mm; }
-    .mode-diagram .model-symbol { width: 13mm; height: 13mm; }
-    .followups { display: flex; flex-direction: column; align-items: center; gap: 1mm; font-size: 28pt; line-height: 1.1; }
-    .turn-diagram { display: flex; align-items: center; gap: 2mm; height: 14mm; }
-    .turn-diagram img { width: 14mm; height: 14mm; }
+    .mode { display: flex; flex-direction: column; align-items: center; gap: 2mm; font-size: 30pt; line-height: 1.12; }
+    .mode-diagram { display: flex; align-items: center; gap: 4mm; height: 26mm; }
+    .mode-diagram img { width: 21mm; height: 21mm; }
+    .mode-diagram img.connector { width: 14mm; height: 14mm; }
+    .mode-diagram .model-symbol { width: 21mm; height: 21mm; }
+    .followups { display: flex; align-items: center; justify-content: center; gap: 7mm; font-size: 30pt; line-height: 1.12; }
+    .turn-diagram { display: flex; align-items: center; gap: 2mm; height: 20mm; }
+    .turn-diagram img { width: 20mm; height: 20mm; }
     .turn-diagram span { color: #6f838a; padding: 0 5mm; }
     .sample { padding: 6mm 20mm; margin: 0 -20mm; border-bottom: .8mm solid #94aeb8; font-size: 30pt; line-height: 1.18; background: var(--dialogue); }
     .sample-heading { display: grid; grid-template-columns: 600mm 360mm 360mm; gap: 20mm; align-items: center; height: 42mm; }
@@ -238,16 +235,16 @@
     <div class="content" data-fit>
       <div class="left-column" data-fit>
         <section class="framework" data-fit>
-          <h2 class="design-equation">Task &times; Framing</h2>
+          <h2 class="design-equation">Task &times; Mode</h2>
           <div class="design-overview" data-fit>
             <div class="task-pair">
               <div class="task obj"><img src="assets/icons/file-check.svg" alt=""><p><strong>OBJ</strong>Verifiable answers</p></div>
               <div class="task sub"><img src="assets/icons/scale.svg" alt=""><p><strong>SUB</strong>Balanced choices</p></div>
             </div>
             <span class="cross">&times;</span>
-            <div class="framing">
-              <div><img src="assets/icons/fingerprint-pattern.svg" alt=""><span>Identity</span></div>
-              <div><img src="assets/icons/target.svg" alt=""><span>Stake</span></div>
+            <div class="modes">
+              <div class="mode"><div class="mode-diagram"><img src="assets/icons/message-circle-more.svg" alt="Prompt"><img class="connector" src="assets/icons/arrow-right.svg" alt="One-way"><span class="model-symbol" role="img" aria-label="Model"></span></div><span>Static</span></div>
+              <div class="mode"><div class="mode-diagram"><img src="assets/icons/message-circle-more.svg" alt="Prompt"><img class="connector" src="assets/icons/repeat-2.svg" alt="Response-dependent"><span class="model-symbol" role="img" aria-label="Model"></span></div><span>Adaptive</span></div>
             </div>
           </div>
           <div class="dimension">
@@ -273,13 +270,9 @@
               <div class="tone-level strong"><img src="assets/icons/message-circle-exclamation-point.svg" alt=""><span>Strong</span></div>
             </div>
           </div>
-          <div class="regimes" data-fit>
-            <div class="modes">
-              <div class="mode"><div class="mode-diagram"><img src="assets/icons/message-circle-more.svg" alt="Prompt"><img class="connector" src="assets/icons/arrow-right.svg" alt="One-way"><span class="model-symbol" role="img" aria-label="Model"></span></div><span>Static</span></div>
-              <div class="mode"><div class="mode-diagram"><img src="assets/icons/message-circle-more.svg" alt="Prompt"><img class="connector" src="assets/icons/repeat-2.svg" alt="Response-dependent"><span class="model-symbol" role="img" aria-label="Model"></span></div><span>Adaptive</span></div>
-            </div>
-            <span class="cross">&times;</span>
-            <div class="followups"><div class="turn-diagram"><img src="assets/icons/messages-square.svg" alt="One follow-up"><span>/</span><img src="assets/icons/messages-square.svg" alt=""><img src="assets/icons/messages-square.svg" alt=""><img src="assets/icons/messages-square.svg" alt="Three follow-ups"></div><span>One / Three follow-ups</span></div>
+          <div class="followup-dimension" data-fit>
+            <h3>Follow-ups</h3>
+            <div class="followups"><div class="turn-diagram"><img src="assets/icons/messages-square.svg" alt="One follow-up"><span>/</span><img src="assets/icons/messages-square.svg" alt=""><img src="assets/icons/messages-square.svg" alt=""><img src="assets/icons/messages-square.svg" alt="Three follow-ups"></div><span>One / Three</span></div>
           </div>
         </section>
         <figure data-fit>
