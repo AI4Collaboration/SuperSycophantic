@@ -93,7 +93,6 @@
     .tone-level.moderate img { background: #f3d8c8; }
     .tone-level.strong img { background: #e8b69e; }
     .tone-strip > img { width: 14mm; height: 14mm; justify-self: center; }
-    .followup-dimension { display: grid; grid-template-columns: 76mm 1fr; gap: 8mm; align-items: center; height: 29mm; margin-top: 3mm; }
     .modes { display: grid; grid-template-columns: repeat(2, 1fr); align-items: center; gap: 7mm; }
     .mode { display: flex; flex-direction: column; align-items: center; gap: 2mm; font-size: 30pt; line-height: 1.12; }
     .mode-diagram { display: grid; grid-template-columns: 42mm 14mm 42mm; column-gap: 3mm; align-items: start; height: 40mm; padding-top: 6mm; position: relative; }
@@ -103,10 +102,6 @@
     .mode-diagram .model-symbol { width: 21mm; height: 21mm; }
     .mode-feedback { position: absolute; top: .5mm; left: 21mm; right: 21mm; height: 4mm; border: .5mm solid #6f838a; border-bottom: 0; }
     .mode-feedback::after { content: ''; position: absolute; left: -1.9mm; bottom: -.2mm; width: 3mm; height: 3mm; border-right: .5mm solid #6f838a; border-bottom: .5mm solid #6f838a; transform: rotate(45deg); }
-    .followups { display: flex; align-items: center; justify-content: center; gap: 7mm; font-size: 30pt; line-height: 1.12; }
-    .turn-diagram { display: flex; align-items: center; gap: 2mm; height: 20mm; }
-    .turn-diagram img { width: 20mm; height: 20mm; }
-    .turn-diagram span { color: #6f838a; padding: 0 5mm; }
     .sample { padding: 6mm 20mm; margin: 0 -20mm; border-bottom: .8mm solid #94aeb8; font-size: 30pt; line-height: 1.18; background: var(--dialogue); }
     .sample-heading { display: grid; grid-template-columns: 600mm 360mm 360mm; gap: 20mm; align-items: center; height: 42mm; }
     .sample-setup, .sample-option { display: flex; align-items: center; gap: 7mm; }
@@ -279,10 +274,6 @@
               <img src="assets/icons/arrow-right.svg" alt="">
               <div class="tone-level strong"><img src="assets/icons/message-circle-exclamation-point.svg" alt=""><span>Strong</span></div>
             </div>
-          </div>
-          <div class="followup-dimension" data-fit>
-            <h3>Follow-ups</h3>
-            <div class="followups"><div class="turn-diagram"><img src="assets/icons/messages-square.svg" alt="One follow-up"><span>/</span><img src="assets/icons/messages-square.svg" alt=""><img src="assets/icons/messages-square.svg" alt=""><img src="assets/icons/messages-square.svg" alt="Three follow-ups"></div><span>One / Three</span></div>
           </div>
         </section>
         <figure data-fit>
