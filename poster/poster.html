@@ -104,15 +104,15 @@
     .turn-diagram span { color: #6f838a; padding: 0 5mm; }
     .sample { padding: 6mm 20mm; margin: 0 -20mm; border-bottom: .8mm solid #94aeb8; font-size: 30pt; line-height: 1.18; background: var(--dialogue); }
     .sample-heading, .sample-flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr) 24mm) minmax(0, 1fr); }
-    .sample-heading { align-items: center; height: 22mm; }
+    .sample-heading { align-items: center; height: 20mm; }
     .sample-setup, .sample-option { display: flex; align-items: center; gap: 12mm; white-space: nowrap; }
     .sample-setup { grid-column: 1 / 4; }
     .sample-option:nth-child(2) { grid-column: 5; }
     .sample-option:nth-child(3) { grid-column: 7; }
-    .sample-setup img, .sample-option img { width: 32mm; height: 22mm; object-fit: contain; }
+    .sample-setup img, .sample-option img { width: 32mm; height: 20mm; object-fit: contain; }
     .sample-setup p, .sample-option { font-size: 32pt; }
-    .sample-flow { position: relative; grid-template-rows: 42mm 62mm 10mm; row-gap: 2mm; margin-top: 4mm; }
-    .sample-flow::before { content: ''; position: absolute; left: 28mm; right: calc((100% - 72mm) / 4 - 28mm); top: 112.4mm; height: 1.2mm; background: #568b97; }
+    .sample-flow { position: relative; grid-template-rows: 50mm 58mm 10mm; row-gap: 2mm; margin-top: 2mm; }
+    .sample-flow::before { content: ''; position: absolute; left: 28mm; right: calc((100% - 72mm) / 4 - 28mm); top: 116.4mm; height: 1.2mm; background: #568b97; }
     .sample-flow > :nth-child(1) { grid-column: 1; }
     .sample-flow > :nth-child(2) { grid-column: 2; }
     .sample-flow > :nth-child(3) { grid-column: 3; }
@@ -121,21 +121,21 @@
     .sample-flow > :nth-child(6) { grid-column: 6; }
     .sample-flow > :nth-child(7) { grid-column: 7; }
     .sample-turn { display: grid; grid-template-rows: subgrid; grid-row: 1 / -1; }
-    .sample-trigger { display: grid; grid-template-rows: 14mm 26mm; gap: 2mm; }
+    .sample-trigger { display: grid; grid-template-rows: 14mm 34mm; gap: 2mm; }
     .sample-stage { display: flex; align-items: center; padding-left: 4mm; font-size: 32pt; }
-    .sample-trigger q { display: block; padding: 1mm 4mm; font-size: 30pt; line-height: 1.1; background: var(--user-fill); border-radius: 2mm; quotes: none; }
+    .sample-trigger q { display: flex; align-items: center; padding: .5mm 4mm; font-size: 44pt; line-height: 1.04; text-wrap: balance; background: var(--user-fill); border-radius: 2mm; quotes: none; }
     .sample-answer { display: grid; grid-template-columns: 56mm minmax(0, 1fr); gap: 7mm; align-items: center; }
     .model-symbol, .agent-portrait { display: block; background-image: url('assets/illustrations/robot-expressions.png'); background-size: 200% 200%; background-repeat: no-repeat; background-position: 0 0; }
     .agent-portrait { width: 56mm; height: 56mm; }
     .sample-turn[data-step="1"] .agent-portrait { background-position: 100% 0; }
     .sample-turn[data-step="2"] .agent-portrait { background-position: 0 100%; }
     .sample-turn[data-step="3"] .agent-portrait { background-position: 100% 100%; }
-    .sample-response { height: 62mm; display: grid; grid-template-rows: 22mm minmax(0, 1fr); gap: 2mm; padding: 4mm 0; }
+    .sample-response { height: 58mm; display: grid; grid-template-rows: 20mm minmax(0, 1fr); gap: 2mm; }
     .sample-choice { display: flex; align-items: center; gap: 3mm; }
-    .sample-choice img { width: 22mm; height: 22mm; }
-    .sample-answer strong { display: flex; align-items: center; gap: 3mm; font-size: 40pt; }
-    .option-letter { display: inline-flex; width: 16mm; height: 16mm; justify-content: center; align-items: center; background: #b0cfd4; font-size: 40pt; }
-    .sample-reply { font-size: 34pt; line-height: 1.1; text-align: left; }
+    .sample-choice img { width: 20mm; height: 20mm; }
+    .sample-answer strong { display: flex; align-items: center; gap: 3mm; font-size: 44pt; }
+    .option-letter { display: inline-flex; width: 18mm; height: 18mm; justify-content: center; align-items: center; background: #b0cfd4; font-size: 44pt; }
+    .sample-reply { font-size: 48pt; line-height: 1.03; text-align: left; text-wrap: balance; }
     .sample-node { position: relative; z-index: 1; width: 10mm; height: 10mm; margin-left: 23mm; border: 1mm solid #568b97; border-radius: 50%; background: var(--model-fill); }
     .sample-turn[data-step="3"] .sample-node { border-color: #b35d3e; background: var(--user-fill); }
     .sample-arrow { grid-row: 3; width: 16mm; height: 10mm; z-index: 1; align-self: center; justify-self: center; }
@@ -274,7 +274,7 @@
           </div>
         </section>
         <figure data-fit>
-          <h2>Framing can induce sycophancy<br>from the first turn</h2>
+          <h2>Framing can induce sycophancy<br>from turn 1</h2>
           <img class="plot context-plot" src="assets/context.svg" alt="First-turn accuracy falls under user framing in OBJ; user alignment rises above the balanced reference in SUB.">
         </figure>
       </div>
