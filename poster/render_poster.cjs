@@ -191,7 +191,7 @@ async function auditLayout(page) {
         if (Math.max(...values) - Math.min(...values) > 1) errors.push(`Dialogue alignment: ${description}.`);
       };
       const box = (turn, selector) => turn.querySelector(selector)?.getBoundingClientRect();
-      const selectors = ['.sample-stage', '.sample-trigger q', '.sample-response', '.sample-choice', '.sample-reply', '.agent-portrait', '.sample-node'];
+      const selectors = ['.sample-stage', '.sample-trigger q', '.sample-response', '.sample-choice', '.sample-reply', '.sample-confidence', '.agent-portrait', '.sample-node'];
       if (turns.length !== 4 || turns.some(turn => selectors.some(selector => !turn.querySelector(selector)))) {
         errors.push('Dialogue must contain four complete turns.');
       } else {
@@ -205,6 +205,23 @@ async function auditLayout(page) {
           const node = box(turn, '.sample-node');
           same([portrait.left + portrait.width / 2, node.left + node.width / 2], 'robot and timeline-node centers');
           same([box(turn, '.sample-choice').left, box(turn, '.sample-reply').left], 'model choice and reply left edges');
+          const confidence = Number(turn.dataset.confidence);
+          const cells = turn.querySelectorAll('.confidence-gauge i');
+          if (cells.length !== 5 || turn.querySelectorAll('.confidence-gauge .filled').length !== confidence) {
+            errors.push('Dialogue confidence gauge must match the reported 1-5 value.');
+          }
+          for (const selector of ['.sample-stage', '.sample-trigger q', '.sample-choice', '.sample-reply', '.sample-confidence']) {
+            const element = turn.querySelector(selector);
+            const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+            while (walker.nextNode()) {
+              if (!walker.currentNode.textContent.trim()) continue;
+              const range = document.createRange();
+              range.selectNodeContents(walker.currentNode);
+              if (Array.from(range.getClientRects()).some(r => outside(r, element.getBoundingClientRect()))) {
+                errors.push(`Dialogue text exceeds ${selector} in turn ${Number(turn.dataset.step) + 1}.`);
+              }
+            }
+          }
         }
         const node = box(turns[0], '.sample-node');
         const arrows = Array.from(document.querySelectorAll('.sample-arrow'));
@@ -213,6 +230,13 @@ async function auditLayout(page) {
           const r = arrow.getBoundingClientRect();
           return r.top + r.height / 2;
         })], 'connecting arrow centers');
+      }
+    }
+    const factors = Array.from(document.querySelectorAll('.design-overview .task img, .design-overview .framing img'));
+    if (factors.length) {
+      const tops = factors.map(element => element.getBoundingClientRect().top);
+      if (factors.length !== 5 || Math.max(...tops) - Math.min(...tops) > 1) {
+        errors.push('Task and framing icons must share one horizontal row.');
       }
     }
     if (!hasContent) errors.push('.poster has no visible text or graphics.');

@@ -67,8 +67,8 @@ def save(fig, name, transparent=True):
 
 def context_plot():
     # Match the HTML slot in physical units so plot text retains its point size.
-    fig, axes = plt.subplots(1, 2, figsize=(420 / 25.4, 244 / 25.4), sharey=True)
-    fig.subplots_adjust(left=.32, right=.97, bottom=.11, top=.855, wspace=.27)
+    fig, axes = plt.subplots(1, 2, figsize=(420 / 25.4, 214 / 25.4), sharey=True)
+    fig.subplots_adjust(left=.32, right=.97, bottom=.12, top=.80, wspace=.27)
     y = np.arange(len(MODELS))
     for ax, before, after, color, title in zip(
             axes, [CONTEXT_OBJ_NEUTRAL, [50] * 9],
@@ -93,7 +93,7 @@ def context_plot():
 
 
 def claude_plot():
-    fig, axes = plt.subplots(2, 1, figsize=(410 / 25.4, 438 / 25.4))
+    fig, axes = plt.subplots(2, 1, figsize=(410 / 25.4, 408 / 25.4))
     fig.subplots_adjust(left=.13, right=.94, bottom=.045, top=.87, hspace=.28)
     palette = ["#C8B3ED", "#8EE0E5", "#FFB18C"]
     for ax, (mode, records) in zip(axes, CLAUDE_SUB.items()):
@@ -145,7 +145,7 @@ def certainty_plot():
 
 
 def recheck_plot():
-    fig, axes = plt.subplots(1, 2, figsize=(420 / 25.4, 232 / 25.4), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(420 / 25.4, 202 / 25.4), sharey=True)
     fig.subplots_adjust(left=.13, right=.97, bottom=.10, top=.92, wspace=.22)
     for ax, name, color in zip(axes, ["OBJ", "SUB"], [OBJ, SUB]):
         counts, n = RECHECK[name]
