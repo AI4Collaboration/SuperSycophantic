@@ -36,7 +36,8 @@ python Experimental/run_context.py --models smoke --max-gt 2 --max-ngt 2 --dry-r
 python Experimental/run.py eval --input data/supersycophantic_trigger_gt_neutral_200.jsonl --models smoke --max-items 2 --triggers authority --tones mild --dry-run --output results/smoke/obj_trigger.jsonl.gz
 ```
 
-Dry runs save planned prompts. Use a new output path for a live run.
+Context dry runs print planned counts; trigger dry runs save planned prompts.
+Use a new output path for a live trigger run.
 
 Run context evaluations on the nine-model panel:
 

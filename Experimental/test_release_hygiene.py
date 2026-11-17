@@ -35,6 +35,14 @@ class ReleaseHygieneTests(unittest.TestCase):
             with self.subTest(name=name):
                 self.assertFalse(private_path(name))
 
+    def test_local_environment_files_are_rejected_at_any_depth(self):
+        for directory in ("", "nested/"):
+            for filename in (".env", ".env.production", ".envrc", "secrets.env"):
+                with self.subTest(directory=directory, filename=filename):
+                    findings = inspect_file(directory + filename, b"SERVICE_TOKEN=example-value\n")
+                    self.assertEqual([f.reason for f in findings], ["private or generated artifact"])
+            self.assertEqual(inspect_file(directory + ".env.example", b"SERVICE_TOKEN=\n"), [])
+
     def test_credentials_are_reported_without_values(self):
         secrets = ["sk-" + "x" * 36, "ghp_" + "x" * 36, "AKIA" + "X" * 16,
                    "xoxb-" + "1" * 32, "-----BEGIN " + "PRIVATE KEY-----"]
@@ -88,7 +96,8 @@ class ReleaseHygieneTests(unittest.TestCase):
 
     def test_generated_outputs_are_ignored(self):
         root = Path(__file__).resolve().parents[1]
-        paths = ["AGENTS.md", "run.log", "run.log.1", "nested/logs/run.txt", "run_stdout.txt",
+        paths = ["AGENTS.md", ".envrc", "nested/.envrc", "secrets.env", "nested/secrets.env",
+                 "run.log", "run.log.1", "nested/logs/run.txt", "run_stdout.txt",
                  "trajectories/model.json", "nested/transcripts/run.jsonl",
                  "trajectory.json", "responses.jsonl", "run.jsonl.gz",
                  "Experimental/IAA/Human-LLM-Judge-IAA-100.json",

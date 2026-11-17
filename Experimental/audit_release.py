@@ -60,7 +60,7 @@ def private_path(name: str) -> bool:
     if any(part in {".venv", "venv", "__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache"}
            for part in path.parts):
         return True
-    if base == ".env" or (base.startswith(".env.") and base != ".env.example"):
+    if base in {".env", ".envrc", "secrets.env"} or (base.startswith(".env.") and base != ".env.example"):
         return True
     if path.suffix.lower() in {".pem", ".key", ".pyc", ".pyo", ".aux", ".log", ".bak", ".orig"}:
         return True

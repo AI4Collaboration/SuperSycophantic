@@ -235,8 +235,19 @@ async function auditLayout(page) {
     const factors = Array.from(document.querySelectorAll('.design-overview .task img, .design-overview .framing img'));
     if (factors.length) {
       const tops = factors.map(element => element.getBoundingClientRect().top);
-      if (factors.length !== 5 || Math.max(...tops) - Math.min(...tops) > 1) {
+      if (factors.length !== 4 || Math.max(...tops) - Math.min(...tops) > 1) {
         errors.push('Task and framing icons must share one horizontal row.');
+      }
+    }
+    for (const selector of ['.subtitle', '.key-message', '.context-title']) {
+      const element = document.querySelector(selector);
+      if (!element) continue;
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      const boxes = Array.from(range.getClientRects());
+      if (boxes.some(r => outside(r, element.getBoundingClientRect())) ||
+          boxes.some(r => Math.abs(r.top - boxes[0].top) > 1)) {
+        errors.push(`${selector} must fit on one line.`);
       }
     }
     if (!hasContent) errors.push('.poster has no visible text or graphics.');
